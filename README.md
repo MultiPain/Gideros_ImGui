@@ -1,5 +1,14 @@
 # API
 
+!VERY IMPORTANT!
+```lua
+-- every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]
+-- for example:
+-- ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
+-- usage: imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)
+--											  ^-color   ^-alpha 
+```
+
 ```lua
 -------------------------------------------------------------------------------
 ------------------------------------ ENUMS ------------------------------------
@@ -358,11 +367,6 @@ ImGui.BackendFlags_RendererHasVtxOffset
 ----------------------------- DRAW LIST COMMANDS ------------------------------
 ---------------- ImDrawList *list = ImGui::GetWindowDrawList() ----------------
 -------------------------------------------------------------------------------
--- every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]
--- for example:
--- ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
--- usage: imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)
---											  ^-color   ^-alpha 
 
 ImGui:drawListPushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
 ImGui:drawListPushClipRectFullScreen()
@@ -610,8 +614,8 @@ pressFlag = ImGui:button(text, [w = 0, h = 0])
 pressFlag = ImGui:smallButton(text)
 pressFlag = ImGui:invisibleButton(stringID, [w = 0, h = 0])
 pressFlag = ImGui:arrowButton(stringID, [ImGuiDir = 0])
-ImGui:image(texture, w, h, [tintColor = 0xffffff, tintAlpha = 1, borderColor = 0xffffff, borderAlpha = 0, uv1x = 1, uv1y = 1, uv0x = 0, uv0y = 0])
-pressFlag = ImGui:imageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, tintAlpha = 1, borderColor = 0xffffff, borderAlpha = 0, uv1x = 1, uv1y = 1, uv0x = 0, uv0y = 0])
+ImGui:image(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, uv1x = 1, uv1y = 1, uv0x = 0, uv0y = 0])
+pressFlag = ImGui:imageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, uv1x = 1, uv1y = 1, uv0x = 0, uv0y = 0])
 pressFlag = ImGui:checkbox(text, flag)
 ImGui:checkboxFlags(label, ) -- TODO
 pressFlag = ImGui:radioButton(text, flag)
@@ -664,11 +668,11 @@ text, isTypingFlag = ImGui:inputText(label, initialText, [ImGuiInputTextFlags = 
 --ImGui:InputScalar()
  
 -- Colors
-hexColor, isTouchingFlag = ImGui:colorEdit3(label, hexColor, [ImGuiColorEditFlags = 0])
-hexColor, alpha, isTouchingFlag = ImGui:colorEdit4(label, hexColor, [alpha = 1, ImGuiColorEditFlags = 0])
-hexColor, isTouchingFlag = ImGui:colorPicker3(label, hexColor, [ImGuiColorEditFlags = 0])
-hexColor, alpha, originalColor, originalAlpha, isTouchingFlag = ImGui:colorPicker4(label, hexColor, [alpha = 1, originalColor = 0xffffff, originalAlpha = 1, ImGuiColorEditFlags = 0])
-isHoveringFlag = ImGui:colorButton(stringID, hexColor, [alpha = 1, ImGuiColorEditFlags = 0, w = 0, h = 0])
+hexColor, isTouchingFlag = ImGui:colorEdit3(label, color, [ImGuiColorEditFlags = 0]) -- alpha ignored, no need to pass it!
+hexColor, alpha, isTouchingFlag = ImGui:colorEdit4(label, color, [ImGuiColorEditFlags = 0])
+hexColor, isTouchingFlag = ImGui:colorPicker3(label, color, [ImGuiColorEditFlags = 0])
+hexColor, alpha, originalColor, originalAlpha, isTouchingFlag = ImGui:colorPicker4(label, color, [originalColor = 0xffffff, 1, ImGuiColorEditFlags = 0])
+isHoveringFlag = ImGui:colorButton(stringID, color, [ImGuiColorEditFlags = 0, w = 0, h = 0])
 ImGui:setColorEditOptions(ImGuiColorEditFlags)
 isOpenFlag = ImGui:treeNode(label, [formatString])
 ImGui:treeNodeEx(label, ImGui.TreeNodeFlags, [formatString])
