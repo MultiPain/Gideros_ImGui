@@ -6,6 +6,7 @@ for example:</br>
 ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])</br> 
 usage: imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)</br> 
 
+# Constructor
 ```lua
 ImGui.new([width, height, fontsTable])
 -- width (number, default = application:getContentWidth()): screen width
@@ -17,14 +18,11 @@ ImGui.new([width, height, fontsTable])
 -- 		oversampleH (number, default = 1): makes edges less sharp
 -- 		oversampleV (number, default = 1): makes edges less sharp 
 -- 		offsetX (number, default = 0): font offset by X
--- 		offsetY (number, default = 0): font offset by Y</code>
+-- 		offsetY (number, default = 0): font offset by Y
 ```
 
+# ENUMS
 ```lua
--------------------------------------------------------------------------------
------------------------------------- ENUMS ------------------------------------
--------------------------------------------------------------------------------
-
 -- ImGuiFocusedFlags
 ImGui.FocusedFlags_ChildWindows
 ImGui.FocusedFlags_AnyWindow
@@ -372,12 +370,10 @@ ImGui.BackendFlags_HasGamepad
 ImGui.BackendFlags_HasMouseCursors
 ImGui.BackendFlags_HasSetMousePos
 ImGui.BackendFlags_RendererHasVtxOffset
-
-
--------------------------------------------------------------------------------
------------------------------ DRAW LIST COMMANDS ------------------------------
----------------- ImDrawList *list = ImGui::GetWindowDrawList() ----------------
--------------------------------------------------------------------------------
+```
+# DRAW LIST COMMANDS
+```lua
+-- ImDrawList *list = ImGui::GetWindowDrawList() ----------------
 
 ImGui:drawListPushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
 ImGui:drawListPushClipRectFullScreen()
@@ -418,11 +414,10 @@ ImGui:drawListPathClear()
 
 -- WIP:
 --ImGui:addFonts()
+```
+# INPUTS
 
--------------------------------------------------------------------------------
------------------------------------ INPUTS ------------------------------------
--------------------------------------------------------------------------------
-
+```lua
 ImGui:onMouseHover(event)
 ImGui:onMouseMove(event)
 ImGui:onMouseDown(event)
@@ -432,19 +427,18 @@ ImGui:onMouseWheel(event)
 ImGui:onKeyUp(event)
 ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
+```
 
--------------------------------------------------------------------------------
-------------------------------- DEFAULT STYLES --------------------------------
--------------------------------------------------------------------------------
-
+# DEFAULT STYLES 
+```lua
 ImGui:setDarkStyle()
 ImGui:setLightStyle()
 ImGui:setClassicStyle()
+```
 
--------------------------------------------------------------------------------
---------------------------------- IO Functions --------------------------------
------------------------- ImGuiIO& io = ImGui::GetIO(); ------------------------
--------------------------------------------------------------------------------
+# IO Functions
+```lua
+-- ImGuiIO& io = ImGui::GetIO();
 
 ImGuiConfigFlag = ImGui:ioGetConfigFlags()
 ImGui:ioSetConfigFlags(ImGuiConfigFlag)
@@ -523,10 +517,10 @@ number = ImGui:getMetricsActiveWindows()
 number = ImGui:getMetricsActiveAllocations()
 number = ImGui:getMouseDelta()
 number = ImGui:getMouseDownSec()
+```
 
--------------------------------------------------------------------------------
------------------------------- WINDGETS & STUFF -------------------------------
--------------------------------------------------------------------------------
+# WINDGETS & STUFF
+```lua
 ImGui:beginChild(id, [w = 0, h = 0, borderFlag = false, ImGuiWindowFlags = 0)
 ImGui:endChild()
  
@@ -767,8 +761,10 @@ ImGui:endFrame()
 -- Display size
 ImGui:setDisplaySize(x, y)
 ImGui:setDisplayScale(x, y)
- 
--- Demos
+```
+
+# Demos
+```lua
 isOpenFlag = ImGui:showUserGuide()
 isOpenFlag = ImGui:showDemoWindow()
 isOpenFlag = ImGui:showAboutWindow()
