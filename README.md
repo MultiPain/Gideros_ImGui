@@ -407,6 +407,13 @@ ImGui.BackendFlags_HasGamepad
 ImGui.BackendFlags_HasMouseCursors
 ImGui.BackendFlags_HasSetMousePos
 ImGui.BackendFlags_RendererHasVtxOffset
+
+-- ImGuiSliderFlags
+ImGui.SliderFlags_None        
+ImGui.SliderFlags_ClampOnInpuе  
+ImGui.SliderFlags_Logarithmic  
+ImGui.SliderFlags_NoRoundToFormat
+ImGui.SliderFlags_NoInput
 ```
 [To top](#api)
 # DRAW LIST COMMANDS
