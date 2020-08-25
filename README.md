@@ -1,10 +1,47 @@
 # API
 
+* [ENUMS](#enums)
+* [Custom drawing](#draw-list-commands)
+* [Fonts](#fonts-wip)
+* [Inputs](#inputs)
+* [Styles](#default-styles)
+* [IO](#io-functions)
+* [Widgets](#windgets--stuff)
+* [Windows](#windows)
+* [Child windows](#child-windows)
+* [Windows utilities](#windows-utilities)
+* [Content region](#content-region)
+* [Windows scroll](#windows-scrolling)
+* [Parameters stacks](#parameters-stacks-shared)
+* [Cursor / layout](#cursor--layout)
+* [ID](#id-stackscopes)
+* [[Windgets] Text](#widgets-text)
+* [[Windgets] Main](#widgets-main)
+* [[Windgets] ComboBox](#widgets-combo-box)
+* [[Windgets] Drags](#widgets-drags)
+* [[Windgets] Sliders](#widgets-sliders)
+* [[Windgets] Text input](#widgets-input-with-keyboard)
+* [[Windgets] Color pickers](#widgets-color-editorpicker)
+* [[Windgets] Trees](#widgets-trees)
+* [[Windgets] Selectables](#widgets-selectables)
+* [[Windgets] ListBox](#widgets-list-boxes)
+* [[Windgets] Data ploting](#widgets-data-plotting)
+* [[Windgets] Value helper](#widgets-value-helpers)
+* [[Windgets] Menus](#widgets-menus)
+* [Popups / Modals](#popups-modals)
+* [Columns](#columns)
+* [Tabs](#tab-bars-tabs)
+* [Clipping](#clipping)
+* [Focus](#focus-activation)
+* [Render](#render)
+* [Display](#display-size)
+* [ImGui Demos](#demos)
+
 !VERY IMPORTANT!</br> 
 every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
 for example:</br> 
-ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])</br> 
-usage: imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)</br> 
+```ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])```</br> 
+usage: ```imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)```</br> 
 
 # Constructor
 ```lua
