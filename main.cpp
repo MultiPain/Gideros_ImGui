@@ -1973,31 +1973,6 @@ int ImGui_impl_GetFontSize(lua_State *L)
     return 1;
 }
 
-// TODO
-int ImGui_impl_GetColorU32(lua_State *L)
-{
-//    if (lua_type(L, 3) == LUA_TNIL)
-//    {
-//        ImU32 col = luaL_checkinteger(L, 2);
-//        lua_pushinteger(L, ImGui::GetColorU32(col));
-//    }
-//    else if (lua_type(L, 4) == LUA_TNIL)
-//    {
-//        ImGuiCol idx = luaL_checkinteger(L, 2);
-//        float alpha_mul = luaL_optnumber(L, 3, 1.0f);
-//        lua_pushinteger(L, ImGui::GetColorU32(idx, alpha_mul));
-//    }
-//    else
-//    {
-//        float r = luaL_checknumber(L, 2);
-//        float g = luaL_checknumber(L, 3);
-//        float b = luaL_checknumber(L, 4);
-//        float a = luaL_optnumber(L, 5, 1.0f);
-//        lua_pushinteger(L, ImGui::GetColorU32(ImVec4(r, g, b, a)));
-//    }
-    return 1;
-}
-
 // Parameters stacks (current window)
 int ImGui_impl_PushItemWidth(lua_State *L)
 {
@@ -2391,7 +2366,6 @@ int ImGui_impl_Checkbox(lua_State *L)
     return 2;
 }
 
-// TODO
 int ImGui_impl_CheckboxFlags(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
