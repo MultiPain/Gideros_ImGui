@@ -522,6 +522,15 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImDrawCornerFlags_Right);                        lua_setfield(L, -2, "CornerFlags_Right");
     lua_pushinteger(L, ImDrawCornerFlags_All);                          lua_setfield(L, -2, "CornerFlags_All");
 
+    // 1.78 *NEW*
+    //ImGuiSliderFlags_
+
+    lua_pushinteger(L, ImGuiSliderFlags_None);                          lua_setfield(L, -2, "SliderFlags_None");
+    lua_pushinteger(L, ImGuiSliderFlags_ClampOnInput);                  lua_setfield(L, -2, "SliderFlags_ClampOnInput");
+    lua_pushinteger(L, ImGuiSliderFlags_Logarithmic);                   lua_setfield(L, -2, "SliderFlags_Logarithmic");
+    lua_pushinteger(L, ImGuiSliderFlags_NoRoundToFormat);               lua_setfield(L, -2, "SliderFlags_NoRoundToFormat");
+    lua_pushinteger(L, ImGuiSliderFlags_NoInput);                       lua_setfield(L, -2, "SliderFlags_NoInput");
+
     lua_pop(L, 1);
 }
 
@@ -4775,7 +4784,6 @@ int ImGui_impl_DrawList_PathRect(const ImVec2& rect_min, const ImVec2& rect_max,
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#define MAX_TABLE_LOOK_UP 8
 int ImGui_my_test_key_table(lua_State *L)
 {
 
@@ -4817,36 +4825,11 @@ int ImGui_my_test_n_table(lua_State *L)
     return 0;
 }
 
-int ImGui_my_test(lua_State *L)
-{
-    return 0;
-}
-
-int ImGui_my_sliders(lua_State *L)
-{
-    static int v = 0;
-    static float f = 0.0f;
-
-    if (ImGui::CollapsingHeader("BuilIn"))
-    {
-        ImGui::SliderInt("int slider", &v, 0, 100);
-        ImGui::SliderFloat("float slider", &f, 0.0f, 100.0f, "%.0f");
-
-        ImGui::PushID(1);
-        ImGui::SliderInt("int slider", &v, 100, 0);
-        ImGui::SliderFloat("float slider", &f, 100.0f, 0.0f, "%.0f");
-        ImGui::PopID();
-    }
-    return  0;
-}
-
 int loader(lua_State *L)
 {
     Binder binder(L);
     const luaL_Reg functionList[] =
     {
-        {"test", ImGui_my_sliders},
-        //{"rangeSliderFloat", ImGui_custom_RangeSliderFloat},
         // Draw list
         {"drawListPushClipRect", ImGui_impl_DrawList_PushClipRect},
         {"drawListPushClipRectFullScreen", ImGui_impl_DrawList_PushClipRectFullScreen},
