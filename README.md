@@ -408,6 +408,7 @@ ImGui.BackendFlags_HasMouseCursors
 ImGui.BackendFlags_HasSetMousePos
 ImGui.BackendFlags_RendererHasVtxOffset
 ```
+[To top](#api)
 # DRAW LIST COMMANDS
 ```lua
 -- ImDrawList *list = ImGui::GetWindowDrawList()
@@ -449,10 +450,12 @@ ImGui:drawListPathClear()
 --ImGui:drawListPathBezierCurveTo()
 --ImGui:drawListPathRect()
 ```
+[To top](#api)
 # FONTS (W.I.P)
 ```lua
 --ImGui:addFonts()
 ```
+[To top](#api)
 # INPUTS
 
 ```lua
@@ -466,14 +469,14 @@ ImGui:onKeyUp(event)
 ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
 ```
-
+[To top](#api)
 # DEFAULT STYLES 
 ```lua
 ImGui:setDarkStyle()
 ImGui:setLightStyle()
 ImGui:setClassicStyle()
 ```
-
+[To top](#api)
 # IO Functions
 ```lua
 -- ImGuiIO& io = ImGui::GetIO();
@@ -556,18 +559,20 @@ number = ImGui:getMetricsActiveAllocations()
 number = ImGui:getMouseDelta(button)
 number = ImGui:getMouseDownSec(button)
 ```
-
+[To top](#api)
 # WINDGETS & STUFF
 # Windows
 ```lua
 isOpenFlag = ImGui:beginWindow()
 ImGui:endWindow()
 ```
+[To top](#api)
 # Child Windows
 ```lua
 ImGui:beginChild(id, [w = 0, h = 0, borderFlag = false, ImGuiWindowFlags = 0)
 ImGui:endChild()
 ```
+[To top](#api)
 # Windows Utilities
 ```lua
 flag = ImGui:isWindowAppearing()
@@ -591,6 +596,7 @@ ImGui:setWindowCollapsed(name, flag, [ImGuiCond = 0]) OR ImGui:setWindowCollapse
 ImGui:setWindowFocus(name) OR ImGui:setWindowFocus()
 ImGui:setWindowFontScale(scale)
 ```
+[To top](#api)
 # Content region 
 ```lua
 scaleX, scaleY = ImGui:getContentRegionMax()
@@ -599,6 +605,7 @@ x, y = ImGui:getWindowContentRegionMin()
 x, y = ImGui:getWindowContentRegionMax()
 w = ImGui:getWindowContentRegionWidth()
 ```
+[To top](#api)
 # Windows Scrolling
 ```lua
 x = ImGui:getScrollX()
@@ -612,6 +619,7 @@ ImGui:setScrollHereY([ratio = 0.5])
 ImGui:setScrollFromPosX(x, [ratio = 0.5])
 ImGui:setScrollFromPosY(y, [ratio = 0.5])
 ```
+[To top](#api)
 # Parameters stacks (shared)
 ```lua
 ImGui:pushStyleColor(color)
@@ -621,6 +629,7 @@ ImGui:popStyleVar([count = 1])
 color, alpha = ImGui:getStyleColor(ImGui.Col_XXX) -- pass ImGui constant
 fontSize = ImGui:getFontSize()
 ```
+[To top](#api)
 # Parameters stacks (current window) 
 ```lua
 ImGui:pushItemWidth(w)
@@ -634,6 +643,7 @@ ImGui:popAllowKeyboardFocus()
 ImGui:pushButtonRepeat(flag)
 ImGui:popButtonRepeat()
 ```
+[To top](#api)
 # Cursor / Layout
 ```lua
 ImGui:separator()
@@ -657,6 +667,7 @@ lineH = ImGui:getTextLineHeightWithSpacing()
 frameH = ImGui:getFrameHeight()
 frameH = ImGui:getFrameHeightWithSpacing()
 ```
+[To top](#api)
 # ID stack/scopes
 ```lua
 ImGui:pushID(anyValue) 
@@ -665,6 +676,7 @@ ImGui:popID()
 number = ImGui:getID(anyValue)
 number = ImGui:getID(strBegin, strEnd)
 ```
+[To top](#api)
 # Widgets: Text
 ```lua
 ImGui:textUnformatted(text, [textEnd])
@@ -675,6 +687,7 @@ ImGui:textWrapped(text)
 ImGui:labelText(text, label)
 ImGui:bulletText(text)
 ```
+[To top](#api)
 # Widgets: Main
 ```lua
 pressFlag = ImGui:button(text, [w = 0, h = 0])
@@ -689,12 +702,14 @@ pressFlag = ImGui:radioButton(text, flag)
 ImGui:progressBar(fraction, [anchorX = -1, anchorY = 0, overlayString = nil])
 ImGui:bullet()
 ```
+[To top](#api)
 # Widgets: Combo Box
 ```lua
 openFlag = ImGui:beginCombo(text, previewText, [ImGuiComboFlags = 0])
 ImGui:endCombo()
 currentItem, isOpen = ImGui:combo(label, currentItem, items) -- items (table): {"item1", "item2", ...}
 ```
+[To top](#api)
 # Widgets: Drags 
 ```lua
 value, isDragingFlag = ImGui:dragFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
@@ -710,6 +725,7 @@ value1, value2, value3, value4, isDragingFlag = ImGui:dragInt4(label, value1, va
 ImGui:dragIntRange2(label, )
 ImGui:dragScalar()
 ```
+[To top](#api)
 # Widgets: Sliders
 ```lua
 value, isDragingFlag = ImGui:sliderFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
@@ -740,6 +756,7 @@ value, isDragingFlag = ImGui:vFilledSliderFloat(label, mirrorFlag, w, h, value, 
 value, isDragingFlag = ImGui:vFilledSliderInt(label, mirrorFlag, w, h, value, min, max, [formatString = "%d"])
 value, isDragingFlag = ImGui:vFilledSliderScalar(label, mirrorFlag, w, h, ImGuiDataType, [min = nil, max = nil, formatString = nil, power = 1])
 ```
+[To top](#api)
 # Widgets: Input with Keyboard
 WIP (!!WARNING!! TRY NOT TO USE IT FOR NOW)
 ```lua
@@ -757,6 +774,7 @@ text, isTypingFlag = ImGui:inputText(label, initialText, [ImGuiInputTextFlags = 
 --ImGui:InputDouble()
 --ImGui:InputScalar()
 ```
+[To top](#api)
 # Widgets: Color Editor/Picker
 ```lua
 hexColor, isTouchingFlag = ImGui:colorEdit3(label, color, [ImGuiColorEditFlags = 0]) -- alpha ignored, no need to pass it!
@@ -766,6 +784,7 @@ hexColor, alpha, originalColor, originalAlpha, isTouchingFlag = ImGui:colorPicke
 isHoveringFlag = ImGui:colorButton(stringID, color, [ImGuiColorEditFlags = 0, w = 0, h = 0])
 ImGui:setColorEditOptions(ImGuiColorEditFlags)
 ```
+[To top](#api)
 # Widgets: Trees
 ```lua
 isOpenFlag = ImGui:treeNode(label, [formatString])
@@ -777,10 +796,12 @@ isOpenFlag, p_open = ImGui:collapsingHeader(label, p_open, [ImGuiTreeNodeFlags =
 isOpenFlag = ImGui:collapsingHeader(label, [ImGuiTreeNodeFlags = 0])
 ImGui:setNextItemOpen(is_open, ImGuiCond)
 ```
+[To top](#api)
 # Widgets: Selectables
 ```lua
 result?, selected = ImGui:selectable(label, selected, [ImGuiSelectableFlags = 0, w = 0, h = 0])
 ```
+[To top](#api)
 # Widgets: List Boxes
 ```lua
 current_item, isOpenFlag = ImGui:listBox(label, current_item, itemTable, [max_visible_items = -1]) -- itemTable: {"Item0", "Item1", ...}
@@ -788,17 +809,20 @@ result? = ImGui:listBoxHeader(label, [w = 0, h = 0])
 result? = ImGui:listBoxHeader2(label, items_count)
 ImGui:listBoxFooter()
 ```
+[To top](#api)
 # Widgets: Data Plotting
 ```lua
 ImGui:plotLines(label, pointsTable, [values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0]) -- pointsTable: {0.01, 0.5, 10, -50, ...}
 ImGui:plotHistogram(label, pointsTable, [values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0])"plotLines"
 ```
+[To top](#api)
 # Widgets: Value() Helpers
 ```lua
 ImGui:value(prefix, bool)
 ImGui:value(prefix, number)
 ImGui:value(prefix, float, formatString)
 ```
+[To top](#api)
 # Widgets: Menus
 ```lua
 result? = ImGui:beginMenuBar()
@@ -813,6 +837,7 @@ ImGui:beginTooltip()
 ImGui:endTooltip()
 ImGui:setTooltip(text)
 ```
+[To top](#api)
 # Popups, Modals
 ```lua
 result? = ImGui:beginPopup(str_id, [ImGuiWindowFlags = 0])
@@ -826,6 +851,7 @@ result? = ImGui:beginPopupContextWindow(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:beginPopupContextVoid(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:isPopupOpen(str_id, [ImGuiPopupFlags = 0])
 ```
+[To top](#api)
 # Columns
 ```lua
 ImGui:columns([count = 1, id = nil, border = true])
@@ -837,6 +863,7 @@ offset = ImGui:getColumnOffset([column_index = -1])
 ImGui:setColumnOffset(column_index, offset)
 number = ImGui:getColumnsCount()
 ```
+[To top](#api)
 # Tab Bars, Tabs
 ```lua
 ImGui:beginTabBar()
@@ -845,11 +872,13 @@ ImGui:beginTabItem()
 ImGui:endTabItem()
 ImGui:setTabItemClosed()
 ```
+[To top](#api)
 # Clipping
 ```lua
 ImGui:pushClipRect()
 ImGui:popClipRect()
 ```
+[To top](#api)
 # Focus, Activation
 ```lua
 ImGui:setItemDefaultFocus()
@@ -872,17 +901,20 @@ ImGui:getItemRectMax()
 ImGui:getItemRectSize()
 ImGui:setItemAllowOverlap()
 ```
+[To top](#api)
 # Render
 ```lua
 ImGui:newFrame()
 ImGui:render()
 ImGui:endFrame()
 ```
+[To top](#api)
 # Display size
 ```lua
 ImGui:setDisplaySize(x, y)
 ImGui:setDisplayScale(x, y)
 ```
+[To top](#api)
 # Demos
 ```lua
 isOpenFlag = ImGui:showUserGuide()
@@ -893,3 +925,4 @@ isOpenFlag = ImGui:showFontSelector()
 isOpenFlag = ImGui:showMetricsWindow()
 isOpenFlag = ImGui:showStyleSelector()
 ```
+[To top](#api)
