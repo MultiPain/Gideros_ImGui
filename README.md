@@ -33,6 +33,7 @@
 * [Tabs](#tab-bars-tabs)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
+* [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [Display](#display-size)
 * [ImGui Demos](#demos)
