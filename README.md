@@ -715,18 +715,18 @@ currentItem, isOpen = ImGui:combo(label, currentItem, items) -- items (table): {
 [To top](#api)
 # Widgets: Drags 
 ```lua
-value, isDragingFlag = ImGui:dragFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
-value1, value2, isDragingFlag = ImGui:dragFloat2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
-value1, value2, value3, isDragingFlag = ImGui:dragFloat3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
-value1, value2, value3, value4, isDragingFlag = ImGui:dragFloat4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%.3f", power = 1])
-valueMin, valueMax, isDragingFlag = ImGui:dragFloatRange2(label, valueMin, valueMax, [incStep = 1, min = 0, max = 0, formatMinString = "%.3f", formatMaxString = formatMinString, power = 1])
+value, isDragingFlag = ImGui:dragFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+value1, value2, isDragingFlag = ImGui:dragFloat2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+value1, value2, value3, isDragingFlag = ImGui:dragFloat3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+value1, value2, value3, value4, isDragingFlag = ImGui:dragFloat4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+valueMin, valueMax, isDragingFlag = ImGui:dragFloatRange2(label, valueMin, valueMax, [incStep = 1, min = 0, max = 0, formatMinString = "%.3f", formatMaxString = formatMinString, ImGuiSliderFlags = 0])
  
-value, isDragingFlag = ImGui:dragInt(label, value, [incStep = 1, min = 0, max = 0, formatString = "%d"])
-value1, value2, isDragingFlag = ImGui:dragInt2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%d"])
-value1, value2, value3, isDragingFlag = ImGui:dragInt3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%d"])
-value1, value2, value3, value4, isDragingFlag = ImGui:dragInt4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%d"])
-ImGui:dragIntRange2(label, )
-ImGui:dragScalar()
+value, isDragingFlag = ImGui:dragInt(label, value, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value1, value2, isDragingFlag = ImGui:dragInt2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value1, value2, value3, isDragingFlag = ImGui:dragInt3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value1, value2, value3, value4, isDragingFlag = ImGui:dragInt4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+v_current_min, v_current_max, flag = ImGui:dragIntRange2(label, v_current_min, v_current_max, [v_speed = 1, v_min = 0, v_max = 0, format = "%d", format_max = nil, ImGuiSliderFlags = 0])
+ImGui:dragScalar(label, ImGuiDataType, value, v_speed, [v_min = nil, v_max = nil, format = nil, ImGuiSliderFlags = 0])
 ```
 [To top](#api)
 # Widgets: Sliders
