@@ -3778,7 +3778,7 @@ int ImGui_impl_GetColumnsCount(lua_State *L)
 int ImGui_impl_BeginTabBar(lua_State *L)
 {
     const char* str_id = luaL_checkstring(L, 2);
-    ImGuiTabBarFlags flags = luaL_optinteger(L, 3, 0);
+    ImGuiTabBarFlags flags = luaL_optinteger(L, 3, NULL);
 
     lua_pushboolean(L, ImGui::BeginTabBar(str_id, flags));
     return 1;
@@ -3794,7 +3794,7 @@ int ImGui_impl_BeginTabItem(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool p_open = lua_toboolean(L, 3) > 0;
-    ImGuiTabItemFlags flags = luaL_optinteger(L, 4, 0);
+    ImGuiTabItemFlags flags = luaL_optinteger(L, 4, NULL);
 
     bool result = ImGui::BeginTabItem(label, &p_open, flags);
 
@@ -3858,7 +3858,7 @@ int ImGui_impl_SetItemDefaultFocus(lua_State *L)
 
 int ImGui_impl_SetKeyboardFocusHere(lua_State *L)
 {
-    int offset = luaL_optinteger(L, 2, 0);
+    int offset = luaL_optinteger(L, 2, NULL);
     ImGui::SetKeyboardFocusHere(offset);
     return 0;
 }
@@ -3866,7 +3866,7 @@ int ImGui_impl_SetKeyboardFocusHere(lua_State *L)
 // Item/Widgets Utilities
 int ImGui_impl_IsItemHovered(lua_State *L)
 {
-    ImGuiHoveredFlags flags = lua_toboolean(L, 2) > 0;
+    ImGuiHoveredFlags flags = luaL_optboolean(L, 2, NULL);
     lua_pushboolean(L, ImGui::IsItemHovered(flags));
     return 1;
 }
@@ -3978,7 +3978,7 @@ int ImGui_impl_SetItemAllowOverlap(lua_State *L)
 int ImGui_impl_IsRectVisible(lua_State *L)
 {
     ImVec2 size = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    if (lua_type(L, 4) == LUA_TNUMBER)
+    if (lua_gettop(L) > 3)
     {
         ImVec2 rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
         lua_pushboolean(L, ImGui::IsRectVisible(size, rect_max));
@@ -4732,24 +4732,88 @@ int ImGui_impl_DrawList_PathClear(lua_State *L)
     list->PathClear();
     return 0;
 }
-/*
-int ImGui_impl_DrawList_PathLineTo(const ImVec2& pos);
 
-int ImGui_impl_DrawList_PathLineToMergeDuplicate(const ImVec2& pos);
+int ImGui_impl_DrawList_PathLineTo(lua_State *L)
+{
+    ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathLineTo(pos);
+    return 0;
+}
 
-int ImGui_impl_DrawList_PathFillConvex(ImU32 col);
+int ImGui_impl_DrawList_PathLineToMergeDuplicate(lua_State *L)
+{
+    ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathLineToMergeDuplicate(pos);
+    return 0;
+}
 
-int ImGui_impl_DrawList_PathStroke(ImU32 col, bool closed, float thickness = 1.0f);
+int ImGui_impl_DrawList_PathFillConvex(lua_State *L)
+{
+    ImU32 color = GColor::toU32(luaL_checkinteger(L, 2), luaL_optnumber(L, 3, 1.0f));
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathFillConvex(color);
+    return 0;
 
-int ImGui_impl_DrawList_PathArcTo(const ImVec2& center, float radius, float a_min, float a_max, int num_segments = 10);
+}
 
-int ImGui_impl_DrawList_PathArcToFast(const ImVec2& center, float radius, int a_min_of_12, int a_max_of_12);
+int ImGui_impl_DrawList_PathStroke(lua_State *L)
+{
+    ImU32 color = GColor::toU32(luaL_checkinteger(L, 2), luaL_optnumber(L, 3, 1.0f));
+    bool closed = lua_toboolean(L, 4) > 0;
+    float thickness = luaL_optnumber(L, 3, NULL);
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathStroke(color, closed, thickness);
+    return 0;
+}
 
-int ImGui_impl_DrawList_PathBezierCurveTo(const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int num_segments = 0);
+int ImGui_impl_DrawList_PathArcTo(lua_State *L)
+{
+    ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    float radius = luaL_checknumber(L, 4);
+    float a_min = luaL_checknumber(L, 5);
+    float a_max = luaL_checknumber(L, 6);
+    int num_segments = luaL_optinteger(L, 7, NULL);
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathArcTo(center, radius, a_min, a_max, num_segments);
+    return 0;
 
-int ImGui_impl_DrawList_PathRect(const ImVec2& rect_min, const ImVec2& rect_max, float rounding = 0.0f, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
-*/
+}
 
+int ImGui_impl_DrawList_PathArcToFast(lua_State *L)
+{
+    ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    float radius = luaL_checknumber(L, 4);
+    int a_min = luaL_checkinteger(L, 5);
+    int a_max = luaL_checkinteger(L, 6);
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathArcToFast(center, radius, a_min, a_max);
+    return 0;
+
+}
+
+int ImGui_impl_DrawList_PathBezierCurveTo(lua_State *L)
+{
+    ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    ImVec2 p4 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+    int num_segments = luaL_optinteger(L, 8, NULL);
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathBezierCurveTo(p2, p3, p4, num_segments);
+    return 0;
+}
+
+int ImGui_impl_DrawList_PathRect(lua_State *L)
+{
+    ImVec2 rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImVec2 rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    float rounding = luaL_optnumber(L, 6, NULL);
+    ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 7, NULL);
+    ImDrawList *list = ImGui::GetWindowDrawList();
+    list->PathRect(rect_min, rect_max, rounding, rounding_corners);
+    return 0;
+}
 
 
 
@@ -4834,7 +4898,6 @@ int loader(lua_State *L)
         {"drawListAddImageQuad", ImGui_impl_DrawList_AddImageQuad},
         {"drawListAddImageRounded", ImGui_impl_DrawList_AddImageRounded},
         {"drawListPathClear", ImGui_impl_DrawList_PathClear},
-        /*
         {"drawListPathLineTo", ImGui_impl_DrawList_PathLineTo},
         {"drawListPathLineToMergeDuplicate", ImGui_impl_DrawList_PathLineToMergeDuplicate},
         {"drawListPathFillConvex", ImGui_impl_DrawList_PathFillConvex},
@@ -4843,7 +4906,6 @@ int loader(lua_State *L)
         {"drawListPathArcToFast", ImGui_impl_DrawList_PathArcToFast},
         {"drawListPathBezierCurveTo", ImGui_impl_DrawList_PathBezierCurveTo},
         {"drawListPathRect", ImGui_impl_DrawList_PathRect},
-        */
 
         // Fonts
         {"addFonts", ImGui_addFonts},
@@ -4988,7 +5050,6 @@ int loader(lua_State *L)
         {"popStyleVar", ImGui_impl_PopStyleVar},
         {"getStyleColor", ImGui_impl_GetStyleColor},
         {"getFontSize", ImGui_impl_GetFontSize},
-        {"getColorU32", ImGui_impl_GetColorU32},
 
         {"pushItemWidth", ImGui_impl_PushItemWidth},
         {"popItemWidth", ImGui_impl_PopItemWidth},
