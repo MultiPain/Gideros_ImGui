@@ -910,7 +910,7 @@ ImGui:setItemAllowOverlap()
 ```
 [To top](#api)
 # Miscellaneous Utilities
-```
+```lua
 flag = ImGui:isRectVisible(w, h, [maxX, maxY])
 number = ImGui:getTime()
 number = ImGui:getFrameCount()
@@ -921,12 +921,12 @@ ImGui:endChildFrame()
 ```
 [To top](#api)
 # Text Utilities
-```
+```lua
 w, h = ImGui:calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
 ```
 [To top](#api)
 # Inputs Utilities: Keyboard
-```
+```lua
 number = ImGui:getKeyIndex(ImGuiKey)
 flag = ImGui:isKeyDown(user_key_index)
 flag = ImGui:isKeyPressed(user_key_index, [repeat = true])
@@ -936,7 +936,7 @@ ImGui:captureKeyboardFromApp([want_capture_keyboard_value = true])
 ```
 [To top](#api)
 # Inputs Utilities: Mouse
-```
+```lua
 flag = ImGui:isMouseDown(mouse_button)
 flag = ImGui:isMouseClicked(mouse_button, [repeat = false])
 flag = ImGui:isMouseReleased(mouse_button)
