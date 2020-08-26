@@ -201,7 +201,6 @@ ImGui.Col_ScrollbarGrab
 ImGui.Col_FrameBg
 ImGui.Col_TextSelectedBg
 ImGui.Col_ScrollbarGrabActive
-ImGui.Col_ModalWindowDarkening
 ImGui.Col_TitleBgCollapsed
 ImGui.Col_ModalWindowDimBg
 ImGui.Col_ResizeGripActive
@@ -343,7 +342,6 @@ ImGui.ColorEditFlags_DisplayHex
 ImGui.ColorEditFlags_InputHSV
 ImGui.ColorEditFlags_NoSidePreview
 ImGui.ColorEditFlags_Uint8
-ImGui.ColorEditFlags_HEX
 ImGui.ColorEditFlags_AlphaPreviewHalf
 ImGui.ColorEditFlags_Float
 ImGui.ColorEditFlags_PickerHueWheel
@@ -351,11 +349,9 @@ ImGui.ColorEditFlags__OptionsDefault
 ImGui.ColorEditFlags_InputRGB
 ImGui.ColorEditFlags_HDR
 ImGui.ColorEditFlags_NoPicker
-ImGui.ColorEditFlags_RGB
 ImGui.ColorEditFlags_AlphaBar
 ImGui.ColorEditFlags_DisplayHSV
 ImGui.ColorEditFlags_PickerHueBar
-ImGui.ColorEditFlags_HSV
 ImGui.ColorEditFlags_NoAlpha
 ImGui.ColorEditFlags_NoOptions
 ImGui.ColorEditFlags_NoDragDrop
