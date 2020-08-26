@@ -225,10 +225,10 @@ void BindEnums(lua_State *L)
     // ImGuiPopupFlags
     lua_pushinteger(L, ImGuiPopupFlags_NoOpenOverExistingPopup);        lua_setfield(L, -2, "PopupFlags_NoOpenOverExistingPopup");
     lua_pushinteger(L, ImGuiPopupFlags_MouseButtonLeft);                lua_setfield(L, -2, "PopupFlags_MouseButtonLeft");
-    lua_pushinteger(L, ImGuiPopupFlags_MouseButtonMask_);               lua_setfield(L, -2, "PopupFlags_MouseButtonMask_");
+    lua_pushinteger(L, ImGuiPopupFlags_MouseButtonMask_);               lua_setfield(L, -2, "PopupFlags_MouseButtonMask");
     lua_pushinteger(L, ImGuiPopupFlags_MouseButtonRight);               lua_setfield(L, -2, "PopupFlags_MouseButtonRight");
     lua_pushinteger(L, ImGuiPopupFlags_AnyPopupId);                     lua_setfield(L, -2, "PopupFlags_AnyPopupId");
-    lua_pushinteger(L, ImGuiPopupFlags_MouseButtonDefault_);            lua_setfield(L, -2, "PopupFlags_MouseButtonDefault_");
+    lua_pushinteger(L, ImGuiPopupFlags_MouseButtonDefault_);            lua_setfield(L, -2, "PopupFlags_MouseButtonDefault");
     lua_pushinteger(L, ImGuiPopupFlags_MouseButtonMiddle);              lua_setfield(L, -2, "PopupFlags_MouseButtonMiddle");
     lua_pushinteger(L, ImGuiPopupFlags_None);                           lua_setfield(L, -2, "PopupFlags_None");
     lua_pushinteger(L, ImGuiPopupFlags_AnyPopup);                       lua_setfield(L, -2, "PopupFlags_AnyPopup");
@@ -274,9 +274,9 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiTabBarFlags_NoCloseWithMiddleMouseButton);  lua_setfield(L, -2, "TabBarFlags_NoCloseWithMiddleMouseButton");
     lua_pushinteger(L, ImGuiTabBarFlags_TabListPopupButton);            lua_setfield(L, -2, "TabBarFlags_TabListPopupButton");
     lua_pushinteger(L, ImGuiTabBarFlags_NoTooltip);                     lua_setfield(L, -2, "TabBarFlags_NoTooltip");
-    lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyMask_);            lua_setfield(L, -2, "TabBarFlags_FittingPolicyMask_");
+    lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyMask_);            lua_setfield(L, -2, "TabBarFlags_FittingPolicyMask");
     lua_pushinteger(L, ImGuiTabBarFlags_Reorderable);                   lua_setfield(L, -2, "TabBarFlags_Reorderable");
-    lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyDefault_);         lua_setfield(L, -2, "TabBarFlags_FittingPolicyDefault_");
+    lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyDefault_);         lua_setfield(L, -2, "TabBarFlags_FittingPolicyDefault");
     lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyScroll);           lua_setfield(L, -2, "TabBarFlags_FittingPolicyScroll");
     lua_pushinteger(L, ImGuiTabBarFlags_FittingPolicyResizeDown);       lua_setfield(L, -2, "TabBarFlags_FittingPolicyResizeDown");
     lua_pushinteger(L, ImGuiTabBarFlags_None);                          lua_setfield(L, -2, "TabBarFlags_None");
@@ -337,7 +337,7 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiCol_FrameBg);                               lua_setfield(L, -2, "Col_FrameBg");
     lua_pushinteger(L, ImGuiCol_TextSelectedBg);                        lua_setfield(L, -2, "Col_TextSelectedBg");
     lua_pushinteger(L, ImGuiCol_ScrollbarGrabActive);                   lua_setfield(L, -2, "Col_ScrollbarGrabActive");
-    lua_pushinteger(L, ImGuiCol_ModalWindowDarkening);                  lua_setfield(L, -2, "Col_ModalWindowDarkening");
+    //lua_pushinteger(L, ImGuiCol_ModalWindowDarkening);                  lua_setfield(L, -2, "Col_ModalWindowDarkening");
     lua_pushinteger(L, ImGuiCol_TitleBgCollapsed);                      lua_setfield(L, -2, "Col_TitleBgCollapsed");
     lua_pushinteger(L, ImGuiCol_ModalWindowDimBg);                      lua_setfield(L, -2, "Col_ModalWindowDimBg");
     lua_pushinteger(L, ImGuiCol_ResizeGripActive);                      lua_setfield(L, -2, "Col_ResizeGripActive");
@@ -436,7 +436,7 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiComboFlags_None);                           lua_setfield(L, -2, "ComboFlags_None");
     lua_pushinteger(L, ImGuiComboFlags_NoPreview);                      lua_setfield(L, -2, "ComboFlags_NoPreview");
     lua_pushinteger(L, ImGuiComboFlags_HeightRegular);                  lua_setfield(L, -2, "ComboFlags_HeightRegular");
-    lua_pushinteger(L, ImGuiComboFlags_HeightMask_);                    lua_setfield(L, -2, "ComboFlags_HeightMask_");
+    lua_pushinteger(L, ImGuiComboFlags_HeightMask_);                    lua_setfield(L, -2, "ComboFlags_HeightMask");
     lua_pushinteger(L, ImGuiComboFlags_NoArrowButton);                  lua_setfield(L, -2, "ComboFlags_NoArrowButton");
     lua_pushinteger(L, ImGuiComboFlags_HeightLargest);                  lua_setfield(L, -2, "ComboFlags_HeightLargest");
 
@@ -474,7 +474,7 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiColorEditFlags_InputHSV);                   lua_setfield(L, -2, "ColorEditFlags_InputHSV");
     lua_pushinteger(L, ImGuiColorEditFlags_NoSidePreview);              lua_setfield(L, -2, "ColorEditFlags_NoSidePreview");
     lua_pushinteger(L, ImGuiColorEditFlags_Uint8);                      lua_setfield(L, -2, "ColorEditFlags_Uint8");
-    lua_pushinteger(L, ImGuiColorEditFlags_HEX);                        lua_setfield(L, -2, "ColorEditFlags_HEX");
+    //lua_pushinteger(L, ImGuiColorEditFlags_HEX);                        lua_setfield(L, -2, "ColorEditFlags_HEX");
     lua_pushinteger(L, ImGuiColorEditFlags_AlphaPreviewHalf);           lua_setfield(L, -2, "ColorEditFlags_AlphaPreviewHalf");
     lua_pushinteger(L, ImGuiColorEditFlags_Float);                      lua_setfield(L, -2, "ColorEditFlags_Float");
     lua_pushinteger(L, ImGuiColorEditFlags_PickerHueWheel);             lua_setfield(L, -2, "ColorEditFlags_PickerHueWheel");
@@ -482,11 +482,11 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiColorEditFlags_InputRGB);                   lua_setfield(L, -2, "ColorEditFlags_InputRGB");
     lua_pushinteger(L, ImGuiColorEditFlags_HDR);                        lua_setfield(L, -2, "ColorEditFlags_HDR");
     lua_pushinteger(L, ImGuiColorEditFlags_NoPicker);                   lua_setfield(L, -2, "ColorEditFlags_NoPicker");
-    lua_pushinteger(L, ImGuiColorEditFlags_RGB);                        lua_setfield(L, -2, "ColorEditFlags_RGB");
+    //lua_pushinteger(L, ImGuiColorEditFlags_RGB);                        lua_setfield(L, -2, "ColorEditFlags_RGB");
     lua_pushinteger(L, ImGuiColorEditFlags_AlphaBar);                   lua_setfield(L, -2, "ColorEditFlags_AlphaBar");
     lua_pushinteger(L, ImGuiColorEditFlags_DisplayHSV);                 lua_setfield(L, -2, "ColorEditFlags_DisplayHSV");
     lua_pushinteger(L, ImGuiColorEditFlags_PickerHueBar);               lua_setfield(L, -2, "ColorEditFlags_PickerHueBar");
-    lua_pushinteger(L, ImGuiColorEditFlags_HSV);                        lua_setfield(L, -2, "ColorEditFlags_HSV");
+    //lua_pushinteger(L, ImGuiColorEditFlags_HSV);                        lua_setfield(L, -2, "ColorEditFlags_HSV");
     lua_pushinteger(L, ImGuiColorEditFlags_NoAlpha);                    lua_setfield(L, -2, "ColorEditFlags_NoAlpha");
     lua_pushinteger(L, ImGuiColorEditFlags_NoOptions);                  lua_setfield(L, -2, "ColorEditFlags_NoOptions");
     lua_pushinteger(L, ImGuiColorEditFlags_NoDragDrop);                 lua_setfield(L, -2, "ColorEditFlags_NoDragDrop");
@@ -4027,7 +4027,7 @@ int ImGui_impl_BeginChildFrame(lua_State *L)
 {
     ImGuiID id = luaL_checkinteger(L, 2);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImGuiWindowFlags flags = luaL_optinteger(L, 5, 0);
+    ImGuiWindowFlags flags = luaL_optinteger(L, 5, NULL);
 
     lua_pushboolean(L, ImGui::BeginChildFrame(id, size, flags));
     return 1;
@@ -4046,8 +4046,8 @@ int ImGui_impl_CalcTextSize(lua_State *L)
     //const char* text, const char* text_end = NULL, , float wrap_width = -1.0f);
     const char* text = luaL_checkstring(L, 2);
     const char* text_end = luaL_optstring(L, 3, NULL);
-    bool hide_text_after_double_hash = lua_toboolean(L, 4) > 0;
-    float wrap_width = luaL_optnumber(L, 5, -1.0f);
+    bool hide_text_after_double_hash = luaL_optboolean(L, 4, 0);
+    float wrap_width = luaL_optnumber(L, 5, NULL);
 
     ImVec2 size = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
 
@@ -4071,17 +4071,15 @@ int ImGui_impl_IsKeyDown(lua_State *L)
     return  1;
 }
 
-//bool (int user_key_index, bool repeat = true);
 int ImGui_impl_IsKeyPressed(lua_State *L)
 {
     int user_key_index = luaL_checkinteger(L, 2);
-    bool repeat = lua_toboolean(L, 3) > 0;
+    bool repeat = luaL_optboolean(L, 3, 1);
 
     lua_pushboolean(L, ImGui::IsKeyPressed(user_key_index, repeat));
     return 1;
 }
 
-//bool (int user_key_index);
 int ImGui_impl_IsKeyReleased(lua_State *L)
 {
     int user_key_index = luaL_checkinteger(L, 2);
@@ -4096,13 +4094,13 @@ int ImGui_impl_GetKeyPressedAmount(lua_State *L)
     float repeat_delay = luaL_checknumber(L, 3);
     float rate = luaL_checknumber(L, 4);
     lua_pushinteger(L, ImGui::GetKeyPressedAmount(key_index, repeat_delay, rate));
-    return 0;
+    return 1;
 }
 
 //void (bool want_capture_keyboard_value = true);
 int ImGui_impl_CaptureKeyboardFromApp(lua_State *L)
 {
-    bool want_capture_keyboard_value = luaL_optboolean(L, 2, 1) > 0;
+    bool want_capture_keyboard_value = luaL_optboolean(L, 2, 1);
     ImGui::CaptureKeyboardFromApp(want_capture_keyboard_value);
     return 0;
 }
@@ -4119,7 +4117,7 @@ int ImGui_impl_IsMouseDown(lua_State *L)
 int ImGui_impl_IsMouseClicked(lua_State *L)
 {
     ImGuiMouseButton button = convertGiderosMouseButton(L, lua_tointeger(L, 2));
-    bool repeat = lua_toboolean(L, 3) > 0;
+    bool repeat = luaL_optboolean(L, 3, 0);
     lua_pushboolean(L, ImGui::IsMouseClicked(button, repeat));
     return 1;
 }
@@ -4142,7 +4140,7 @@ int ImGui_impl_IsMouseHoveringRect(lua_State *L)
 {
     ImVec2 r_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 r_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    bool clip = lua_toboolean(L, 6) > 0;
+    bool clip = luaL_optboolean(L, 6, 1);
     lua_pushboolean(L, ImGui::IsMouseHoveringRect(r_min, r_max, clip));
     return 1;
 }
@@ -4179,7 +4177,7 @@ int ImGui_impl_GetMousePosOnOpeningCurrentPopup(lua_State *L)
 int ImGui_impl_IsMouseDragging(lua_State *L)
 {
     ImGuiMouseButton button = convertGiderosMouseButton(L, lua_tointeger(L, 2));
-    float lock_threshold = luaL_optnumber(L, 3, -1.0f);
+    float lock_threshold = luaL_optnumber(L, 3, NULL);
     lua_pushboolean(L, ImGui::IsMouseDragging(button, lock_threshold));
     return 1;
 }
@@ -4187,7 +4185,7 @@ int ImGui_impl_IsMouseDragging(lua_State *L)
 int ImGui_impl_GetMouseDragDelta(lua_State *L)
 {
     ImGuiMouseButton button = convertGiderosMouseButton(L, lua_tointeger(L, 2));
-    float lock_threshold = luaL_optnumber(L, 3, -1.0f);
+    float lock_threshold = luaL_optnumber(L, 3, NULL);
     ImVec2 pos = ImGui::GetMouseDragDelta(button, lock_threshold);
     lua_pushnumber(L, pos.x);
     lua_pushnumber(L, pos.y);
@@ -5239,6 +5237,37 @@ int loader(lua_State *L)
         {"getItemRectMax", ImGui_impl_GetItemRectMax},
         {"getItemRectSize", ImGui_impl_GetItemRectSize},
         {"setItemAllowOverlap", ImGui_impl_SetItemAllowOverlap},
+
+        // Miscellaneous Utilities
+        {"isRectVisible", ImGui_impl_IsRectVisible},
+        {"getTime", ImGui_impl_GetTime},
+        {"getFrameCount", ImGui_impl_GetFrameCount},
+        {"getStyleColorName", ImGui_impl_GetStyleColorName},
+        {"calcListClipping", ImGui_impl_CalcListClipping},
+        {"beginChildFrame", ImGui_impl_BeginChildFrame},
+        {"endChildFrame", ImGui_impl_EndChildFrame},
+        // Text Utilities
+        {"calcTextSize", ImGui_impl_CalcTextSize},
+        // Inputs Utilities: Keyboard
+        {"getKeyIndex", ImGui_impl_GetKeyIndex},
+        {"isKeyDown", ImGui_impl_IsKeyDown},
+        {"isKeyPressed", ImGui_impl_IsKeyPressed},
+        {"isKeyReleased", ImGui_impl_IsKeyReleased},
+        {"getKeyPressedAmount", ImGui_impl_GetKeyPressedAmount},
+        {"captureKeyboardFromApp", ImGui_impl_CaptureKeyboardFromApp},
+        // Inputs Utilities: Mouse
+        {"isMouseDown", ImGui_impl_IsMouseDown},
+        {"isMouseClicked", ImGui_impl_IsMouseClicked},
+        {"isMouseReleased", ImGui_impl_IsMouseReleased},
+        {"isMouseDoubleClicked", ImGui_impl_IsMouseDoubleClicked},
+        {"isMouseHoveringRect", ImGui_impl_IsMouseHoveringRect},
+        {"isMousePosValid", ImGui_impl_IsMousePosValid},
+        {"isAnyMouseDown", ImGui_impl_IsAnyMouseDown},
+        {"getMousePos", ImGui_impl_GetMousePos},
+        {"getMousePosOnOpeningCurrentPopup", ImGui_impl_GetMousePosOnOpeningCurrentPopup},
+        {"isMouseDragging", ImGui_impl_IsMouseDragging},
+        {"getMouseDragDelta", ImGui_impl_GetMouseDragDelta},
+        {"resetMouseDragDelta", ImGui_impl_ResetMouseDragDelta},
 
         // Windows
         {"beginWindow", ImGui_impl_Begin},
