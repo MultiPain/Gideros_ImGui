@@ -531,6 +531,9 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiSliderFlags_NoRoundToFormat);               lua_setfield(L, -2, "SliderFlags_NoRoundToFormat");
     lua_pushinteger(L, ImGuiSliderFlags_NoInput);                       lua_setfield(L, -2, "SliderFlags_NoInput");
 
+    // Custom enum
+    lua_pushinteger(L, ImGuiInputTextFlags_NoBackground);               lua_setfield(L, -2, "InputTextFlags_NoBackground");
+
     lua_pop(L, 1);
 }
 
@@ -1565,8 +1568,7 @@ int ImGui_impl_End(lua_State *L)
 // Child Windows
 int ImGui_impl_BeginChild(lua_State *L)
 {
-    float w = luaL_optnumber(L, 3, 0);
-    float h = luaL_optnumber(L, 4, 0);
+    ImVec2 size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
     bool border = luaL_optboolean(L, 5, 0);
     ImGuiWindowFlags flags = luaL_optinteger(L, 6, 0);
     bool result;
@@ -1574,12 +1576,12 @@ int ImGui_impl_BeginChild(lua_State *L)
     if (lua_type(L, 2) == LUA_TSTRING)
     {
         const char *str_id = luaL_checkstring(L, 2);
-        result = ImGui::BeginChild(str_id, ImVec2(w, h), border, flags);
+        result = ImGui::BeginChild(str_id, size, border, flags);
     }
     else
     {
         ImGuiID id = luaL_checkinteger(L, 2);
-        result = ImGui::BeginChild(id, ImVec2(w, h), border, flags);
+        result = ImGui::BeginChild(id, size, border, flags);
     }
 
     lua_pushboolean(L, result);
@@ -1936,7 +1938,7 @@ int ImGui_impl_PushStyleVar(lua_State *L)
 {
     ImGuiStyleVar idx = luaL_checkinteger(L, 2);
 
-    if (lua_type(L, 4) != LUA_TNIL)
+    if (lua_gettop(L) == 4)
     {
         float vx = luaL_checknumber(L, 3);
         float vy = luaL_checknumber(L, 4);
@@ -3216,6 +3218,14 @@ int ImGui_impl_VFilledSliderScalar(lua_State *L)
 }
 
 // TODO: callbacks?
+static int TextInputCallback(ImGuiInputTextCallbackData* data)
+{
+    lua_State *L = (lua_State *)data->UserData;
+    lua_pushstring(L, data->Buf);
+    lua_error(L);
+    return 0;
+}
+
 // Widgets: Input with Keyboard
 int ImGui_impl_InputText(lua_State *L)
 {
@@ -3229,7 +3239,7 @@ int ImGui_impl_InputText(lua_State *L)
     //ImGuiInputTextCallback callback = NULL;
     //void* user_data = NULL;
 
-    bool result = ImGui::InputText(label, buffer, size_t, flags);
+    bool result = ImGui::InputText(label, buffer, size_t, flags, &TextInputCallback, L);
 
     lua_pushstring(L, &buffer[0]);
     lua_pushboolean(L, result);
