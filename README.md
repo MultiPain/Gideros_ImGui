@@ -447,15 +447,14 @@ ImGui:drawListAddImage(texture, p_min_x, p_min_y, [color = 0xffffff, 1, uv_max_x
 ImGui:drawListAddImageQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, [color = 0xffffff, 1, uv1_x, uv1_y, uv2_x, uv2_y, uv3_x, uv3_y, uv4_x, uv4_y])
 ImGui:drawListAddImageRounded(p_min_x, p_min_y, color, rounding, [rounding_corners = ImGui.CornerFlags_All, uv_max_x, uv_max_y, uv_min_x, uv_min_y])
 ImGui:drawListPathClear()
--- WIP:
---ImGui:drawListPathLineTo()
---ImGui:drawListPathLineToMergeDuplicate()
---ImGui:drawListPathFillConvex()
---ImGui:drawListPathStroke()
---ImGui:drawListPathArcTo()
---ImGui:drawListPathArcToFast()
---ImGui:drawListPathBezierCurveTo()
---ImGui:drawListPathRect()
+ImGui:drawListPathLineTo(x, y)
+ImGui:drawListPathLineToMergeDuplicate(x, y)
+ImGui:drawListPathFillConvex(color)
+ImGui:drawListPathStroke(color, closed, [thickness = 1])
+ImGui:drawListPathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
+ImGui:drawListPathArcToFast(centerX, centerY, radius, a_min, a_max)
+ImGui:drawListPathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
+ImGui:drawListPathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
 ```
 [To top](#api)
 # FONTS (W.I.P)
@@ -873,40 +872,82 @@ number = ImGui:getColumnsCount()
 [To top](#api)
 # Tab Bars, Tabs
 ```lua
-ImGui:beginTabBar()
+bool = ImGui:beginTabBar(str_id, [ImGuiTabBarFlags = 0])
 ImGui:endTabBar()
-ImGui:beginTabItem()
+p_open, bool = ImGui:beginTabItem(label, p_open, [ImGuiTabItemFlags = 0])
 ImGui:endTabItem()
-ImGui:setTabItemClosed()
+ImGui:setTabItemClosed(tab_or_docked_window_label)
 ```
 [To top](#api)
 # Clipping
 ```lua
-ImGui:pushClipRect()
+ImGui:pushClipRect(minX, minY, maxX, maxY, intersect_with_current_clip_rect)
 ImGui:popClipRect()
 ```
 [To top](#api)
 # Focus, Activation
 ```lua
 ImGui:setItemDefaultFocus()
-ImGui:setKeyboardFocusHere()
-ImGui:isItemHovered()
-ImGui:isItemActive()
-ImGui:isItemFocused()
-ImGui:isItemClicked()
-ImGui:isItemVisible()
-ImGui:isItemEdited()
-ImGui:isItemActivated()
-ImGui:isItemDeactivated()
-ImGui:isItemDeactivatedAfterEdit()
-ImGui:isItemToggledOpen()
-ImGui:isAnyItemHovered()
-ImGui:isAnyItemActive()
-ImGui:isAnyItemFocused()
-ImGui:getItemRectMin()
-ImGui:getItemRectMax()
-ImGui:getItemRectSize()
+ImGui:setKeyboardFocusHere([offset = 0])
+flag = ImGui:isItemHovered([ImGuiHoveredFlags = 0])
+flag = ImGui:isItemActive()
+flag = ImGui:isItemFocused()
+flag = ImGui:isItemClicked(mouse_button)
+flag = ImGui:isItemVisible()
+flag = ImGui:isItemEdited()
+flag = ImGui:isItemActivated()
+flag = ImGui:isItemDeactivated()
+flag = ImGui:isItemDeactivatedAfterEdit()
+flag = ImGui:isItemToggledOpen()
+flag = ImGui:isAnyItemHovered()
+flag = ImGui:isAnyItemActive()
+flag = ImGui:isAnyItemFocused()
+x, y = ImGui:getItemRectMin()
+x, y = ImGui:getItemRectMax()
+w, h = ImGui:getItemRectSize()
 ImGui:setItemAllowOverlap()
+```
+[To top](#api)
+# Miscellaneous Utilities
+```
+flag = isRectVisible(w, h, [maxX, maxY])
+number = getTime()
+number = getFrameCount()
+str = getStyleColorName(idx)
+out_items_display_start, out_items_display_end = calcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
+flag = beginChildFrame(id, w, h, [ImGuiWindowFlags = 0]) -- id (number)
+endChildFrame()
+```
+[To top](#api)
+# Text Utilities
+```
+w, h = calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
+```
+[To top](#api)
+# Inputs Utilities: Keyboard
+```
+number = getKeyIndex(ImGuiKey)
+flag = isKeyDown(user_key_index)
+flag = isKeyPressed(user_key_index, [repeat = true])
+flag = isKeyReleased(user_key_index)
+number = getKeyPressedAmount(key_index, repeat_delay, rate)
+captureKeyboardFromApp([want_capture_keyboard_value = true])
+```
+[To top](#api)
+# Inputs Utilities: Mouse
+```
+flag = isMouseDown(mouse_button)
+flag = isMouseClicked(mouse_button, [repeat = false])
+flag = isMouseReleased(mouse_button)
+flag = isMouseDoubleClicked(mouse_button)
+flag = isMouseHoveringRect(minX, minY, maxX, maxY, [clip = true])
+flag = isMousePosValid([x = inf, y = inf])
+flag = isAnyMouseDown()
+x, y = getMousePos()
+x, y = getMousePosOnOpeningCurrentPopup()
+flag = isMouseDragging(mouse_button, [lock_threshold = -1])
+x, y = getMouseDragDelta(mouse_button, [lock_threshold = -1])
+resetMouseDragDelta(mouse_button)
 ```
 [To top](#api)
 # Render
