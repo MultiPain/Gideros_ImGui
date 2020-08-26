@@ -15,19 +15,19 @@
 * [Parameters stacks](#parameters-stacks-shared)
 * [Cursor / layout](#cursor--layout)
 * [ID](#id-stackscopes)
-* [[Windgets] Text](#widgets-text)
-* [[Windgets] Main](#widgets-main)
-* [[Windgets] ComboBox](#widgets-combo-box)
-* [[Windgets] Drags](#widgets-drags)
-* [[Windgets] Sliders](#widgets-sliders)
-* [[Windgets] Text input](#widgets-input-with-keyboard)
-* [[Windgets] Color pickers](#widgets-color-editorpicker)
-* [[Windgets] Trees](#widgets-trees)
-* [[Windgets] Selectables](#widgets-selectables)
-* [[Windgets] ListBox](#widgets-list-boxes)
-* [[Windgets] Data ploting](#widgets-data-plotting)
-* [[Windgets] Value helper](#widgets-value-helpers)
-* [[Windgets] Menus](#widgets-menus)
+* [[Widgets] Text](#widgets-text)
+* [[Widgets] Main](#widgets-main)
+* [[Widgets] ComboBox](#widgets-combo-box)
+* [[Widgets] Drags](#widgets-drags)
+* [[Widgets] Sliders](#widgets-sliders)
+* [[Widgets] Text input](#widgets-input-with-keyboard)
+* [[Widgets] Color pickers](#widgets-color-editorpicker)
+* [[Widgets] Trees](#widgets-trees)
+* [[Widgets] Selectables](#widgets-selectables)
+* [[Widgets] ListBox](#widgets-list-boxes)
+* [[Widgets] Data ploting](#widgets-data-plotting)
+* [[Widgets] Value helper](#widgets-value-helpers)
+* [[Widgets] Menus](#widgets-menus)
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
@@ -114,6 +114,7 @@ ImGui.InputTextFlags_CallbackCharFilter
 ImGui.InputTextFlags_NoHorizontalScroll
 ImGui.InputTextFlags_AlwaysInsertMode
 ImGui.InputTextFlags_CharsUppercase
+ImGui.InputTextFlags_NoBackground -- do not draw background frame
 
 -- ImGuiNavInput
 ImGui.NavInput_FocusNext
