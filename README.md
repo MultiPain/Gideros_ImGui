@@ -478,8 +478,8 @@ ImGui:onKeyChar(event)
 [To top](#api)
 # Style setters/getters
 ```lua
-ImGui:setAlpha(value)
-value = ImGui:getAlpha()
+ImGui:setGlobalAlpha(value)
+value = ImGui:getGlobalAlpha()
 ImGui:setWindowRounding(value)
 value = ImGui:getWindowRounding()
 ImGui:setWindowBorderSize(value)
