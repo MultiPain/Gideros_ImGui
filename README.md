@@ -31,6 +31,7 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
+* [Logging/Capture](#loggingcapture)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
 * [Utilities](#miscellaneous-utilities)
