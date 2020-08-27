@@ -876,6 +876,16 @@ ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
 ```
 [To top](#api)
+# Logging/Capture
+```lua
+ImGui:logToTTY(auto_open_depth = -1) 
+ImGui:logToFile(auto_open_depth = -1, filename = nil) 
+ImGui:logToClipboard(auto_open_depth = -1) 
+ImGui:logFinish() 
+ImGui:logButtons() 
+ImGui:logText(text) 
+```
+[To top](#api)
 # Clipping
 ```lua
 ImGui:pushClipRect(minX, minY, maxX, maxY, intersect_with_current_clip_rect)
