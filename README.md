@@ -33,6 +33,7 @@
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
 * [Logging/Capture](#loggingcapture)
+* [Drag and drop](#drag-and-drop)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
 * [Utilities](#miscellaneous-utilities)
@@ -410,7 +411,7 @@ ImGui.BackendFlags_RendererHasVtxOffset
 
 -- ImGuiSliderFlags
 ImGui.SliderFlags_None        
-ImGui.SliderFlags_ClampOnInput  
+ImGui.SliderFlags_ClampOnInpuе  
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
@@ -628,6 +629,9 @@ x, y = ImGui:getMousePosOnOpeningCurrentPopup()
 ImGui:isMouseDragging(button)
 dx, dy = ImGui:getMouseDragDelta(button)
 ImGui:resetMouseDragDelta(button)
+ImGuiMouseCursor = ImGui:getMouseCursor()
+ImGui:setMouseCursor(ImGuiMouseCursor)
+ImGui:CaptureMouseFromApp([want_capture_mouse_value = true])
 
 flag = ImGui:wantCaptureMouse()
 flag = ImGui:wantCaptureKeyboard()
@@ -649,13 +653,16 @@ number = ImGui:getMouseDownSec(button)
 # WINDGETS & STUFF
 # Windows
 ```lua
-isOpenFlag = ImGui:beginWindow()
+-- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
+-- was called BEFORE 'ImGui:beginWindow(...)'
+p_open, draw = ImGui:beginWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback])
+draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show close button
 ImGui:endWindow()
 ```
 [To top](#api)
 # Child Windows
 ```lua
-ImGui:beginChild(id, [w = 0, h = 0, borderFlag = false, ImGuiWindowFlags = 0)
+ImGui:beginChild(id, [w = 0, h = 0, borderFlag = false, ImGuiWindowFlags = 0])
 ImGui:endChild()
 ```
 [To top](#api)
@@ -971,6 +978,17 @@ ImGui:logButtons()
 ImGui:logText(text) 
 ```
 [To top](#api)
+# Drag and drop
+```lua
+flag = ImGui:beginDragDropSource([ImGuiDragDropFlags flags = 0])
+flag = ImGui:setDragDropPayload(str_type, number, [ImGuiCond cond = 0])
+ImGui:endDragDropSource()
+flag = ImGui:beginDragDropTarget()
+table = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
+ImGui:endDragDropTarget()
+table = ImGui:getDragDropPayload()
+```
+[To top](#api)
 # Clipping
 ```lua
 ImGui:pushClipRect(minX, minY, maxX, maxY, intersect_with_current_clip_rect)
@@ -1064,5 +1082,6 @@ isOpenFlag = ImGui:showStyleEditor()
 isOpenFlag = ImGui:showFontSelector()
 isOpenFlag = ImGui:showMetricsWindow()
 isOpenFlag = ImGui:showStyleSelector()
+ImGui:showLuaStyleEditor()
 ```
 [To top](#api)
