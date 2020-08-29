@@ -30,15 +30,16 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
+* [Docking (BETA)***NEW***](#docking)
 * [Logging/Capture](#loggingcapture)
-* [Drag and drop (***NEW***)](#drag-and-drop)
+* [Drag and drop ***NEW***](#drag-and-drop)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
 * [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [Display](#display-size)
 * [ImGui Demos](#demos)
-* [ENUMS](#enums)
+* [ENUMS ***NEW***](#enums)
 * [Custom drawing](#draw-list-commands)
 
 !VERY IMPORTANT!</br> 
@@ -173,6 +174,7 @@ ImGui:setClassicStyle()
 
 ImGuiConfigFlag = ImGui:ioGetConfigFlags()
 ImGui:ioSetConfigFlags(ImGuiConfigFlag)
+ImGui:ioAddConfigFlags(ImGuiConfigFlag)
 ImGuiBackendFlag = ImGui:ioGetBackendFlags()
 ImGui:ioSetBackendFlags(ImGuiBackendFlag)
 number = ImGui:ioGetIniSavingRate()
@@ -572,6 +574,15 @@ ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
 ```
 [To top](#api)
+# Docking (BETA)
+```
+ImGui:dockSpace(ImGuiID, w, h, [ImGuiDockNodeFlags = 0])
+ImGuiID = ImGui:dockSpaceOverViewport([ImGuiDockNodeFlags = 0])
+ImGui:setNextWindowDockID(ImGuiID, [ImGuiCond = 0])
+ImGuiID = ImGui:getWindowDockID()
+flag = ImGui:isWindowDocked()
+```
+[To top](#api)
 # Logging/Capture
 ```lua
 ImGui:logToTTY(auto_open_depth = -1) 
@@ -691,6 +702,18 @@ ImGui:showLuaStyleEditor()
 [To top](#api)
 # ENUMS
 ```lua
+-- ImGuiConfigFlags
+ImGui.ConfigFlags_None
+ImGui.ConfigFlags_NavEnableKeyboard
+ImGui.ConfigFlags_NavEnableGamepad
+ImGui.ConfigFlags_NavEnableSetMousePos
+ImGui.ConfigFlags_NavNoCaptureKeyboard
+ImGui.ConfigFlags_NoMouse
+ImGui.ConfigFlags_NoMouseCursorChange
+ImGui.ConfigFlags_DockingEnable
+ImGui.ConfigFlags_IsSRGB
+ImGui.ConfigFlags_IsTouchScreen
+
 -- ImGuiFocusedFlags
 ImGui.FocusedFlags_ChildWindows
 ImGui.FocusedFlags_AnyWindow
@@ -914,6 +937,7 @@ ImGui.WindowFlags_AlwaysVerticalScrollbar
 ImGui.WindowFlags_MenuBar
 ImGui.WindowFlags_NoBackground
 ImGui.WindowFlags_AlwaysAutoResize
+ImGui.WindowFlags_NoDocking
 
 -- ImGuiTabItemFlags
 ImGui.TabItemFlags_SetSelected
