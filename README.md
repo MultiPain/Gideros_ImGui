@@ -587,9 +587,9 @@ flag = ImGui:beginDragDropSource([ImGuiDragDropFlags flags = 0])
 flag = ImGui:setDragDropPayload(str_type, number, [ImGuiCond cond = 0])
 ImGui:endDragDropSource()
 flag = ImGui:beginDragDropTarget()
-table = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
+table = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])  -- W.I.P. have no return value
 ImGui:endDragDropTarget()
-table = ImGui:getDragDropPayload()
+table = ImGui:getDragDropPayload() -- W.I.P. have no return value
 ```
 [To top](#api)
 # Clipping
