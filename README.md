@@ -30,7 +30,7 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
-* [Docking (BETA)***NEW***](#docking)
+* [Docking (BETA) ***NEW***](#docking-beta)
 * [Logging/Capture](#loggingcapture)
 * [Drag and drop ***NEW***](#drag-and-drop)
 * [Clipping](#clipping)
