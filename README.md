@@ -31,7 +31,7 @@
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
 * [Logging/Capture](#loggingcapture)
-* [Drag and drop](#drag-and-drop)
+* [Drag and drop (***NEW***)](#drag-and-drop)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
 * [Utilities](#miscellaneous-utilities)
@@ -700,10 +700,10 @@ ImGui.FocusedFlags_None
 -- ImGuiPopupFlags
 ImGui.PopupFlags_NoOpenOverExistingPopup
 ImGui.PopupFlags_MouseButtonLeft
-ImGui.PopupFlags_MouseButtonMask_
+ImGui.PopupFlags_MouseButtonMask
 ImGui.PopupFlags_MouseButtonRight
 ImGui.PopupFlags_AnyPopupId
-ImGui.PopupFlags_MouseButtonDefault_
+ImGui.PopupFlags_MouseButtonDefault
 ImGui.PopupFlags_MouseButtonMiddle
 ImGui.PopupFlags_None
 ImGui.PopupFlags_AnyPopup
@@ -768,9 +768,9 @@ ImGui.TabBarFlags_AutoSelectNewTabs
 ImGui.TabBarFlags_NoCloseWithMiddleMouseButton
 ImGui.TabBarFlags_TabListPopupButton
 ImGui.TabBarFlags_NoTooltip
-ImGui.TabBarFlags_FittingPolicyMask_
+ImGui.TabBarFlags_FittingPolicyMask
 ImGui.TabBarFlags_Reorderable
-ImGui.TabBarFlags_FittingPolicyDefault_
+ImGui.TabBarFlags_FittingPolicyDefault
 ImGui.TabBarFlags_FittingPolicyScroll
 ImGui.TabBarFlags_FittingPolicyResizeDown
 ImGui.TabBarFlags_None
@@ -929,7 +929,7 @@ ImGui.ComboFlags_PopupAlignLeft
 ImGui.ComboFlags_None
 ImGui.ComboFlags_NoPreview
 ImGui.ComboFlags_HeightRegular
-ImGui.ComboFlags_HeightMask_
+ImGui.ComboFlags_HeightMask
 ImGui.ComboFlags_NoArrowButton
 ImGui.ComboFlags_HeightLargest
 
@@ -975,7 +975,7 @@ ImGui.ColorEditFlags_Uint8
 ImGui.ColorEditFlags_AlphaPreviewHalf
 ImGui.ColorEditFlags_Float
 ImGui.ColorEditFlags_PickerHueWheel
-ImGui.ColorEditFlags__OptionsDefault
+ImGui.ColorEditFlags_OptionsDefault
 ImGui.ColorEditFlags_InputRGB
 ImGui.ColorEditFlags_HDR
 ImGui.ColorEditFlags_NoPicker
