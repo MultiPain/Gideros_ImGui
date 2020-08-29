@@ -575,7 +575,7 @@ ImGui:setTabItemClosed(tab_or_docked_window_label)
 ```
 [To top](#api)
 # Docking (BETA)
-```
+```lua
 ImGui:dockSpace(ImGuiID, w, h, [ImGuiDockNodeFlags = 0])
 ImGuiID = ImGui:dockSpaceOverViewport([ImGuiDockNodeFlags = 0])
 ImGui:setNextWindowDockID(ImGuiID, [ImGuiCond = 0])
@@ -702,18 +702,6 @@ ImGui:showLuaStyleEditor()
 [To top](#api)
 # ENUMS
 ```lua
--- ImGuiConfigFlags
-ImGui.ConfigFlags_None
-ImGui.ConfigFlags_NavEnableKeyboard
-ImGui.ConfigFlags_NavEnableGamepad
-ImGui.ConfigFlags_NavEnableSetMousePos
-ImGui.ConfigFlags_NavNoCaptureKeyboard
-ImGui.ConfigFlags_NoMouse
-ImGui.ConfigFlags_NoMouseCursorChange
-ImGui.ConfigFlags_DockingEnable
-ImGui.ConfigFlags_IsSRGB
-ImGui.ConfigFlags_IsTouchScreen
-
 -- ImGuiFocusedFlags
 ImGui.FocusedFlags_ChildWindows
 ImGui.FocusedFlags_AnyWindow
@@ -1050,6 +1038,7 @@ ImGui.ConfigFlags_NavEnableSetMousePos
 ImGui.ConfigFlags_NavNoCaptureKeyboard   
 ImGui.ConfigFlags_NoMouse                
 ImGui.ConfigFlags_NoMouseCursorChange    
+ImGui.ConfigFlags_DockingEnable
 ImGui.ConfigFlags_IsSRGB                 
 ImGui.ConfigFlags_IsTouchScreen
 
