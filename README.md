@@ -1,7 +1,5 @@
 # API
 
-* [ENUMS](#enums)
-* [Custom drawing](#draw-list-commands)
 * [Fonts](#fonts-wip)
 * [Inputs](#inputs)
 * [Style setters/getters](#style-settersgetters)
@@ -40,6 +38,8 @@
 * [Render](#render)
 * [Display](#display-size)
 * [ImGui Demos](#demos)
+* [ENUMS](#enums)
+* [Custom drawing](#draw-list-commands)
 
 !VERY IMPORTANT!</br> 
 every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
@@ -61,403 +61,6 @@ ImGui.new([width, height, fontsTable])
 -- 		offsetX (number, default = 0): font offset by X
 -- 		offsetY (number, default = 0): font offset by Y
 ```
-
-# ENUMS
-```lua
--- ImGuiFocusedFlags
-ImGui.FocusedFlags_ChildWindows
-ImGui.FocusedFlags_AnyWindow
-ImGui.FocusedFlags_RootWindow
-ImGui.FocusedFlags_RootAndChildWindows
-ImGui.FocusedFlags_None
-
--- ImGuiPopupFlags
-ImGui.PopupFlags_NoOpenOverExistingPopup
-ImGui.PopupFlags_MouseButtonLeft
-ImGui.PopupFlags_MouseButtonMask_
-ImGui.PopupFlags_MouseButtonRight
-ImGui.PopupFlags_AnyPopupId
-ImGui.PopupFlags_MouseButtonDefault_
-ImGui.PopupFlags_MouseButtonMiddle
-ImGui.PopupFlags_None
-ImGui.PopupFlags_AnyPopup
-ImGui.PopupFlags_AnyPopupLevel
-ImGui.PopupFlags_NoOpenOverItems
-
--- ImGuiHoveredFlags
-ImGui.HoveredFlags_None
-ImGui.HoveredFlags_RootAndChildWindows
-ImGui.HoveredFlags_AllowWhenBlockedByPopup
-ImGui.HoveredFlags_AllowWhenBlockedByActiveItem
-ImGui.HoveredFlags_ChildWindows
-ImGui.HoveredFlags_RectOnly
-ImGui.HoveredFlags_AllowWhenDisabled
-ImGui.HoveredFlags_AllowWhenOverlapped
-ImGui.HoveredFlags_AnyWindow
-ImGui.HoveredFlags_RootWindow
-
--- ImGuiInputTextFlags
-ImGui.InputTextFlags_EnterReturnsTrue
-ImGui.InputTextFlags_CallbackCompletion
-ImGui.InputTextFlags_None
-ImGui.InputTextFlags_CallbackResize
-ImGui.InputTextFlags_ReadOnly
-ImGui.InputTextFlags_AutoSelectAll
-ImGui.InputTextFlags_AllowTabInput
-ImGui.InputTextFlags_CharsScientific
-ImGui.InputTextFlags_CallbackAlways
-ImGui.InputTextFlags_CharsDecimal
-ImGui.InputTextFlags_NoUndoRedo
-ImGui.InputTextFlags_CallbackHistory
-ImGui.InputTextFlags_CtrlEnterForNewLine
-ImGui.InputTextFlags_CharsHexadecimal
-ImGui.InputTextFlags_CharsNoBlank
-ImGui.InputTextFlags_Password
-ImGui.InputTextFlags_CallbackCharFilter
-ImGui.InputTextFlags_NoHorizontalScroll
-ImGui.InputTextFlags_AlwaysInsertMode
-ImGui.InputTextFlags_CharsUppercase
-ImGui.InputTextFlags_NoBackground -- do not draw background frame
-
--- ImGuiNavInput
-ImGui.NavInput_FocusNext
-ImGui.NavInput_TweakFast
-ImGui.NavInput_Input
-ImGui.NavInput_DpadRight
-ImGui.NavInput_FocusPrev
-ImGui.NavInput_LStickDown
-ImGui.NavInput_LStickUp
-ImGui.NavInput_Activate
-ImGui.NavInput_LStickLeft
-ImGui.NavInput_LStickRight
-ImGui.NavInput_DpadLeft
-ImGui.NavInput_DpadDown
-ImGui.NavInput_TweakSlow
-ImGui.NavInput_DpadUp
-ImGui.NavInput_Menu
-ImGui.NavInput_Cancel
-
--- ImGuiTabBarFlags
-ImGui.TabBarFlags_AutoSelectNewTabs
-ImGui.TabBarFlags_NoCloseWithMiddleMouseButton
-ImGui.TabBarFlags_TabListPopupButton
-ImGui.TabBarFlags_NoTooltip
-ImGui.TabBarFlags_FittingPolicyMask_
-ImGui.TabBarFlags_Reorderable
-ImGui.TabBarFlags_FittingPolicyDefault_
-ImGui.TabBarFlags_FittingPolicyScroll
-ImGui.TabBarFlags_FittingPolicyResizeDown
-ImGui.TabBarFlags_None
-ImGui.TabBarFlags_NoTabListScrollingButtons
-
--- ImGuiTreeNodeFlags
-ImGui.TreeNodeFlags_Bullet
-ImGui.TreeNodeFlags_None
-ImGui.TreeNodeFlags_CollapsingHeader
-ImGui.TreeNodeFlags_NavLeftJumpsBackHere
-ImGui.TreeNodeFlags_Framed
-ImGui.TreeNodeFlags_FramePadding
-ImGui.TreeNodeFlags_AllowItemOverlap
-ImGui.TreeNodeFlags_OpenOnArrow
-ImGui.TreeNodeFlags_SpanFullWidth
-ImGui.TreeNodeFlags_NoAutoOpenOnLog
-ImGui.TreeNodeFlags_Leaf
-ImGui.TreeNodeFlags_NoTreePushOnOpen
-ImGui.TreeNodeFlags_Selected
-ImGui.TreeNodeFlags_SpanAvailWidth
-ImGui.TreeNodeFlags_OpenOnDoubleClick
-ImGui.TreeNodeFlags_DefaultOpen
-
--- ImGuiStyleVar
-ImGui.StyleVar_GrabRounding
-ImGui.StyleVar_Alpha
-ImGui.StyleVar_WindowMinSize
-ImGui.StyleVar_PopupBorderSize
-ImGui.StyleVar_WindowBorderSize
-ImGui.StyleVar_FrameBorderSize
-ImGui.StyleVar_ItemSpacing
-ImGui.StyleVar_IndentSpacing
-ImGui.StyleVar_FramePadding
-ImGui.StyleVar_WindowPadding
-ImGui.StyleVar_ChildRounding
-ImGui.StyleVar_ItemInnerSpacing
-ImGui.StyleVar_WindowRounding
-ImGui.StyleVar_FrameRounding
-ImGui.StyleVar_TabRounding
-ImGui.StyleVar_ChildBorderSize
-ImGui.StyleVar_GrabMinSize
-ImGui.StyleVar_ScrollbarRounding
-ImGui.StyleVar_ScrollbarSize
-ImGui.StyleVar_WindowTitleAlign
-ImGui.StyleVar_SelectableTextAlign
-ImGui.StyleVar_PopupRounding
-ImGui.StyleVar_ButtonTextAlign
-
--- ImGuiCol_
-ImGui.Col_PlotHistogram
-ImGui.Col_TitleBg
-ImGui.Col_Separator
-ImGui.Col_HeaderActive
-ImGui.Col_HeaderHovered
-ImGui.Col_ButtonHovered
-ImGui.Col_NavWindowingHighlight
-ImGui.Col_ScrollbarGrab
-ImGui.Col_FrameBg
-ImGui.Col_TextSelectedBg
-ImGui.Col_ScrollbarGrabActive
-ImGui.Col_TitleBgCollapsed
-ImGui.Col_ModalWindowDimBg
-ImGui.Col_ResizeGripActive
-ImGui.Col_SeparatorHovered
-ImGui.Col_ScrollbarGrabHovered
-ImGui.Col_TabUnfocused
-ImGui.Col_ScrollbarBg
-ImGui.Col_ChildBg
-ImGui.Col_Header
-ImGui.Col_NavWindowingDimBg
-ImGui.Col_CheckMark
-ImGui.Col_Button
-ImGui.Col_BorderShadow
-ImGui.Col_DragDropTarget
-ImGui.Col_MenuBarBg
-ImGui.Col_TitleBgActive
-ImGui.Col_SeparatorActive
-ImGui.Col_Text
-ImGui.Col_PlotLinesHovered
-ImGui.Col_Border
-ImGui.Col_TabUnfocusedActive
-ImGui.Col_PlotLines
-ImGui.Col_PlotHistogramHovered
-ImGui.Col_ResizeGripHovered
-ImGui.Col_Tab
-ImGui.Col_TabHovered
-ImGui.Col_PopupBg
-ImGui.Col_TabActive
-ImGui.Col_FrameBgActive
-ImGui.Col_ButtonActive
-ImGui.Col_WindowBg
-ImGui.Col_SliderGrabActive
-ImGui.Col_SliderGrab
-ImGui.Col_NavHighlight
-ImGui.Col_FrameBgHovered
-ImGui.Col_TextDisabled
-ImGui.Col_ResizeGrip
-
--- ImGuiDataType
-ImGui.DataType_U8
-ImGui.DataType_S64
-ImGui.DataType_Float
-ImGui.DataType_S16
-ImGui.DataType_U16
-ImGui.DataType_Double
-ImGui.DataType_S8
-ImGui.DataType_U32
-ImGui.DataType_S32
-ImGui.DataType_U64
-
--- ImGuiDir
-ImGui.Dir_None
-ImGui.Dir_Left
-ImGui.Dir_Up
-ImGui.Dir_Down
-ImGui.Dir_Right
-
--- ImGuiWindowFlags
-ImGui.WindowFlags_NoScrollWithMouse
-ImGui.WindowFlags_None
-ImGui.WindowFlags_NoScrollbar
-ImGui.WindowFlags_HorizontalScrollbar
-ImGui.WindowFlags_NoFocusOnAppearing
-ImGui.WindowFlags_NoBringToFrontOnFocus
-ImGui.WindowFlags_NoDecoration
-ImGui.WindowFlags_NoCollapse
-ImGui.WindowFlags_NoTitleBar
-ImGui.WindowFlags_NoMove
-ImGui.WindowFlags_NoInputs
-ImGui.WindowFlags_NoMouseInputs
-ImGui.WindowFlags_NoSavedSettings
-ImGui.WindowFlags_NoNav
-ImGui.WindowFlags_UnsavedDocument
-ImGui.WindowFlags_NoNavFocus
-ImGui.WindowFlags_AlwaysHorizontalScrollbar
-ImGui.WindowFlags_AlwaysUseWindowPadding
-ImGui.WindowFlags_NoNavInputs
-ImGui.WindowFlags_NoResize
-ImGui.WindowFlags_AlwaysVerticalScrollbar
-ImGui.WindowFlags_MenuBar
-ImGui.WindowFlags_NoBackground
-ImGui.WindowFlags_AlwaysAutoResize
-
--- ImGuiTabItemFlags
-ImGui.TabItemFlags_SetSelected
-ImGui.TabItemFlags_NoCloseWithMiddleMouseButton
-ImGui.TabItemFlags_NoTooltip
-ImGui.TabItemFlags_None
-ImGui.TabItemFlags_NoPushId
-ImGui.TabItemFlags_UnsavedDocument
-
--- ImGuiComboFlags
-ImGui.ComboFlags_HeightSmall
-ImGui.ComboFlags_HeightLarge
-ImGui.ComboFlags_PopupAlignLeft
-ImGui.ComboFlags_None
-ImGui.ComboFlags_NoPreview
-ImGui.ComboFlags_HeightRegular
-ImGui.ComboFlags_HeightMask_
-ImGui.ComboFlags_NoArrowButton
-ImGui.ComboFlags_HeightLargest
-
--- ImGuiCond
-ImGui.Cond_Appearing
-ImGui.Cond_None
-ImGui.Cond_Always
-ImGui.Cond_FirstUseEver
-ImGui.Cond_Once
-
--- ImGuiSelectableFlags
-ImGui.SelectableFlags_None
-ImGui.SelectableFlags_SpanAllColumns
-ImGui.SelectableFlags_AllowItemOverlap
-ImGui.SelectableFlags_DontClosePopups
-ImGui.SelectableFlags_AllowDoubleClick
-ImGui.SelectableFlags_Disabled
-
--- ImGuiMouseCursor
-ImGui.MouseCursor_Hand
-ImGui.MouseCursor_ResizeAll
-ImGui.MouseCursor_ResizeEW
-ImGui.MouseCursor_Arrow
-ImGui.MouseCursor_ResizeNS
-ImGui.MouseCursor_None
-ImGui.MouseCursor_NotAllowed
-ImGui.MouseCursor_ResizeNWSE
-ImGui.MouseCursor_ResizeNESW
-ImGui.MouseCursor_TextInput
-
--- ImGuiMouseButton
-ImGui.MouseButton_Right
-ImGui.MouseButton_Middle
-ImGui.MouseButton_Left
-
--- ImGuiColorEditFlags
-ImGui.ColorEditFlags_AlphaPreview
-ImGui.ColorEditFlags_DisplayRGB
-ImGui.ColorEditFlags_DisplayHex
-ImGui.ColorEditFlags_InputHSV
-ImGui.ColorEditFlags_NoSidePreview
-ImGui.ColorEditFlags_Uint8
-ImGui.ColorEditFlags_AlphaPreviewHalf
-ImGui.ColorEditFlags_Float
-ImGui.ColorEditFlags_PickerHueWheel
-ImGui.ColorEditFlags__OptionsDefault
-ImGui.ColorEditFlags_InputRGB
-ImGui.ColorEditFlags_HDR
-ImGui.ColorEditFlags_NoPicker
-ImGui.ColorEditFlags_AlphaBar
-ImGui.ColorEditFlags_DisplayHSV
-ImGui.ColorEditFlags_PickerHueBar
-ImGui.ColorEditFlags_NoAlpha
-ImGui.ColorEditFlags_NoOptions
-ImGui.ColorEditFlags_NoDragDrop
-ImGui.ColorEditFlags_NoInputs
-ImGui.ColorEditFlags_None
-ImGui.ColorEditFlags_NoSmallPreview
-ImGui.ColorEditFlags_NoBorder
-ImGui.ColorEditFlags_NoLabel
-ImGui.ColorEditFlags_NoTooltip
-
--- ImGuiDragDropFlags
-ImGui.DragDropFlags_SourceNoPreviewTooltip
-ImGui.DragDropFlags_SourceAllowNullID
-ImGui.DragDropFlags_AcceptNoDrawDefaultRect
-ImGui.DragDropFlags_AcceptPeekOnly
-ImGui.DragDropFlags_AcceptBeforeDelivery
-ImGui.DragDropFlags_SourceNoHoldToOpenOthers
-ImGui.DragDropFlags_AcceptNoPreviewTooltip
-ImGui.DragDropFlags_SourceAutoExpirePayload
-ImGui.DragDropFlags_SourceExtern
-ImGui.DragDropFlags_None
-ImGui.DragDropFlags_SourceNoDisableHover
-
--- ImDrawCornerFlags
-ImGui.CornerFlags_None
-ImGui.CornerFlags_TopLeft
-ImGui.CornerFlags_TopRight
-ImGui.CornerFlags_BotLeft
-ImGui.CornerFlags_BotRight
-ImGui.CornerFlags_Top
-ImGui.CornerFlags_Bot
-ImGui.CornerFlags_Left
-ImGui.CornerFlags_Right
-ImGui.CornerFlags_All
-
--- ImGuiConfigFlags
-ImGui.ConfigFlags_None                   
-ImGui.ConfigFlags_NavEnableKeyboard      
-ImGui.ConfigFlags_NavEnableGamepad       
-ImGui.ConfigFlags_NavEnableSetMousePos   
-ImGui.ConfigFlags_NavNoCaptureKeyboard   
-ImGui.ConfigFlags_NoMouse                
-ImGui.ConfigFlags_NoMouseCursorChange    
-ImGui.ConfigFlags_IsSRGB                 
-ImGui.ConfigFlags_IsTouchScreen
-
--- ImGuiBackendFlags
-ImGui.BackendFlags_None
-ImGui.BackendFlags_HasGamepad
-ImGui.BackendFlags_HasMouseCursors
-ImGui.BackendFlags_HasSetMousePos
-ImGui.BackendFlags_RendererHasVtxOffset
-
--- ImGuiSliderFlags
-ImGui.SliderFlags_None        
-ImGui.SliderFlags_ClampOnInpuе  
-ImGui.SliderFlags_Logarithmic  
-ImGui.SliderFlags_NoRoundToFormat
-ImGui.SliderFlags_NoInput
-```
-[To top](#api)
-# DRAW LIST COMMANDS
-```lua
--- ImDrawList *list = ImGui::GetWindowDrawList()
-
-ImGui:drawListPushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
-ImGui:drawListPushClipRectFullScreen()
-ImGui:drawListPopClipRect()
-ImGui:drawListPushTextureID(texture)
-ImGui:drawListPopTextureID()
-x, y = ImGui:drawListGetClipRectMin()
-x, y = ImGui:drawListGetClipRectMax()
-ImGui:drawListAddLine(p1_x, p1_y, p2_x, p2_y, color, [thickness = 1])
-ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
-ImGui:drawListAddRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All])
-ImGui:drawListAddRectFilledMultiColor(p_min_x, p_min_y, p_max_x, p_max_y, color_upr_left, color_upr_right, color_bot_right, color_bot_left)
-ImGui:drawListAddQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, [thickness = 1])
-ImGui:drawListAddQuadFilled(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color)
-ImGui:drawListAddTriangle(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, [thickness = 1])
-ImGui:drawListAddTriangleFilled(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color)
-ImGui:drawListAddCircle(center_x, center_y, radius, color, [num_segments = 12, thickness = 1])
-ImGui:drawListAddCircleFilled(center_x, center_y, radius, color, [num_segments = 12])
-ImGui:drawListAddNgon(center_x, center_y, radius, color, [num_segments = 12, thickness = 1])
-ImGui:drawListAddNgonFilled(center_x, center_y, radius, color, [num_segments = 12])
-ImGui:drawListAddText(x, y, color, text_begin, [text_end]) -- x, y (number), text_begin (string), text_end (string)
-ImGui:drawListAddPolyline(pointsTable, color, closed, thickness) -- pointsTable (table), color (number), closed (bool), thickness (number)
-ImGui:drawListAddConvexPolyFilled(pointsTable, color) -- pointsTable (table), color (number)
-ImGui:drawListAddBezierCurve(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, thickness, [num_segments = 0])
-ImGui:drawListAddImage(texture, p_min_x, p_min_y, [color = 0xffffff, 1, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
-ImGui:drawListAddImageQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, [color = 0xffffff, 1, uv1_x, uv1_y, uv2_x, uv2_y, uv3_x, uv3_y, uv4_x, uv4_y])
-ImGui:drawListAddImageRounded(p_min_x, p_min_y, color, rounding, [rounding_corners = ImGui.CornerFlags_All, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
-ImGui:drawListPathClear()
-ImGui:drawListPathLineTo(x, y)
-ImGui:drawListPathLineToMergeDuplicate(x, y)
-ImGui:drawListPathFillConvex(color)
-ImGui:drawListPathStroke(color, closed, [thickness = 1])
-ImGui:drawListPathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
-ImGui:drawListPathArcToFast(centerX, centerY, radius, a_min, a_max)
-ImGui:drawListPathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
-ImGui:drawListPathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
-```
-[To top](#api)
 # FONTS (W.I.P)
 ```lua
 --ImGui:addFonts()
@@ -1083,5 +686,401 @@ isOpenFlag = ImGui:showFontSelector()
 isOpenFlag = ImGui:showMetricsWindow()
 isOpenFlag = ImGui:showStyleSelector()
 ImGui:showLuaStyleEditor()
+```
+[To top](#api)
+# ENUMS
+```lua
+-- ImGuiFocusedFlags
+ImGui.FocusedFlags_ChildWindows
+ImGui.FocusedFlags_AnyWindow
+ImGui.FocusedFlags_RootWindow
+ImGui.FocusedFlags_RootAndChildWindows
+ImGui.FocusedFlags_None
+
+-- ImGuiPopupFlags
+ImGui.PopupFlags_NoOpenOverExistingPopup
+ImGui.PopupFlags_MouseButtonLeft
+ImGui.PopupFlags_MouseButtonMask_
+ImGui.PopupFlags_MouseButtonRight
+ImGui.PopupFlags_AnyPopupId
+ImGui.PopupFlags_MouseButtonDefault_
+ImGui.PopupFlags_MouseButtonMiddle
+ImGui.PopupFlags_None
+ImGui.PopupFlags_AnyPopup
+ImGui.PopupFlags_AnyPopupLevel
+ImGui.PopupFlags_NoOpenOverItems
+
+-- ImGuiHoveredFlags
+ImGui.HoveredFlags_None
+ImGui.HoveredFlags_RootAndChildWindows
+ImGui.HoveredFlags_AllowWhenBlockedByPopup
+ImGui.HoveredFlags_AllowWhenBlockedByActiveItem
+ImGui.HoveredFlags_ChildWindows
+ImGui.HoveredFlags_RectOnly
+ImGui.HoveredFlags_AllowWhenDisabled
+ImGui.HoveredFlags_AllowWhenOverlapped
+ImGui.HoveredFlags_AnyWindow
+ImGui.HoveredFlags_RootWindow
+
+-- ImGuiInputTextFlags
+ImGui.InputTextFlags_EnterReturnsTrue
+ImGui.InputTextFlags_CallbackCompletion
+ImGui.InputTextFlags_None
+ImGui.InputTextFlags_CallbackResize
+ImGui.InputTextFlags_ReadOnly
+ImGui.InputTextFlags_AutoSelectAll
+ImGui.InputTextFlags_AllowTabInput
+ImGui.InputTextFlags_CharsScientific
+ImGui.InputTextFlags_CallbackAlways
+ImGui.InputTextFlags_CharsDecimal
+ImGui.InputTextFlags_NoUndoRedo
+ImGui.InputTextFlags_CallbackHistory
+ImGui.InputTextFlags_CtrlEnterForNewLine
+ImGui.InputTextFlags_CharsHexadecimal
+ImGui.InputTextFlags_CharsNoBlank
+ImGui.InputTextFlags_Password
+ImGui.InputTextFlags_CallbackCharFilter
+ImGui.InputTextFlags_NoHorizontalScroll
+ImGui.InputTextFlags_AlwaysInsertMode
+ImGui.InputTextFlags_CharsUppercase
+ImGui.InputTextFlags_NoBackground -- do not draw background frame
+
+-- ImGuiNavInput
+ImGui.NavInput_FocusNext
+ImGui.NavInput_TweakFast
+ImGui.NavInput_Input
+ImGui.NavInput_DpadRight
+ImGui.NavInput_FocusPrev
+ImGui.NavInput_LStickDown
+ImGui.NavInput_LStickUp
+ImGui.NavInput_Activate
+ImGui.NavInput_LStickLeft
+ImGui.NavInput_LStickRight
+ImGui.NavInput_DpadLeft
+ImGui.NavInput_DpadDown
+ImGui.NavInput_TweakSlow
+ImGui.NavInput_DpadUp
+ImGui.NavInput_Menu
+ImGui.NavInput_Cancel
+
+-- ImGuiTabBarFlags
+ImGui.TabBarFlags_AutoSelectNewTabs
+ImGui.TabBarFlags_NoCloseWithMiddleMouseButton
+ImGui.TabBarFlags_TabListPopupButton
+ImGui.TabBarFlags_NoTooltip
+ImGui.TabBarFlags_FittingPolicyMask_
+ImGui.TabBarFlags_Reorderable
+ImGui.TabBarFlags_FittingPolicyDefault_
+ImGui.TabBarFlags_FittingPolicyScroll
+ImGui.TabBarFlags_FittingPolicyResizeDown
+ImGui.TabBarFlags_None
+ImGui.TabBarFlags_NoTabListScrollingButtons
+
+-- ImGuiTreeNodeFlags
+ImGui.TreeNodeFlags_Bullet
+ImGui.TreeNodeFlags_None
+ImGui.TreeNodeFlags_CollapsingHeader
+ImGui.TreeNodeFlags_NavLeftJumpsBackHere
+ImGui.TreeNodeFlags_Framed
+ImGui.TreeNodeFlags_FramePadding
+ImGui.TreeNodeFlags_AllowItemOverlap
+ImGui.TreeNodeFlags_OpenOnArrow
+ImGui.TreeNodeFlags_SpanFullWidth
+ImGui.TreeNodeFlags_NoAutoOpenOnLog
+ImGui.TreeNodeFlags_Leaf
+ImGui.TreeNodeFlags_NoTreePushOnOpen
+ImGui.TreeNodeFlags_Selected
+ImGui.TreeNodeFlags_SpanAvailWidth
+ImGui.TreeNodeFlags_OpenOnDoubleClick
+ImGui.TreeNodeFlags_DefaultOpen
+
+-- ImGuiStyleVar
+ImGui.StyleVar_GrabRounding
+ImGui.StyleVar_Alpha
+ImGui.StyleVar_WindowMinSize
+ImGui.StyleVar_PopupBorderSize
+ImGui.StyleVar_WindowBorderSize
+ImGui.StyleVar_FrameBorderSize
+ImGui.StyleVar_ItemSpacing
+ImGui.StyleVar_IndentSpacing
+ImGui.StyleVar_FramePadding
+ImGui.StyleVar_WindowPadding
+ImGui.StyleVar_ChildRounding
+ImGui.StyleVar_ItemInnerSpacing
+ImGui.StyleVar_WindowRounding
+ImGui.StyleVar_FrameRounding
+ImGui.StyleVar_TabRounding
+ImGui.StyleVar_ChildBorderSize
+ImGui.StyleVar_GrabMinSize
+ImGui.StyleVar_ScrollbarRounding
+ImGui.StyleVar_ScrollbarSize
+ImGui.StyleVar_WindowTitleAlign
+ImGui.StyleVar_SelectableTextAlign
+ImGui.StyleVar_PopupRounding
+ImGui.StyleVar_ButtonTextAlign
+
+-- ImGuiCol_
+ImGui.Col_PlotHistogram
+ImGui.Col_TitleBg
+ImGui.Col_Separator
+ImGui.Col_HeaderActive
+ImGui.Col_HeaderHovered
+ImGui.Col_ButtonHovered
+ImGui.Col_NavWindowingHighlight
+ImGui.Col_ScrollbarGrab
+ImGui.Col_FrameBg
+ImGui.Col_TextSelectedBg
+ImGui.Col_ScrollbarGrabActive
+ImGui.Col_TitleBgCollapsed
+ImGui.Col_ModalWindowDimBg
+ImGui.Col_ResizeGripActive
+ImGui.Col_SeparatorHovered
+ImGui.Col_ScrollbarGrabHovered
+ImGui.Col_TabUnfocused
+ImGui.Col_ScrollbarBg
+ImGui.Col_ChildBg
+ImGui.Col_Header
+ImGui.Col_NavWindowingDimBg
+ImGui.Col_CheckMark
+ImGui.Col_Button
+ImGui.Col_BorderShadow
+ImGui.Col_DragDropTarget
+ImGui.Col_MenuBarBg
+ImGui.Col_TitleBgActive
+ImGui.Col_SeparatorActive
+ImGui.Col_Text
+ImGui.Col_PlotLinesHovered
+ImGui.Col_Border
+ImGui.Col_TabUnfocusedActive
+ImGui.Col_PlotLines
+ImGui.Col_PlotHistogramHovered
+ImGui.Col_ResizeGripHovered
+ImGui.Col_Tab
+ImGui.Col_TabHovered
+ImGui.Col_PopupBg
+ImGui.Col_TabActive
+ImGui.Col_FrameBgActive
+ImGui.Col_ButtonActive
+ImGui.Col_WindowBg
+ImGui.Col_SliderGrabActive
+ImGui.Col_SliderGrab
+ImGui.Col_NavHighlight
+ImGui.Col_FrameBgHovered
+ImGui.Col_TextDisabled
+ImGui.Col_ResizeGrip
+
+-- ImGuiDataType
+ImGui.DataType_U8
+ImGui.DataType_S64
+ImGui.DataType_Float
+ImGui.DataType_S16
+ImGui.DataType_U16
+ImGui.DataType_Double
+ImGui.DataType_S8
+ImGui.DataType_U32
+ImGui.DataType_S32
+ImGui.DataType_U64
+
+-- ImGuiDir
+ImGui.Dir_None
+ImGui.Dir_Left
+ImGui.Dir_Up
+ImGui.Dir_Down
+ImGui.Dir_Right
+
+-- ImGuiWindowFlags
+ImGui.WindowFlags_NoScrollWithMouse
+ImGui.WindowFlags_None
+ImGui.WindowFlags_NoScrollbar
+ImGui.WindowFlags_HorizontalScrollbar
+ImGui.WindowFlags_NoFocusOnAppearing
+ImGui.WindowFlags_NoBringToFrontOnFocus
+ImGui.WindowFlags_NoDecoration
+ImGui.WindowFlags_NoCollapse
+ImGui.WindowFlags_NoTitleBar
+ImGui.WindowFlags_NoMove
+ImGui.WindowFlags_NoInputs
+ImGui.WindowFlags_NoMouseInputs
+ImGui.WindowFlags_NoSavedSettings
+ImGui.WindowFlags_NoNav
+ImGui.WindowFlags_UnsavedDocument
+ImGui.WindowFlags_NoNavFocus
+ImGui.WindowFlags_AlwaysHorizontalScrollbar
+ImGui.WindowFlags_AlwaysUseWindowPadding
+ImGui.WindowFlags_NoNavInputs
+ImGui.WindowFlags_NoResize
+ImGui.WindowFlags_AlwaysVerticalScrollbar
+ImGui.WindowFlags_MenuBar
+ImGui.WindowFlags_NoBackground
+ImGui.WindowFlags_AlwaysAutoResize
+
+-- ImGuiTabItemFlags
+ImGui.TabItemFlags_SetSelected
+ImGui.TabItemFlags_NoCloseWithMiddleMouseButton
+ImGui.TabItemFlags_NoTooltip
+ImGui.TabItemFlags_None
+ImGui.TabItemFlags_NoPushId
+ImGui.TabItemFlags_UnsavedDocument
+
+-- ImGuiComboFlags
+ImGui.ComboFlags_HeightSmall
+ImGui.ComboFlags_HeightLarge
+ImGui.ComboFlags_PopupAlignLeft
+ImGui.ComboFlags_None
+ImGui.ComboFlags_NoPreview
+ImGui.ComboFlags_HeightRegular
+ImGui.ComboFlags_HeightMask_
+ImGui.ComboFlags_NoArrowButton
+ImGui.ComboFlags_HeightLargest
+
+-- ImGuiCond
+ImGui.Cond_Appearing
+ImGui.Cond_None
+ImGui.Cond_Always
+ImGui.Cond_FirstUseEver
+ImGui.Cond_Once
+
+-- ImGuiSelectableFlags
+ImGui.SelectableFlags_None
+ImGui.SelectableFlags_SpanAllColumns
+ImGui.SelectableFlags_AllowItemOverlap
+ImGui.SelectableFlags_DontClosePopups
+ImGui.SelectableFlags_AllowDoubleClick
+ImGui.SelectableFlags_Disabled
+
+-- ImGuiMouseCursor
+ImGui.MouseCursor_Hand
+ImGui.MouseCursor_ResizeAll
+ImGui.MouseCursor_ResizeEW
+ImGui.MouseCursor_Arrow
+ImGui.MouseCursor_ResizeNS
+ImGui.MouseCursor_None
+ImGui.MouseCursor_NotAllowed
+ImGui.MouseCursor_ResizeNWSE
+ImGui.MouseCursor_ResizeNESW
+ImGui.MouseCursor_TextInput
+
+-- ImGuiMouseButton
+ImGui.MouseButton_Right
+ImGui.MouseButton_Middle
+ImGui.MouseButton_Left
+
+-- ImGuiColorEditFlags
+ImGui.ColorEditFlags_AlphaPreview
+ImGui.ColorEditFlags_DisplayRGB
+ImGui.ColorEditFlags_DisplayHex
+ImGui.ColorEditFlags_InputHSV
+ImGui.ColorEditFlags_NoSidePreview
+ImGui.ColorEditFlags_Uint8
+ImGui.ColorEditFlags_AlphaPreviewHalf
+ImGui.ColorEditFlags_Float
+ImGui.ColorEditFlags_PickerHueWheel
+ImGui.ColorEditFlags__OptionsDefault
+ImGui.ColorEditFlags_InputRGB
+ImGui.ColorEditFlags_HDR
+ImGui.ColorEditFlags_NoPicker
+ImGui.ColorEditFlags_AlphaBar
+ImGui.ColorEditFlags_DisplayHSV
+ImGui.ColorEditFlags_PickerHueBar
+ImGui.ColorEditFlags_NoAlpha
+ImGui.ColorEditFlags_NoOptions
+ImGui.ColorEditFlags_NoDragDrop
+ImGui.ColorEditFlags_NoInputs
+ImGui.ColorEditFlags_None
+ImGui.ColorEditFlags_NoSmallPreview
+ImGui.ColorEditFlags_NoBorder
+ImGui.ColorEditFlags_NoLabel
+ImGui.ColorEditFlags_NoTooltip
+
+-- ImGuiDragDropFlags
+ImGui.DragDropFlags_SourceNoPreviewTooltip
+ImGui.DragDropFlags_SourceAllowNullID
+ImGui.DragDropFlags_AcceptNoDrawDefaultRect
+ImGui.DragDropFlags_AcceptPeekOnly
+ImGui.DragDropFlags_AcceptBeforeDelivery
+ImGui.DragDropFlags_SourceNoHoldToOpenOthers
+ImGui.DragDropFlags_AcceptNoPreviewTooltip
+ImGui.DragDropFlags_SourceAutoExpirePayload
+ImGui.DragDropFlags_SourceExtern
+ImGui.DragDropFlags_None
+ImGui.DragDropFlags_SourceNoDisableHover
+
+-- ImDrawCornerFlags
+ImGui.CornerFlags_None
+ImGui.CornerFlags_TopLeft
+ImGui.CornerFlags_TopRight
+ImGui.CornerFlags_BotLeft
+ImGui.CornerFlags_BotRight
+ImGui.CornerFlags_Top
+ImGui.CornerFlags_Bot
+ImGui.CornerFlags_Left
+ImGui.CornerFlags_Right
+ImGui.CornerFlags_All
+
+-- ImGuiConfigFlags
+ImGui.ConfigFlags_None                   
+ImGui.ConfigFlags_NavEnableKeyboard      
+ImGui.ConfigFlags_NavEnableGamepad       
+ImGui.ConfigFlags_NavEnableSetMousePos   
+ImGui.ConfigFlags_NavNoCaptureKeyboard   
+ImGui.ConfigFlags_NoMouse                
+ImGui.ConfigFlags_NoMouseCursorChange    
+ImGui.ConfigFlags_IsSRGB                 
+ImGui.ConfigFlags_IsTouchScreen
+
+-- ImGuiBackendFlags
+ImGui.BackendFlags_None
+ImGui.BackendFlags_HasGamepad
+ImGui.BackendFlags_HasMouseCursors
+ImGui.BackendFlags_HasSetMousePos
+ImGui.BackendFlags_RendererHasVtxOffset
+
+-- ImGuiSliderFlags
+ImGui.SliderFlags_None        
+ImGui.SliderFlags_ClampOnInpuе  
+ImGui.SliderFlags_Logarithmic  
+ImGui.SliderFlags_NoRoundToFormat
+ImGui.SliderFlags_NoInput
+```
+[To top](#api)
+# DRAW LIST COMMANDS
+```lua
+-- ImDrawList *list = ImGui::GetWindowDrawList()
+
+ImGui:drawListPushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
+ImGui:drawListPushClipRectFullScreen()
+ImGui:drawListPopClipRect()
+ImGui:drawListPushTextureID(texture)
+ImGui:drawListPopTextureID()
+x, y = ImGui:drawListGetClipRectMin()
+x, y = ImGui:drawListGetClipRectMax()
+ImGui:drawListAddLine(p1_x, p1_y, p2_x, p2_y, color, [thickness = 1])
+ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
+ImGui:drawListAddRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All])
+ImGui:drawListAddRectFilledMultiColor(p_min_x, p_min_y, p_max_x, p_max_y, color_upr_left, color_upr_right, color_bot_right, color_bot_left)
+ImGui:drawListAddQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, [thickness = 1])
+ImGui:drawListAddQuadFilled(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color)
+ImGui:drawListAddTriangle(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, [thickness = 1])
+ImGui:drawListAddTriangleFilled(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color)
+ImGui:drawListAddCircle(center_x, center_y, radius, color, [num_segments = 12, thickness = 1])
+ImGui:drawListAddCircleFilled(center_x, center_y, radius, color, [num_segments = 12])
+ImGui:drawListAddNgon(center_x, center_y, radius, color, [num_segments = 12, thickness = 1])
+ImGui:drawListAddNgonFilled(center_x, center_y, radius, color, [num_segments = 12])
+ImGui:drawListAddText(x, y, color, text_begin, [text_end]) -- x, y (number), text_begin (string), text_end (string)
+ImGui:drawListAddPolyline(pointsTable, color, closed, thickness) -- pointsTable (table), color (number), closed (bool), thickness (number)
+ImGui:drawListAddConvexPolyFilled(pointsTable, color) -- pointsTable (table), color (number)
+ImGui:drawListAddBezierCurve(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, thickness, [num_segments = 0])
+ImGui:drawListAddImage(texture, p_min_x, p_min_y, [color = 0xffffff, 1, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
+ImGui:drawListAddImageQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, [color = 0xffffff, 1, uv1_x, uv1_y, uv2_x, uv2_y, uv3_x, uv3_y, uv4_x, uv4_y])
+ImGui:drawListAddImageRounded(p_min_x, p_min_y, color, rounding, [rounding_corners = ImGui.CornerFlags_All, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
+ImGui:drawListPathClear()
+ImGui:drawListPathLineTo(x, y)
+ImGui:drawListPathLineToMergeDuplicate(x, y)
+ImGui:drawListPathFillConvex(color)
+ImGui:drawListPathStroke(color, closed, [thickness = 1])
+ImGui:drawListPathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
+ImGui:drawListPathArcToFast(centerX, centerY, radius, a_min, a_max)
+ImGui:drawListPathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
+ImGui:drawListPathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
 ```
 [To top](#api)
