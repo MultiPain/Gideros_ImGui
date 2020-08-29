@@ -394,6 +394,7 @@ pressFlag = ImGui:smallButton(text)
 pressFlag = ImGui:invisibleButton(stringID, [w = 0, h = 0])
 pressFlag = ImGui:arrowButton(stringID, [ImGuiDir = 0])
 ImGui:image(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 1])
+ImGui:imageFilled(texture, w, h, [tint_color = 0xffffff, 1, bg_color = 0xffffff, 0, border_color = 0xffffff, 0, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 1])
 pressFlag = ImGui:imageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 1])
 pressFlag = ImGui:checkbox(text, flag)
 ImGui:checkboxFlags(label, ) -- TODO
