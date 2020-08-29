@@ -1055,6 +1055,15 @@ ImGui.SliderFlags_ClampOnInput
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
+
+-- ImGuiDockNodeFlags
+ImGui.DockNodeFlags_None
+ImGui.DockNodeFlags_KeepAliveOnly
+ImGui.DockNodeFlags_NoDockingInCentralNode
+ImGui.DockNodeFlags_PassthruCentralNode
+ImGui.DockNodeFlags_NoSplit
+ImGui.DockNodeFlags_NoResize
+ImGui.DockNodeFlags_AutoHideTabBar
 ```
 [To top](#api)
 # DRAW LIST COMMANDS
