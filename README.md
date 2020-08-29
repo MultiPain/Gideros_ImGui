@@ -62,12 +62,12 @@ ImGui.new([width, height, fontsTable])
 -- 		offsetX (number, default = 0): font offset by X
 -- 		offsetY (number, default = 0): font offset by Y
 ```
-# FONTS (W.I.P)
+## FONTS (W.I.P)
 ```lua
 --ImGui:addFonts()
 ```
 [To top](#api)
-# INPUTS
+## INPUTS
 
 ```lua
 ImGui:onMouseHover(event)
@@ -81,7 +81,7 @@ ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
 ```
 [To top](#api)
-# Style setters/getters
+## Style setters/getters
 ```lua
 ImGui:setGlobalAlpha(value)
 value = ImGui:getGlobalAlpha()
@@ -161,14 +161,14 @@ ImGui:setColorButtonPosition(ImGuiDir)
 dir = ImGui:getColorButtonPosition()
 ```
 [To top](#api)
-# DEFAULT STYLES 
+## DEFAULT STYLES 
 ```lua
 ImGui:setDarkStyle()
 ImGui:setLightStyle()
 ImGui:setClassicStyle()
 ```
 [To top](#api)
-# IO Functions
+## IO Functions
 ```lua
 -- ImGuiIO& io = ImGui::GetIO();
 
@@ -256,7 +256,7 @@ number = ImGui:getMouseDownSec(button)
 ```
 [To top](#api)
 # WINDGETS & STUFF
-# Windows
+## Windows
 ```lua
 -- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
 -- was called BEFORE 'ImGui:beginWindow(...)'
@@ -265,13 +265,13 @@ draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- 
 ImGui:endWindow()
 ```
 [To top](#api)
-# Child Windows
+## Child Windows
 ```lua
 ImGui:beginChild(id, [w = 0, h = 0, borderFlag = false, ImGuiWindowFlags = 0])
 ImGui:endChild()
 ```
 [To top](#api)
-# Windows Utilities
+## Windows Utilities
 ```lua
 flag = ImGui:isWindowAppearing()
 flag = ImGui:isWindowCollapsed()
@@ -295,7 +295,7 @@ ImGui:setWindowFocus(name) OR ImGui:setWindowFocus()
 ImGui:setWindowFontScale(scale)
 ```
 [To top](#api)
-# Content region 
+## Content region 
 ```lua
 scaleX, scaleY = ImGui:getContentRegionMax()
 w, h = ImGui:getContentRegionAvail()
@@ -304,7 +304,7 @@ x, y = ImGui:getWindowContentRegionMax()
 w = ImGui:getWindowContentRegionWidth()
 ```
 [To top](#api)
-# Windows Scrolling
+## Windows Scrolling
 ```lua
 x = ImGui:getScrollX()
 y = ImGui:getScrollY()
@@ -318,7 +318,7 @@ ImGui:setScrollFromPosX(x, [ratio = 0.5])
 ImGui:setScrollFromPosY(y, [ratio = 0.5])
 ```
 [To top](#api)
-# Parameters stacks (shared)
+## Parameters stacks (shared)
 ```lua
 ImGui:pushStyleColor(ImGuiCol, color)
 ImGui:popStyleColor([count = 1])
@@ -328,7 +328,7 @@ color, alpha = ImGui:getStyleColor(ImGuiCol)
 fontSize = ImGui:getFontSize()
 ```
 [To top](#api)
-# Parameters stacks (current window) 
+## Parameters stacks (current window) 
 ```lua
 ImGui:pushItemWidth(w)
 ImGui:popItemWidth()
@@ -342,7 +342,7 @@ ImGui:pushButtonRepeat(flag)
 ImGui:popButtonRepeat()
 ```
 [To top](#api)
-# Cursor / Layout
+## Cursor / Layout
 ```lua
 ImGui:separator()
 ImGui:sameLine([offsetX = 0, spacing = -1])
@@ -369,7 +369,7 @@ frameH = ImGui:getFrameHeight()
 frameH = ImGui:getFrameHeightWithSpacing()
 ```
 [To top](#api)
-# ID stack/scopes
+## ID stack/scopes
 ```lua
 ImGui:pushID(anyValue) 
 ImGui:pushID(strBegin, strEnd)
@@ -378,7 +378,7 @@ number = ImGui:getID(anyValue)
 number = ImGui:getID(strBegin, strEnd)
 ```
 [To top](#api)
-# Widgets: Text
+## Widgets: Text
 ```lua
 ImGui:textUnformatted(text, [textEnd])
 ImGui:text(text)
@@ -389,7 +389,7 @@ ImGui:labelText(text, label)
 ImGui:bulletText(text)
 ```
 [To top](#api)
-# Widgets: Main
+## Widgets: Main
 ```lua
 pressFlag = ImGui:button(text, [w = 0, h = 0])
 pressFlag = ImGui:smallButton(text)
@@ -405,14 +405,14 @@ ImGui:progressBar(fraction, [anchorX = -1, anchorY = 0, overlayString = nil])
 ImGui:bullet()
 ```
 [To top](#api)
-# Widgets: Combo Box
+## Widgets: Combo Box
 ```lua
 openFlag = ImGui:beginCombo(text, previewText, [ImGuiComboFlags = 0])
 ImGui:endCombo()
 currentItem, isOpen = ImGui:combo(label, currentItem, items) -- items (table): {"item1", "item2", ...}
 ```
 [To top](#api)
-# Widgets: Drags 
+## Widgets: Drags 
 ```lua
 value, isDragingFlag = ImGui:dragFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, isDragingFlag = ImGui:dragFloat2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
@@ -428,7 +428,7 @@ v_current_min, v_current_max, flag = ImGui:dragIntRange2(label, v_current_min, v
 ImGui:dragScalar(label, ImGuiDataType, value, v_speed, [v_min = nil, v_max = nil, format = nil, ImGuiSliderFlags = 0])
 ```
 [To top](#api)
-# Widgets: Sliders
+## Widgets: Sliders
 ```lua
 value, isDragingFlag = ImGui:sliderFloat(label, value, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, isDragingFlag = ImGui:sliderFloat2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
@@ -459,7 +459,7 @@ value, isDragingFlag = ImGui:vFilledSliderInt(label, mirrorFlag, w, h, value, mi
 value, isDragingFlag = ImGui:vFilledSliderScalar(label, mirrorFlag, w, h, ImGuiDataType, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
 ```
 [To top](#api)
-# Widgets: Input with Keyboard
+## Widgets: Input with Keyboard
 ```lua
 text, flag = ImGui:inputText(label, text, bufferSize, [ImGuiInputTextFlags = 0])
 text, flag = ImGui:inputTextMultiline(label, text, bufferSize, [w = 0, h = 0, ImGuiInputTextFlags = 0])
@@ -476,7 +476,7 @@ value, flag = ImGui:inputDouble(label, value, [step = 0, step_fast = 0, format =
 value, flag = ImGui:inputScalar(label, ImGuiDataType, value, v_min, v_max, format, [ImGuiInputTextFlags = 0])
 ```
 [To top](#api)
-# Widgets: Color Editor/Picker
+## Widgets: Color Editor/Picker
 ```lua
 hexColor, isTouchingFlag = ImGui:colorEdit3(label, color, [ImGuiColorEditFlags = 0]) -- alpha ignored, no need to pass it!
 hexColor, alpha, isTouchingFlag = ImGui:colorEdit4(label, color, [ImGuiColorEditFlags = 0])
@@ -486,7 +486,7 @@ isHoveringFlag = ImGui:colorButton(stringID, color, [ImGuiColorEditFlags = 0, w 
 ImGui:setColorEditOptions(ImGuiColorEditFlags)
 ```
 [To top](#api)
-# Widgets: Trees
+## Widgets: Trees
 ```lua
 isOpenFlag = ImGui:treeNode(label, [formatString])
 ImGui:treeNodeEx(label, ImGui.TreeNodeFlags, [formatString])
@@ -498,12 +498,12 @@ isOpenFlag = ImGui:collapsingHeader(label, [ImGuiTreeNodeFlags = 0])
 ImGui:setNextItemOpen(is_open, ImGuiCond)
 ```
 [To top](#api)
-# Widgets: Selectables
+## Widgets: Selectables
 ```lua
 result?, selected = ImGui:selectable(label, selected, [ImGuiSelectableFlags = 0, w = 0, h = 0])
 ```
 [To top](#api)
-# Widgets: List Boxes
+## Widgets: List Boxes
 ```lua
 current_item, isOpenFlag = ImGui:listBox(label, current_item, itemTable, [max_visible_items = -1]) -- itemTable: {"Item0", "Item1", ...}
 result? = ImGui:listBoxHeader(label, [w = 0, h = 0])
@@ -511,20 +511,20 @@ result? = ImGui:listBoxHeader2(label, items_count)
 ImGui:listBoxFooter()
 ```
 [To top](#api)
-# Widgets: Data Plotting
+## Widgets: Data Plotting
 ```lua
 ImGui:plotLines(label, pointsTable, [values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0]) -- pointsTable: {0.01, 0.5, 10, -50, ...}
 ImGui:plotHistogram(label, pointsTable, [values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0])"plotLines"
 ```
 [To top](#api)
-# Widgets: Value() Helpers
+## Widgets: Value() Helpers
 ```lua
 ImGui:value(prefix, bool)
 ImGui:value(prefix, number)
 ImGui:value(prefix, float, formatString)
 ```
 [To top](#api)
-# Widgets: Menus
+## Widgets: Menus
 ```lua
 result? = ImGui:beginMenuBar()
 ImGui:endMenuBar()
@@ -539,7 +539,7 @@ ImGui:endTooltip()
 ImGui:setTooltip(text)
 ```
 [To top](#api)
-# Popups, Modals
+## Popups, Modals
 ```lua
 result? = ImGui:beginPopup(str_id, [ImGuiWindowFlags = 0])
 p_open, result? = ImGui:beginPopupModal(str_id, p_open, [ImGuiWindowFlags = 0])
@@ -553,7 +553,7 @@ result? = ImGui:beginPopupContextVoid(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:isPopupOpen(str_id, [ImGuiPopupFlags = 0])
 ```
 [To top](#api)
-# Columns
+## Columns
 ```lua
 ImGui:columns([count = 1, id = nil, border = true])
 ImGui:nextColumn()
@@ -565,7 +565,7 @@ ImGui:setColumnOffset(column_index, offset)
 number = ImGui:getColumnsCount()
 ```
 [To top](#api)
-# Tab Bars, Tabs
+## Tab Bars, Tabs
 ```lua
 bool = ImGui:beginTabBar(str_id, [ImGuiTabBarFlags = 0])
 ImGui:endTabBar()
@@ -574,7 +574,7 @@ ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
 ```
 [To top](#api)
-# Docking (BETA)
+## Docking (BETA)
 ```lua
 ImGui:dockSpace(ImGuiID, w, h, [ImGuiDockNodeFlags = 0])
 ImGuiID = ImGui:dockSpaceOverViewport([ImGuiDockNodeFlags = 0])
@@ -583,7 +583,7 @@ ImGuiID = ImGui:getWindowDockID()
 flag = ImGui:isWindowDocked()
 ```
 [To top](#api)
-# Logging/Capture
+## Logging/Capture
 ```lua
 ImGui:logToTTY(auto_open_depth = -1) 
 ImGui:logToFile(auto_open_depth = -1, filename = nil) 
@@ -593,7 +593,7 @@ ImGui:logButtons()
 ImGui:logText(text) 
 ```
 [To top](#api)
-# Drag and drop
+## Drag and drop
 ```lua
 flag = ImGui:beginDragDropSource([ImGuiDragDropFlags flags = 0])
 flag = ImGui:setDragDropPayload(str_type, number, [ImGuiCond cond = 0])
@@ -604,13 +604,13 @@ ImGui:endDragDropTarget()
 table = ImGui:getDragDropPayload() -- W.I.P. have no return value
 ```
 [To top](#api)
-# Clipping
+## Clipping
 ```lua
 ImGui:pushClipRect(minX, minY, maxX, maxY, intersect_with_current_clip_rect)
 ImGui:popClipRect()
 ```
 [To top](#api)
-# Focus, Activation
+## Focus, Activation
 ```lua
 ImGui:setItemDefaultFocus()
 ImGui:setKeyboardFocusHere([offset = 0])
@@ -633,7 +633,7 @@ w, h = ImGui:getItemRectSize()
 ImGui:setItemAllowOverlap()
 ```
 [To top](#api)
-# Miscellaneous Utilities
+## Miscellaneous Utilities
 ```lua
 flag = ImGui:isRectVisible(w, h, [maxX, maxY])
 number = ImGui:getTime()
@@ -644,12 +644,12 @@ flag = ImGui:beginChildFrame(id, w, h, [ImGuiWindowFlags = 0]) -- id (number)
 ImGui:endChildFrame()
 ```
 [To top](#api)
-# Text Utilities
+## Text Utilities
 ```lua
 w, h = ImGui:calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
 ```
 [To top](#api)
-# Inputs Utilities: Keyboard
+## Inputs Utilities: Keyboard
 ```lua
 number = ImGui:getKeyIndex(ImGuiKey)
 flag = ImGui:isKeyDown(user_key_index)
@@ -659,7 +659,7 @@ number = ImGui:getKeyPressedAmount(key_index, repeat_delay, rate)
 ImGui:captureKeyboardFromApp([want_capture_keyboard_value = true])
 ```
 [To top](#api)
-# Inputs Utilities: Mouse
+## Inputs Utilities: Mouse
 ```lua
 flag = ImGui:isMouseDown(mouse_button)
 flag = ImGui:isMouseClicked(mouse_button, [repeat = false])
@@ -675,20 +675,20 @@ x, y = ImGui:getMouseDragDelta(mouse_button, [lock_threshold = -1])
 ImGui:resetMouseDragDelta(mouse_button)
 ```
 [To top](#api)
-# Render
+## Render
 ```lua
 ImGui:newFrame()
 ImGui:render()
 ImGui:endFrame()
 ```
 [To top](#api)
-# Display size
+## Display size
 ```lua
 ImGui:setDisplaySize(x, y)
 ImGui:setDisplayScale(x, y)
 ```
 [To top](#api)
-# Demos
+## Demos
 ```lua
 isOpenFlag = ImGui:showUserGuide()
 isOpenFlag = ImGui:showDemoWindow()
@@ -700,7 +700,7 @@ isOpenFlag = ImGui:showStyleSelector()
 ImGui:showLuaStyleEditor()
 ```
 [To top](#api)
-# ENUMS
+## ENUMS
 ```lua
 -- ImGuiFocusedFlags
 ImGui.FocusedFlags_ChildWindows
@@ -1066,7 +1066,7 @@ ImGui.DockNodeFlags_NoResize
 ImGui.DockNodeFlags_AutoHideTabBar
 ```
 [To top](#api)
-# DRAW LIST COMMANDS
+## DRAW LIST COMMANDS
 ```lua
 -- ImDrawList *list = ImGui::GetWindowDrawList()
 
