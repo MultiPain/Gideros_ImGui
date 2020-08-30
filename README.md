@@ -685,7 +685,9 @@ ImGui:endFrame()
 ## Display size
 ```lua
 ImGui:setDisplaySize(x, y)
+w, h = ImGui:getDisplaySize()
 ImGui:setDisplayScale(x, y)
+x, y = ImGui:getDisplayScale()
 ```
 [To top](#api)
 ## Demos
