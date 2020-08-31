@@ -1912,10 +1912,19 @@ bool ImGui::DataTypeApplyOpFromText(const char* buf, const char* initial_value_b
 template<typename T>
 static bool ClampBehaviorT(T* v, const T* v_min, const T* v_max)
 {
-    // Clamp, both sides are optional
-    if (v_min && *v < *v_min) { *v = *v_min; return true; }
-    if (v_max && *v > *v_max) { *v = *v_max; return true; }
-    return false;
+    // Clamp, both sides are optional, return true if modified
+    if (*v_min < *v_max)
+    {
+        if (v_min && *v < *v_min) { *v = *v_min; return true; }
+        if (v_max && *v > *v_max) { *v = *v_max; return true; }
+        return false;
+    }
+    else
+    {
+        if (v_min && *v > *v_min) { *v = *v_min; return true; }
+        if (v_max && *v < *v_max) { *v = *v_max; return true; }
+        return false;
+    }
 }
 
 bool ImGui::DataTypeClamp(ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max)
