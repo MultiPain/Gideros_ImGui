@@ -1,5 +1,5 @@
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui"
+#define PLUGIN_NAME "ImGui_beta"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -33,14 +33,14 @@ static char keyWeak = ' ';
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
-static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
+static inline ImVec2 operator*(const ImVec2& lhs, const lua_Number rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
+static inline ImVec2 operator/(const ImVec2& lhs, const lua_Number rhs)              { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
 static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
 static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
-static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
+static inline ImVec2& operator*=(ImVec2& lhs, const lua_Number rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
+static inline ImVec2& operator/=(ImVec2& lhs, const lua_Number rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
 static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
 static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
 static inline ImVec2& operator*=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x *= rhs.x; lhs.y *= rhs.y; return lhs; }
@@ -63,7 +63,7 @@ struct VColor {
 
 struct GColor {
     int hex; // 0xffffff
-    float alpha; // [0..1]
+    lua_Number alpha; // [0..1]
 
     GColor()
     {
@@ -71,15 +71,15 @@ struct GColor {
         alpha = 0;
     }
 
-    GColor(int _hex, float _alpha = 1.0f)
+    GColor(int _hex, lua_Number _alpha = 1.0f)
     {
         hex = _hex;
         alpha = _alpha;
     }
 
-    static ImVec4 toVec4(int hex, float alpha = 1.0f)
+    static ImVec4 toVec4(int hex, lua_Number alpha = 1.0f)
     {
-        float s = 1.0f / 255.0f;
+        lua_Number s = 1.0f / 255.0f;
         return ImVec4(
             ((hex >> IM_COL32_B_SHIFT) & 0xFF) * s,
             ((hex >> IM_COL32_G_SHIFT) & 0xFF) * s,
@@ -92,7 +92,7 @@ struct GColor {
         return GColor::toVec4(color.hex, color.alpha);
     }
 
-    static GColor toHex(float _r, float _g, float _b, float _a = 1.0f)
+    static GColor toHex(lua_Number _r, lua_Number _g, lua_Number _b, lua_Number _a = 1.0f)
     {
         int r = _r * 255;
         int g = _g * 255;
@@ -108,7 +108,7 @@ struct GColor {
         return GColor::toHex(color.x, color.y, color.z, color.w);
     }
 
-    static ImU32 toU32(float _r, float _g, float _b, float _a = 1.0f)
+    static ImU32 toU32(lua_Number _r, lua_Number _g, lua_Number _b, lua_Number _a = 1.0f)
     {
         ImU32 r = _r * 255;
         ImU32 g = _g * 255;
@@ -122,7 +122,7 @@ struct GColor {
         return GColor::toU32(color.x, color.y, color.y, color.w);
     }
 
-    static ImU32 toU32(int hex, float alpha = 1.0f)
+    static ImU32 toU32(int hex, lua_Number alpha = 1.0f)
     {
         alpha *= 255.0f;
         ImU32 ghex = (int)alpha | hex << 8;
@@ -141,11 +141,11 @@ struct GColor {
     }
 };
 
-double getfield(lua_State *L, const char *key)
+lua_Number getfield(lua_State *L, const char *key)
 {
     lua_pushstring(L, key);
     lua_gettable(L, -2);  // get table[key]
-    double result = lua_tonumber(L, -1);
+    lua_Number result = lua_tonumber(L, -1);
     lua_pop(L, 1);  // remove number
     return result;
 }
@@ -162,13 +162,13 @@ int getKeyboardModifiers(lua_State *L)
     return mod;
 }
 
-float getApplicationProperty(lua_State *L, const char *name)
+lua_Number getApplicationProperty(lua_State *L, const char *name)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, name);
     lua_getglobal(L, "application");
     lua_call(L,1,1);
-    float value = luaL_checknumber(L, -1);
+    lua_Number value = luaL_checknumber(L, -1);
     lua_pop(L, 2);
 
     return value;
@@ -197,8 +197,8 @@ MyTextureData getTexture(lua_State *L, int idx = 1)
 
         TextureData* gdata = textureBase->data;
         data.texture = (void*)gdata->gid;
-        data.uv.x = (float)gdata->width / (float)gdata->exwidth;
-        data.uv.y = (float)gdata->width / (float)gdata->exheight;
+        data.uv.x = (lua_Number)gdata->width / (lua_Number)gdata->exwidth;
+        data.uv.y = (lua_Number)gdata->width / (lua_Number)gdata->exheight;
         return data;
     }
     else if (binder.isInstanceOf("TextureRegion", idx))
@@ -208,8 +208,8 @@ MyTextureData getTexture(lua_State *L, int idx = 1)
 
         TextureData* gdata = bitmapData->texture()->data;
         data.texture = (void*)gdata->gid;
-        data.uv.x = (float)gdata->width / (float)gdata->exwidth;
-        data.uv.x = (float)gdata->width / (float)gdata->exheight;
+        data.uv.x = (lua_Number)gdata->width / (lua_Number)gdata->exwidth;
+        data.uv.x = (lua_Number)gdata->width / (lua_Number)gdata->exheight;
         return data;
     }
     else
@@ -626,12 +626,13 @@ static GImGui* getInstance(lua_State *L)
     return static_cast<GImGui*>(psp->getContext());
 }
 
-static void _Draw(void *c, const CurrentTransform&t, float sx, float sy,
-        float ex, float ey) {
+static void _Draw(void *c, const CurrentTransform&t, float sx, float sy, float ex, float ey)
+{
     ((GImGui *) c)->doDraw(t, sx, sy, ex, ey);
 }
 
-static void _Destroy(void *c) {
+static void _Destroy(void *c)
+{
     delete ((GImGui *) c);
 }
 
@@ -806,7 +807,7 @@ int ImFormatString_2(char* buf, size_t buf_size, const char* fmt, ...)
     return w;
 }
 
-void GAddFontFromFileTTF(lua_State *L, const char* filename, float size_pixels, int oversample_x = 3, int oversample_y = 1, float esx = 0.0f, float esy = 0.0f)
+void GAddFontFromFileTTF(lua_State *L, const char* filename, lua_Number size_pixels, int oversample_x = 3, int oversample_y = 1, lua_Number esx = 0.0f, lua_Number esy = 0.0f)
 {   ImGuiIO& io = ImGui::GetIO();
 
     size_t data_size = 0;
@@ -849,7 +850,7 @@ void _addFonts(lua_State *L, int idx)
         lua_pop(L, 1);
 
         lua_rawgeti(L, -1, 2); // font size
-        float size_pixel = luaL_checknumber(L, -1);
+        lua_Number size_pixel = luaL_checknumber(L, -1);
         lua_pop(L, 1);
 
         int oversampleH = 1;
@@ -862,12 +863,12 @@ void _addFonts(lua_State *L, int idx)
         if (!lua_isnil(L, -1)) oversampleV = luaL_checkinteger(L, -1);
         lua_pop(L, 1);
 
-        float spacingX = 0.0f;
+        lua_Number spacingX = 0.0f;
         lua_rawgeti(L, -1, 5); // optional GlyphExtraSpacingX
         if (!lua_isnil(L, -1)) spacingX = luaL_checknumber(L, -1);
         lua_pop(L, 1);
 
-        float spacingY = 0.0f;
+        lua_Number spacingY = 0.0f;
         lua_rawgeti(L, -1, 6); // optional GlyphExtraSpacingY
         if (!lua_isnil(L, -1)) spacingY = luaL_checknumber(L, -1);
         lua_pop(L, 1);
@@ -1302,7 +1303,7 @@ int ImGui_impl_IO_GetConfigWindowsMemoryCompactTimer(lua_State *L)
 
 int ImGui_impl_IO_SetConfigWindowsMemoryCompactTimer(lua_State *L)
 {
-    float t = luaL_optnumber(L, 2, -1.0f);
+    lua_Number t = luaL_optnumber(L, 2, -1.0f);
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigWindowsMemoryCompactTimer = t;
@@ -1635,7 +1636,7 @@ int ImGui_impl_MouseUp(lua_State *L)
 
 int ImGui_impl_MouseWheel(lua_State *L)
 {
-    float wheel = getfield(L, "wheel");
+    lua_Number wheel = getfield(L, "wheel");
 
     ImGuiIO& io = ImGui::GetIO();
     io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
@@ -1697,7 +1698,7 @@ int ImGui_impl_KeyChar(lua_State *L)
 
 int ImGui_impl_NewFrame(lua_State *L)
 {
-    double deltaTime = getfield(L, "deltaTime");
+    lua_Number deltaTime = getfield(L, "deltaTime");
 
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = deltaTime;
@@ -1744,6 +1745,13 @@ int ImGui_impl_Begin(lua_State *L)
                 return 1;
             }
             break;
+        default:
+        {
+            lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
+            lua_error(L);
+            return 0;
+        }
+        break;
     }
 }
 
@@ -1851,8 +1859,8 @@ int ImGui_impl_SetNextWindowPos(lua_State *L)
 
 int ImGui_impl_SetNextWindowSize(lua_State *L)
 {
-    float w = luaL_checknumber(L, 2);
-    float h = luaL_checknumber(L, 3);
+    lua_Number w = luaL_checknumber(L, 2);
+    lua_Number h = luaL_checknumber(L, 3);
     const ImVec2& size = ImVec2(w, h);
     ImGuiCond cond = luaL_optinteger(L, 4, 0);
 
@@ -1861,13 +1869,9 @@ int ImGui_impl_SetNextWindowSize(lua_State *L)
     return 0;
 }
 
-static void Square(ImGuiSizeCallbackData* data)
-{
-    //data->DesiredSize.x = data->DesiredSize.y = IM_MAX(data->DesiredSize.x, data->DesiredSize.y);
-}
 static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 {
-    //float step = (float)(int)(intptr_t)data->UserData;
+    //lua_Number step = (lua_Number)(int)(intptr_t)data->UserData;
     //ImVec2 snap_pos = ImVec2((int)(data->Pos.x / step + 0.5f) * step, (int)(data->Pos.y / step + 0.5f) * step);
     //ImGui::SetNextWindowPos(snap_pos, ImGuiCond_Always);
     //data->DesiredSize = ImVec2((int)(data->DesiredSize.x / step + 0.5f) * step, (int)(data->DesiredSize.y / step + 0.5f) * step);
@@ -1897,8 +1901,8 @@ int ImGui_impl_SetNextWindowSizeConstraints(lua_State *L)
 
 int ImGui_impl_SetNextWindowContentSize(lua_State *L)
 {
-    float w = luaL_checknumber(L, 2);
-    float h = luaL_checknumber(L, 3);
+    lua_Number w = luaL_checknumber(L, 2);
+    lua_Number h = luaL_checknumber(L, 3);
     const ImVec2& size = ImVec2(w, h);
 
     ImGui::SetNextWindowContentSize(size);
@@ -1924,7 +1928,7 @@ int ImGui_impl_SetNextWindowFocus(lua_State *L)
 
 int ImGui_impl_SetNextWindowBgAlpha(lua_State *L)
 {
-    float alpha = luaL_checknumber(L, 2);
+    lua_Number alpha = luaL_checknumber(L, 2);
     ImGui::SetNextWindowBgAlpha(alpha);
     return 0;
 }
@@ -1934,8 +1938,8 @@ int ImGui_impl_SetWindowPos(lua_State *L)
     if (lua_type(L, 2) == LUA_TSTRING)
     {
         const char *name = luaL_checkstring(L, 2);
-        float x = luaL_checknumber(L, 3);
-        float y = luaL_checknumber(L, 4);
+        lua_Number x = luaL_checknumber(L, 3);
+        lua_Number y = luaL_checknumber(L, 4);
         const ImVec2& pos = ImVec2(x, y);
         ImGuiCond cond = luaL_optinteger(L, 5, 0);
 
@@ -1943,8 +1947,8 @@ int ImGui_impl_SetWindowPos(lua_State *L)
     }
     else
     {
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
+        lua_Number x = luaL_checknumber(L, 2);
+        lua_Number y = luaL_checknumber(L, 3);
         const ImVec2& pos = ImVec2(x, y);
         ImGuiCond cond = luaL_optinteger(L, 4, 0);
 
@@ -1959,8 +1963,8 @@ int ImGui_impl_SetWindowSize(lua_State *L)
     if (lua_type(L, 2) == LUA_TSTRING)
     {
         const char *name = luaL_checkstring(L, 2);
-        float w = luaL_checknumber(L, 3);
-        float h = luaL_checknumber(L, 4);
+        lua_Number w = luaL_checknumber(L, 3);
+        lua_Number h = luaL_checknumber(L, 4);
         const ImVec2& size = ImVec2(w, h);
         ImGuiCond cond = luaL_optinteger(L, 5, 0);
 
@@ -1968,8 +1972,8 @@ int ImGui_impl_SetWindowSize(lua_State *L)
     }
     else
     {
-        float w = luaL_checknumber(L, 2);
-        float h = luaL_checknumber(L, 3);
+        lua_Number w = luaL_checknumber(L, 2);
+        lua_Number h = luaL_checknumber(L, 3);
         const ImVec2& size = ImVec2(w, h);
         ImGuiCond cond = luaL_optinteger(L, 4, 0);
 
@@ -2015,7 +2019,7 @@ int ImGui_impl_SetWindowFocus(lua_State *L)
 
 int ImGui_impl_SetWindowFontScale(lua_State *L)
 {
-    float scale = luaL_checknumber(L, 2);
+    lua_Number scale = luaL_checknumber(L, 2);
     ImGui::SetWindowFontScale(scale);
     return 0;
 }
@@ -2087,44 +2091,44 @@ int ImGui_impl_GetScrollMaxY(lua_State *L)
 
 int ImGui_impl_SetScrollX(lua_State *L)
 {
-    float scroll_x = luaL_checknumber(L, 2);
+    lua_Number scroll_x = luaL_checknumber(L, 2);
     ImGui::SetScrollX(scroll_x);
     return 0;
 }
 
 int ImGui_impl_SetScrollY(lua_State *L)
 {
-    float scroll_y = luaL_checknumber(L, 2);
+    lua_Number scroll_y = luaL_checknumber(L, 2);
     ImGui::SetScrollY(scroll_y);
     return 0;
 }
 
 int ImGui_impl_SetScrollHereX(lua_State *L)
 {
-    float center_x_ratio = luaL_optnumber(L, 2, 0.5f);
+    lua_Number center_x_ratio = luaL_optnumber(L, 2, 0.5f);
     ImGui::SetScrollHereX(center_x_ratio);
     return 0;
 }
 
 int ImGui_impl_SetScrollHereY(lua_State *L)
 {
-    float center_y_ratio = luaL_optnumber(L, 2, 0.5f);
+    lua_Number center_y_ratio = luaL_optnumber(L, 2, 0.5f);
     ImGui::SetScrollHereY(center_y_ratio);
     return 0;
 }
 
 int ImGui_impl_SetScrollFromPosX(lua_State *L)
 {
-    float local_x = luaL_checknumber(L, 2);
-    float center_x_ratio = luaL_optnumber(L, 3, 0.5f);
+    lua_Number local_x = luaL_checknumber(L, 2);
+    lua_Number center_x_ratio = luaL_optnumber(L, 3, 0.5f);
     ImGui::SetScrollFromPosX(local_x, center_x_ratio);
     return 0;
 }
 
 int ImGui_impl_SetScrollFromPosY(lua_State *L)
 {
-    float local_y = luaL_checknumber(L, 2);
-    float center_y_ratio = luaL_optnumber(L, 3, 0.5f);
+    lua_Number local_y = luaL_checknumber(L, 2);
+    lua_Number center_y_ratio = luaL_optnumber(L, 3, 0.5f);
     ImGui::SetScrollFromPosY(local_y, center_y_ratio);
     return 0;
 }
@@ -2152,13 +2156,13 @@ int ImGui_impl_PushStyleVar(lua_State *L)
 
     if (lua_gettop(L) == 4)
     {
-        float vx = luaL_checknumber(L, 3);
-        float vy = luaL_checknumber(L, 4);
+        lua_Number vx = luaL_checknumber(L, 3);
+        lua_Number vy = luaL_checknumber(L, 4);
         ImGui::PushStyleVar(idx, ImVec2(vx, vy));
     }
     else
     {
-        float val = luaL_checknumber(L, 3);
+        lua_Number val = luaL_checknumber(L, 3);
         ImGui::PushStyleVar(idx, val);
     }
 
@@ -2191,7 +2195,7 @@ int ImGui_impl_GetFontSize(lua_State *L)
 // Parameters stacks (current window)
 int ImGui_impl_PushItemWidth(lua_State *L)
 {
-    float item_width = luaL_checknumber(L, 2);
+    lua_Number item_width = luaL_checknumber(L, 2);
     ImGui::PushItemWidth(item_width);
     return 0;
 }
@@ -2204,7 +2208,7 @@ int ImGui_impl_PopItemWidth(lua_State *L)
 
 int ImGui_impl_SetNextItemWidth(lua_State *L)
 {
-    float item_width = luaL_checknumber(L, 2);
+    lua_Number item_width = luaL_checknumber(L, 2);
     ImGui::SetNextItemWidth(item_width);
     return 0;
 }
@@ -2217,7 +2221,7 @@ int ImGui_impl_CalcItemWidth(lua_State *L)
 
 int ImGui_impl_PushTextWrapPos(lua_State *L)
 {
-    float wrap_local_pos_x = luaL_optnumber(L, 2, 0.0f);
+    lua_Number wrap_local_pos_x = luaL_optnumber(L, 2, 0.0f);
     ImGui::PushTextWrapPos(wrap_local_pos_x);
     return 0;
 }
@@ -2263,8 +2267,8 @@ int ImGui_impl_Separator(lua_State *L)
 
 int ImGui_impl_SameLine(lua_State *L)
 {
-    float offset_from_start_x = luaL_optnumber(L, 2, 0.0f);
-    float spacing = luaL_optnumber(L, 3, -1.0f);
+    lua_Number offset_from_start_x = luaL_optnumber(L, 2, 0.0f);
+    lua_Number spacing = luaL_optnumber(L, 3, -1.0f);
     ImGui::SameLine(offset_from_start_x, spacing);
     return 0;
 }
@@ -2283,8 +2287,8 @@ int ImGui_impl_Spacing(lua_State *L)
 
 int ImGui_impl_Dummy(lua_State *L)
 {
-    float w = luaL_checknumber(L, 2);
-    float h = luaL_checknumber(L, 3);
+    lua_Number w = luaL_checknumber(L, 2);
+    lua_Number h = luaL_checknumber(L, 3);
 
     ImGui::Dummy(ImVec2(w, h));
     return 0;
@@ -2292,14 +2296,14 @@ int ImGui_impl_Dummy(lua_State *L)
 
 int ImGui_impl_Indent(lua_State *L)
 {
-    float indent_w = luaL_optnumber(L, 2, 0.0f);
+    lua_Number indent_w = luaL_optnumber(L, 2, 0.0f);
     ImGui::Indent(indent_w);
     return 0;
 }
 
 int ImGui_impl_Unindent(lua_State *L)
 {
-    float indent_w = luaL_optnumber(L, 2, 0.0f);
+    lua_Number indent_w = luaL_optnumber(L, 2, 0.0f);
     ImGui::Unindent(indent_w);
     return 0;
 }
@@ -2345,14 +2349,14 @@ int ImGui_impl_SetCursorPos(lua_State *L)
 
 int ImGui_impl_SetCursorPosX(lua_State *L)
 {
-    float local_x = luaL_checknumber(L, 2);
+    lua_Number local_x = luaL_checknumber(L, 2);
     ImGui::SetCursorPosX(local_x);
     return 0;
 }
 
 int ImGui_impl_SetCursorPosY(lua_State *L)
 {
-    float local_y = luaL_checknumber(L, 2);
+    lua_Number local_y = luaL_checknumber(L, 2);
     ImGui::SetCursorPosY(local_y);
     return 0;
 }
@@ -2513,8 +2517,8 @@ int ImGui_impl_BulletText(lua_State *L)
 int ImGui_impl_Button(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float w = luaL_optnumber(L, 3, 0.0f);
-    float h = luaL_optnumber(L, 4, 0.0f);
+    lua_Number w = luaL_optnumber(L, 3, 0.0f);
+    lua_Number h = luaL_optnumber(L, 4, 0.0f);
     const ImVec2& size = ImVec2(w, h);
     lua_pushboolean(L, ImGui::Button(label, size));
     return 1;
@@ -2530,8 +2534,8 @@ int ImGui_impl_SmallButton(lua_State *L)
 int ImGui_impl_InvisibleButton(lua_State *L)
 {
     const char* str_id = luaL_checkstring(L, 2);
-    float w = luaL_optnumber(L, 3, 0.0f);
-    float h = luaL_optnumber(L, 4, 0.0f);
+    lua_Number w = luaL_optnumber(L, 3, 0.0f);
+    lua_Number h = luaL_optnumber(L, 4, 0.0f);
     const ImVec2& size = ImVec2(w, h);
     lua_pushboolean(L, ImGui::InvisibleButton(str_id, size));
     return 1;
@@ -2644,7 +2648,7 @@ int ImGui_impl_RadioButton(lua_State *L)
 
 int ImGui_impl_ProgressBar(lua_State *L)
 {
-    float fraction = luaL_checknumber(L, 2);
+    lua_Number fraction = luaL_checknumber(L, 2);
     ImVec2 size = ImVec2(luaL_optnumber(L, 3, -1.0f), luaL_optnumber(L, 4, 0.0f));
     const char* overlay = luaL_optstring(L, 5, NULL);
     ImGui::ProgressBar(fraction, size, overlay);
@@ -2687,44 +2691,48 @@ int ImGui_impl_Combo(lua_State *L)
 
     int maxItems = luaL_optinteger(L, 5, -1);
     bool result = false;
+    const int arg_type = lua_type(L, 4);
 
-    if (lua_type(L, 4) == LUA_TTABLE)
+    switch (arg_type)
     {
-        luaL_checktype(L, 4, LUA_TTABLE);
-        size_t len = luaL_getn(L, 4);
-        if (len == 0)
+    case LUA_TTABLE:
         {
-            lua_pushnumber(L, -1);
-            lua_pushboolean(L, false);
-            return 2;
-        }
+            luaL_checktype(L, 4, LUA_TTABLE);
+            int len = luaL_getn(L, 4);
+            if (len == 0)
+            {
+                lua_pushnumber(L, -1);
+                lua_pushboolean(L, false);
+                return 2;
+            }
 
-        const char** items = new const char*[len];
-        lua_pushvalue(L, 4);
-        for (int i = 0; i < len; i++)
-        {
-            lua_rawgeti(L, 4, i+1);
-            const char* str = lua_tostring(L,-1);
-            items[i] = str;
+            const char** items = new const char*[len];
+            lua_pushvalue(L, 4);
+            for (int i = 0; i < len; i++)
+            {
+                lua_rawgeti(L, 4, i + 1);
+                const char* str = lua_tostring(L, -1);
+                items[i] = str;
+                lua_pop(L, 1);
+            }
             lua_pop(L, 1);
+
+            result = ImGui::Combo(label, &item_current, items, len, maxItems);
+
+            delete[] items;
+        } break;
+        case LUA_TSTRING:
+        {
+            const char* items = luaL_checkstring(L, 4);
+
+            result = ImGui::Combo(label, &item_current, items, maxItems);
+        } break;
+        default:
+        {
+            lua_pushstring(L, "Incorrect data type to #4");
+            lua_error(L);
+            return 0;
         }
-        lua_pop(L, 1);
-
-        result = ImGui::Combo(label, &item_current, items, len, maxItems);
-
-        delete[] items;
-    }
-    else if (lua_type(L, 4) == LUA_TSTRING)
-    {
-        const char* items = luaL_checkstring(L, 4);
-
-        result = ImGui::Combo(label, &item_current, items, maxItems);
-    }
-    else
-    {
-        lua_pushstring(L, "Incorrect data type to #4");
-        lua_error(L);
-        return 0;
     }
 
     lua_pushinteger(L, item_current);
@@ -2839,7 +2847,7 @@ int ImGui_impl_DragInt(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     int v = luaL_checkinteger(L, 3);
-    float v_speed = luaL_optnumber(L, 4, 1.0f);
+    lua_Number v_speed = luaL_optnumber(L, 4, 1.0f);
     int v_min = luaL_optinteger(L, 5, 0);
     int v_max = luaL_optinteger(L, 6, 0);
     const char* format = luaL_optstring(L, 7, "%d");
@@ -2859,7 +2867,7 @@ int ImGui_impl_DragInt2(lua_State *L)
     vec2i[0] = luaL_checkinteger(L, 3);
     vec2i[1] = luaL_checkinteger(L, 4);
 
-    float v_speed = luaL_optnumber(L, 5, 1.0f);
+    lua_Number v_speed = luaL_optnumber(L, 5, 1.0f);
     int v_min = luaL_optinteger(L, 6, 0);
     int v_max = luaL_optinteger(L, 7, 0);
     const char* format = luaL_optstring(L, 8, "%d");
@@ -2881,7 +2889,7 @@ int ImGui_impl_DragInt3(lua_State *L)
     vec3i[1] = luaL_checkinteger(L, 4);
     vec3i[2] = luaL_checkinteger(L, 5);
 
-    float v_speed = luaL_optnumber(L, 5, 1.0f);
+    lua_Number v_speed = luaL_optnumber(L, 5, 1.0f);
     int v_min = luaL_optinteger(L, 6, 0);
     int v_max = luaL_optinteger(L, 7, 0);
     const char* format = luaL_optstring(L, 8, "%d");
@@ -2905,7 +2913,7 @@ int ImGui_impl_DragInt4(lua_State *L)
     vec4i[2] = luaL_checkinteger(L, 5);
     vec4i[2] = luaL_checkinteger(L, 6);
 
-    float v_speed = luaL_optnumber(L, 7, 1.0f);
+    lua_Number v_speed = luaL_optnumber(L, 7, 1.0f);
     int v_min = luaL_optinteger(L, 8, 0);
     int v_max = luaL_optinteger(L, 9, 0);
     const char* format = luaL_optstring(L, 10, "%d");
@@ -2926,7 +2934,7 @@ int ImGui_impl_DragIntRange2(lua_State *L)
     const char* label = luaL_checkstring(L, 2);
     int v_current_min = luaL_checkinteger(L, 3);
     int v_current_max = luaL_checkinteger(L, 4);
-    float v_speed = luaL_optnumber(L, 5, 1.0f);
+    lua_Number v_speed = luaL_optnumber(L, 5, 1.0f);
     int v_min = luaL_optinteger(L, 6, 0.0f);
     int v_max = luaL_optinteger(L, 7, 0.0f);
     const char* format = luaL_optstring(L, 8, "%d");
@@ -2945,10 +2953,10 @@ int ImGui_impl_DragScalar(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    float v_speed = luaL_checknumber(L, 5);
-    double v_min = luaL_optnumber(L, 6, NULL);
-    double v_max = luaL_optnumber(L, 7, NULL);
+    lua_Number value = luaL_checknumber(L, 4);
+    lua_Number v_speed = luaL_checknumber(L, 5);
+    lua_Number v_min = luaL_optnumber(L, 6, NULL);
+    lua_Number v_max = luaL_optnumber(L, 7, NULL);
     const char* format = luaL_optstring(L, 8, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -3138,9 +3146,9 @@ int ImGui_impl_SliderScalar(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    double v_min = luaL_checknumber(L, 5);
-    double v_max = luaL_checknumber(L, 6);
+    lua_Number value = luaL_checknumber(L, 4);
+    lua_Number v_min = luaL_checknumber(L, 5);
+    lua_Number v_max = luaL_checknumber(L, 6);
     const char* format = luaL_optstring(L, 7, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -3190,9 +3198,9 @@ int ImGui_impl_VSliderScalar(lua_State *L)
     const char* label = luaL_checkstring(L, 2);
     const ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImGuiDataType data_type = luaL_checkinteger(L, 5);
-    double value = luaL_checknumber(L, 6);
-    double v_min = luaL_optnumber(L, 7, NULL);
-    double v_max = luaL_optnumber(L, 8, NULL);
+    lua_Number value = luaL_checknumber(L, 6);
+    lua_Number v_min = luaL_optnumber(L, 7, NULL);
+    lua_Number v_max = luaL_optnumber(L, 8, NULL);
     const char* format = luaL_optstring(L, 9, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
 
@@ -3396,9 +3404,9 @@ int ImGui_impl_FilledSliderScalar(lua_State *L)
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
     ImGuiDataType data_type = luaL_checkinteger(L, 4);
-    double value = luaL_checknumber(L, 5);
-    double v_min = luaL_optnumber(L, 6, NULL);
-    double v_max = luaL_optnumber(L, 7, NULL);
+    lua_Number value = luaL_checknumber(L, 5);
+    lua_Number v_min = luaL_optnumber(L, 6, NULL);
+    lua_Number v_max = luaL_optnumber(L, 7, NULL);
     const char* format = luaL_optstring(L, 8, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, NULL);
 
@@ -3451,9 +3459,9 @@ int ImGui_impl_VFilledSliderScalar(lua_State *L)
     bool mirror = lua_toboolean(L, 3) > 0;
     const ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImGuiDataType data_type = luaL_checkinteger(L, 6);
-    double value = luaL_checknumber(L, 7);
-    double v_min = luaL_optnumber(L, 8, NULL);
-    double v_max = luaL_optnumber(L, 9, NULL);
+    lua_Number value = luaL_checknumber(L, 7);
+    lua_Number v_min = luaL_optnumber(L, 8, NULL);
+    lua_Number v_max = luaL_optnumber(L, 9, NULL);
     const char* format = luaL_optstring(L, 10, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 11, NULL);
 
@@ -3670,9 +3678,9 @@ int ImGui_impl_InputInt4(lua_State *L)
 int ImGui_impl_InputDouble(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
-    double value = luaL_checknumber(L, 3);
-    double step = luaL_optnumber(L, 4, 0.0);
-    double step_fast = luaL_optnumber(L, 5, 0.0);
+    lua_Number value = luaL_checknumber(L, 3);
+    lua_Number step = luaL_optnumber(L, 4, 0.0);
+    lua_Number step_fast = luaL_optnumber(L, 5, 0.0);
     const char* format = luaL_optstring(L, 6, "%.6f");
     ImGuiInputTextFlags flags = luaL_optinteger(L, 7, 0);
 
@@ -3686,9 +3694,9 @@ int ImGui_impl_InputScalar(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    double v_min = luaL_checknumber(L, 5);
-    double v_max = luaL_checknumber(L, 6);
+    lua_Number value = luaL_checknumber(L, 4);
+    lua_Number v_min = luaL_checknumber(L, 5);
+    lua_Number v_max = luaL_checknumber(L, 6);
     const char* format = luaL_optstring(L, 7, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -3721,7 +3729,7 @@ int ImGui_impl_ColorEdit4(lua_State *L)
     ImVec4 col = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
     ImGuiColorEditFlags flags = luaL_optinteger(L, 5, 0);
 
-    bool result = ImGui::ColorEdit4(label, (float *)&col, flags);
+    bool result = ImGui::ColorEdit4(label, (float*)&col, flags);
 
     GColor conv = GColor::toHex(col);
     lua_pushnumber(L, conv.hex);
@@ -3736,7 +3744,7 @@ int ImGui_impl_ColorPicker3(lua_State *L)
     ImVec4 col = GColor::toVec4(luaL_checkinteger(L, 3));
     ImGuiColorEditFlags flags = luaL_optinteger(L, 4, 0);
 
-    bool result = ImGui::ColorPicker3(label, (float *)&col, flags);
+    bool result = ImGui::ColorPicker3(label, (float*)&col, flags);
 
     GColor conv = GColor::toHex(col);
     lua_pushnumber(L, conv.hex);
@@ -3751,7 +3759,7 @@ int ImGui_impl_ColorPicker4(lua_State *L)
     ImGuiColorEditFlags flags = luaL_optinteger(L, 5, 0);
     ImVec4 refCol = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
 
-    bool result = ImGui::ColorPicker4(label, (float *)&col, flags, (float *)&refCol);
+    bool result = ImGui::ColorPicker4(label, (float*)&col, flags, (float*)&refCol);
 
     GColor conv1 = GColor::toHex(col);
     GColor conv2 = GColor::toHex(refCol);
@@ -3938,10 +3946,10 @@ int ImGui_impl_PlotLines(lua_State *L)
     const char* label = luaL_checkstring(L, 2);
 
     luaL_checktype(L, 3, LUA_TTABLE);
-    int len = luaL_getn(L, 3);
+    size_t len = luaL_getn(L, 3);
     float *values = new float[len];
     lua_pushvalue(L, 3);
-    for (int i = 0; i < len; i++)
+    for (unsigned int i = 0; i < len; i++)
     {
         lua_rawgeti(L, 3, i+1);
 
@@ -4007,7 +4015,7 @@ int ImGui_impl_Value(lua_State *L)
             }
         case LUA_TNUMBER:
             {
-                float n = lua_tonumber(L, 3);
+                lua_Number n = lua_tonumber(L, 3);
                 int intN = (int)n;
                 if (n == intN)
                 {
@@ -4241,7 +4249,7 @@ int ImGui_impl_GetColumnWidth(lua_State *L)
 int ImGui_impl_SetColumnWidth(lua_State *L)
 {
     int column_index = luaL_checkinteger(L, 2);
-    float width = luaL_checknumber(L, 3);
+    lua_Number width = luaL_checknumber(L, 3);
     ImGui::SetColumnWidth(column_index, width);
     return 0;
 }
@@ -4256,7 +4264,7 @@ int ImGui_impl_GetColumnOffset(lua_State *L)
 int ImGui_impl_SetColumnOffset(lua_State *L)
 {
     int column_index = luaL_checkinteger(L, 2);
-    float offset = luaL_checknumber(L, 3);
+    lua_Number offset = luaL_checknumber(L, 3);
     ImGui::SetColumnOffset(column_index, offset);
     return 0;
 }
@@ -4271,7 +4279,7 @@ int ImGui_impl_GetColumnsCount(lua_State *L)
 int ImGui_impl_BeginTabBar(lua_State *L)
 {
     const char* str_id = luaL_checkstring(L, 2);
-    ImGuiTabBarFlags flags = luaL_optinteger(L, 3, NULL);
+    ImGuiTabBarFlags flags = luaL_optinteger(L, 3, 0);
 
     lua_pushboolean(L, ImGui::BeginTabBar(str_id, flags));
     return 1;
@@ -4287,7 +4295,7 @@ int ImGui_impl_BeginTabItem(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool p_open = lua_toboolean(L, 3) > 0;
-    ImGuiTabItemFlags flags = luaL_optinteger(L, 4, NULL);
+    ImGuiTabItemFlags flags = luaL_optinteger(L, 4, 0);
 
     bool result = ImGui::BeginTabItem(label, &p_open, flags);
 
@@ -4475,7 +4483,7 @@ int ImGui_impl_SetItemDefaultFocus(lua_State *L)
 
 int ImGui_impl_SetKeyboardFocusHere(lua_State *L)
 {
-    int offset = luaL_optinteger(L, 2, NULL);
+    int offset = luaL_optinteger(L, 2, 0);
     ImGui::SetKeyboardFocusHere(offset);
     return 0;
 }
@@ -4628,7 +4636,6 @@ int ImGui_impl_GetStyleColorName(lua_State *L)
 
 int ImGui_impl_CalcListClipping(lua_State *L)
 {
-    //int items_count, float items_height, int* out_items_display_start, int* out_items_display_end
     int items_count = luaL_checkinteger(L, 2);
     float items_height = luaL_checknumber(L, 3);
     int out_items_display_start = luaL_checkinteger(L, 4);
@@ -4644,7 +4651,7 @@ int ImGui_impl_BeginChildFrame(lua_State *L)
 {
     ImGuiID id = luaL_checkinteger(L, 2);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImGuiWindowFlags flags = luaL_optinteger(L, 5, NULL);
+    ImGuiWindowFlags flags = luaL_optinteger(L, 5, 0);
 
     lua_pushboolean(L, ImGui::BeginChildFrame(id, size, flags));
     return 1;
@@ -4660,11 +4667,11 @@ int ImGui_impl_EndChildFrame(lua_State *L)
 // Text Utilities
 int ImGui_impl_CalcTextSize(lua_State *L)
 {
-    //const char* text, const char* text_end = NULL, , float wrap_width = -1.0f);
+    //const char* text, const char* text_end = NULL, , lua_Number wrap_width = -1.0f);
     const char* text = luaL_checkstring(L, 2);
     const char* text_end = luaL_optstring(L, 3, NULL);
     bool hide_text_after_double_hash = luaL_optboolean(L, 4, 0);
-    float wrap_width = luaL_optnumber(L, 5, NULL);
+    float wrap_width = luaL_optnumber(L, 5, -1.0);
 
     ImVec2 size = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
 
@@ -4708,8 +4715,8 @@ int ImGui_impl_IsKeyReleased(lua_State *L)
 int ImGui_impl_GetKeyPressedAmount(lua_State *L)
 {
     int key_index = luaL_checkinteger(L, 2);
-    float repeat_delay = luaL_checknumber(L, 3);
-    float rate = luaL_checknumber(L, 4);
+    lua_Number repeat_delay = luaL_checknumber(L, 3);
+    lua_Number rate = luaL_checknumber(L, 4);
     lua_pushinteger(L, ImGui::GetKeyPressedAmount(key_index, repeat_delay, rate));
     return 1;
 }
@@ -4793,7 +4800,7 @@ int ImGui_impl_GetMousePosOnOpeningCurrentPopup(lua_State *L)
 int ImGui_impl_IsMouseDragging(lua_State *L)
 {
     ImGuiMouseButton button = convertGiderosMouseButton(L, lua_tointeger(L, 2));
-    float lock_threshold = luaL_optnumber(L, 3, NULL);
+    float lock_threshold = luaL_optnumber(L, 3, -1.0f);
     lua_pushboolean(L, ImGui::IsMouseDragging(button, lock_threshold));
     return 1;
 }
@@ -4801,7 +4808,7 @@ int ImGui_impl_IsMouseDragging(lua_State *L)
 int ImGui_impl_GetMouseDragDelta(lua_State *L)
 {
     ImGuiMouseButton button = convertGiderosMouseButton(L, lua_tointeger(L, 2));
-    float lock_threshold = luaL_optnumber(L, 3, NULL);
+    float lock_threshold = luaL_optnumber(L, 3, -1.0f);
     ImVec2 pos = ImGui::GetMouseDragDelta(button, lock_threshold);
     lua_pushnumber(L, pos.x);
     lua_pushnumber(L, pos.y);
@@ -5689,7 +5696,7 @@ int ImGui_impl_DrawList_AddLine(lua_State *L)
     ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
-    float thickness = luaL_optnumber(L, 8, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 8, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddLine(p1, p2, col, thickness);
@@ -5701,9 +5708,9 @@ int ImGui_impl_DrawList_AddRect(lua_State *L)
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
-    float rounding = luaL_optnumber(L, 8, 0.0f);
+    lua_Number rounding = luaL_optnumber(L, 8, 0.0f);
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 9, ImDrawCornerFlags_All);
-    float thickness = luaL_optnumber(L, 10, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 10, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddRect(p_min, p_max, col, rounding, rounding_corners, thickness);
@@ -5716,7 +5723,7 @@ int ImGui_impl_DrawList_AddRectFilled(lua_State *L)
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
-    float rounding = luaL_optnumber(L, 8, 0.0f);
+    lua_Number rounding = luaL_optnumber(L, 8, 0.0f);
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 9, ImDrawCornerFlags_All);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
@@ -5747,7 +5754,7 @@ int ImGui_impl_DrawList_AddQuad(lua_State *L)
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
     ImVec2 p4 = ImVec2(luaL_checknumber(L, 8), luaL_checknumber(L, 9));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
-    float thickness = luaL_optnumber(L, 12, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 12, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddQuad(p1, p2, p3, p4, col, thickness);
@@ -5775,7 +5782,7 @@ int ImGui_impl_DrawList_AddTriangle(lua_State *L)
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
-    float thickness = luaL_optnumber(L, 10, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 10, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddTriangle(p1, p2, p3, col, thickness);
@@ -5799,10 +5806,10 @@ int ImGui_impl_DrawList_AddTriangleFilled(lua_State *L)
 int ImGui_impl_DrawList_AddCircle(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
+    lua_Number radius = luaL_checknumber(L, 4);
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
     int num_segments = luaL_optinteger(L, 7, 12);
-    float thickness = luaL_optnumber(L, 8, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 8, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddCircle(center, radius, col, num_segments, thickness);
@@ -5813,7 +5820,7 @@ int ImGui_impl_DrawList_AddCircle(lua_State *L)
 int ImGui_impl_DrawList_AddCircleFilled(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
+    lua_Number radius = luaL_checknumber(L, 4);
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
     int num_segments = luaL_optinteger(L, 7, 12);
 
@@ -5826,10 +5833,10 @@ int ImGui_impl_DrawList_AddCircleFilled(lua_State *L)
 int ImGui_impl_DrawList_AddNgon(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
+    lua_Number radius = luaL_checknumber(L, 4);
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
     int num_segments = luaL_optinteger(L, 7, 12);
-    float thickness = luaL_optnumber(L, 8, 1.0f);
+    lua_Number thickness = luaL_optnumber(L, 8, 1.0f);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddNgon(center, radius, col, num_segments, thickness);
@@ -5840,7 +5847,7 @@ int ImGui_impl_DrawList_AddNgon(lua_State *L)
 int ImGui_impl_DrawList_AddNgonFilled(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
+    lua_Number radius = luaL_checknumber(L, 4);
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
     int num_segments = luaL_optinteger(L, 7, 12);
 
@@ -5863,7 +5870,7 @@ int ImGui_impl_DrawList_AddText(lua_State *L)
     return 0;
 }
 
-//int ImGui_impl_DrawList_AddText(const ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL, float wrap_width = 0.0f, const ImVec4* cpu_fine_clip_rect = NULL);
+//int ImGui_impl_DrawList_AddText(const ImFont* font, lua_Number font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL, lua_Number wrap_width = 0.0f, const ImVec4* cpu_fine_clip_rect = NULL);
 
 int ImGui_impl_DrawList_AddPolyline(lua_State *L)
 {
@@ -5876,11 +5883,11 @@ int ImGui_impl_DrawList_AddPolyline(lua_State *L)
     for (int i = 0; i < num_points; i+=2)
     {
         lua_rawgeti(L, 2, i+1);
-        float x = luaL_checknumber(L, -1);
+        lua_Number x = luaL_checknumber(L, -1);
         lua_pop(L, 1);
 
         lua_rawgeti(L, 2, i+2);
-        float y = luaL_checknumber(L, -1);
+        lua_Number y = luaL_checknumber(L, -1);
         points[index] = ImVec2(x,y);
 
         index ++;
@@ -5891,7 +5898,7 @@ int ImGui_impl_DrawList_AddPolyline(lua_State *L)
 
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
     bool closed = lua_toboolean(L, 5) > 0;
-    float thickness = luaL_checknumber(L, 6);
+    lua_Number thickness = luaL_checknumber(L, 6);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->AddPolyline(points, index, col, closed, thickness);
@@ -5910,11 +5917,11 @@ int ImGui_impl_DrawList_AddConvexPolyFilled(lua_State *L)
     for (int i = 0; i < num_points; i+=2)
     {
         lua_rawgeti(L, 2, i + 1);
-        float x = luaL_checknumber(L, -1);
+        lua_Number x = luaL_checknumber(L, -1);
         lua_pop(L, 1);
 
         lua_rawgeti(L, 2, i + 2);
-        float y = luaL_checknumber(L, -1);
+        lua_Number y = luaL_checknumber(L, -1);
         points[index] = ImVec2(x, y);
 
         index++;
@@ -5937,8 +5944,8 @@ int ImGui_impl_DrawList_AddBezierCurve(lua_State *L)
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
     ImVec2 p4 = ImVec2(luaL_checknumber(L, 8), luaL_checknumber(L, 9));
-    ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, NULL));
-    float thickness = luaL_checknumber(L, 12);
+    ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
+    lua_Number thickness = luaL_checknumber(L, 12);
     int num_segments = luaL_optinteger(L, 13, 0);
 
     ImDrawList *list = ImGui::GetWindowDrawList();
@@ -5951,7 +5958,7 @@ int ImGui_impl_DrawList_AddImage(lua_State *L)
     MyTextureData data = getTexture(L, 2);
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, NULL));
+    ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
     ImVec2 uv_min = ImVec2(luaL_optnumber(L,  9, 0.0f), luaL_optnumber(L, 10, 0.0f));
     ImVec2 uv_max = ImVec2(luaL_optnumber(L, 11, 1.0f), luaL_optnumber(L, 12, 1.0f));
 
@@ -5967,7 +5974,7 @@ int ImGui_impl_DrawList_AddImageQuad(lua_State *L)
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 7), luaL_checknumber(L, 8));
     ImVec2 p4 = ImVec2(luaL_checknumber(L, 9), luaL_checknumber(L, 10));
-    ImU32 col = GColor::toU32(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, NULL));
+    ImU32 col = GColor::toU32(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 1.0f));
     ImVec2 uv1 = ImVec2(luaL_optnumber(L, 13, 0.0f), luaL_optnumber(L, 14, 0.0f));
     ImVec2 uv2 = ImVec2(luaL_optnumber(L, 15, 1.0f), luaL_optnumber(L, 16, 0.0f));
     ImVec2 uv3 = ImVec2(luaL_optnumber(L, 17, 1.0f), luaL_optnumber(L, 18, 1.0f));
@@ -5988,8 +5995,8 @@ int ImGui_impl_DrawList_AddImageRounded(lua_State *L)
     MyTextureData data = getTexture(L, 2);
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, NULL));
-    float rounding = luaL_checknumber(L, 9);
+    ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, 1.0f));
+    lua_Number rounding = luaL_checknumber(L, 9);
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 10, ImDrawCornerFlags_All);
     ImVec2 uv_min = ImVec2(luaL_optnumber(L, 11, 0.0f), luaL_optnumber(L, 12, 0.0f));
     ImVec2 uv_max = ImVec2(luaL_optnumber(L, 13, 1.0f), luaL_optnumber(L, 14, 1.0f));
@@ -6035,7 +6042,7 @@ int ImGui_impl_DrawList_PathStroke(lua_State *L)
 {
     ImU32 color = GColor::toU32(luaL_checkinteger(L, 2), luaL_optnumber(L, 3, 1.0f));
     bool closed = lua_toboolean(L, 4) > 0;
-    float thickness = luaL_optnumber(L, 3, NULL);
+    float thickness = luaL_optnumber(L, 3, 1.0f);
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->PathStroke(color, closed, thickness);
     return 0;
@@ -6044,10 +6051,10 @@ int ImGui_impl_DrawList_PathStroke(lua_State *L)
 int ImGui_impl_DrawList_PathArcTo(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
-    float a_min = luaL_checknumber(L, 5);
-    float a_max = luaL_checknumber(L, 6);
-    int num_segments = luaL_optinteger(L, 7, NULL);
+    lua_Number radius = luaL_checknumber(L, 4);
+    lua_Number a_min = luaL_checknumber(L, 5);
+    lua_Number a_max = luaL_checknumber(L, 6);
+    int num_segments = luaL_optinteger(L, 7, 10);
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->PathArcTo(center, radius, a_min, a_max, num_segments);
     return 0;
@@ -6057,7 +6064,7 @@ int ImGui_impl_DrawList_PathArcTo(lua_State *L)
 int ImGui_impl_DrawList_PathArcToFast(lua_State *L)
 {
     ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    float radius = luaL_checknumber(L, 4);
+    lua_Number radius = luaL_checknumber(L, 4);
     int a_min = luaL_checkinteger(L, 5);
     int a_max = luaL_checkinteger(L, 6);
     ImDrawList *list = ImGui::GetWindowDrawList();
@@ -6071,7 +6078,7 @@ int ImGui_impl_DrawList_PathBezierCurveTo(lua_State *L)
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImVec2 p4 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-    int num_segments = luaL_optinteger(L, 8, NULL);
+    int num_segments = luaL_optinteger(L, 8, 0);
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->PathBezierCurveTo(p2, p3, p4, num_segments);
     return 0;
@@ -6081,8 +6088,8 @@ int ImGui_impl_DrawList_PathRect(lua_State *L)
 {
     ImVec2 rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    float rounding = luaL_optnumber(L, 6, NULL);
-    ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 7, NULL);
+    lua_Number rounding = luaL_optnumber(L, 6, 0.0f);
+    ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 7, ImDrawCornerFlags_All);
     ImDrawList *list = ImGui::GetWindowDrawList();
     list->PathRect(rect_min, rect_max, rounding, rounding_corners);
     return 0;
@@ -6246,15 +6253,15 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
     return 0;
 }
 
-static int* vec[5];
-int ImGui_my_TestSliders(lua_State *L)
+int ImGui_my_Test2(lua_State *L)
 {
-    for (int i = 0; i < 4; i++)
-    {
-        ImGui::PushID(i);
-        ImGui::SliderInt("slider1 ###sd", vec[i], 0, 100, "%d", i);
-        ImGui::PopID();
-    }
+    float value = luaL_optnumber(L, 2, NULL);
+
+    lua_getglobal(L, "print");
+    lua_pushboolean(L, NULL == value);
+    lua_call(L, 1, 0);
+    lua_pop(L, 1);
+
     return 0;
 }
 
@@ -6263,7 +6270,8 @@ int loader(lua_State *L)
     Binder binder(L);
     const luaL_Reg functionList[] =
     {
-        {"test2", ImGui_my_TestSliders},
+
+        {"test2", ImGui_my_Test2},
         {"showLuaStyleEditor", ImGui_my_ShowLuaStyleEditor},
         // Draw list
         {"drawListPushClipRect", ImGui_impl_DrawList_PushClipRect},
@@ -6851,4 +6859,4 @@ static void g_initializePlugin(lua_State *L)
 
 static void g_deinitializePlugin(lua_State *_UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
