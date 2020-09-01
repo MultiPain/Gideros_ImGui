@@ -25,7 +25,11 @@ static lua_State *L;
 static Application* application;
 static char keyWeak = ' ';
 
+#define LUA_ASSERT(L, EXP, MSG, ...) if (!(EXP)) { lua_pushfstring(L, MSG, ...); lua_error(L); }
+//#define LUA_ASSERT(L, EXP, MSG)  ((void)(_EXPR))
+
 #include "imgui_src/imgui.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// HELPERS
@@ -33,14 +37,14 @@ static char keyWeak = ' ';
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-static inline ImVec2 operator*(const ImVec2& lhs, const lua_Number rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
-static inline ImVec2 operator/(const ImVec2& lhs, const lua_Number rhs)              { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
+static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
+static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
 static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
 static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
-static inline ImVec2& operator*=(ImVec2& lhs, const lua_Number rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const lua_Number rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
+static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
+static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
 static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
 static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
 static inline ImVec2& operator*=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x *= rhs.x; lhs.y *= rhs.y; return lhs; }
@@ -49,6 +53,19 @@ static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs)            
 static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
 static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
 #endif
+
+
+static std::map<int, int> mouse_map =
+{
+    {GINPUT_LEFT_BUTTON, ImGuiMouseButton_Left},
+    {GINPUT_RIGHT_BUTTON, ImGuiMouseButton_Right},
+    {GINPUT_MIDDLE_BUTTON, ImGuiMouseButton_Middle},
+};
+
+static std::map<int, int> key_map =
+{
+    {GINPUT_ALT_MODIFIER, ImGuiKeyModFlags_Alt},
+};
 
 struct MyTextureData
 {
@@ -174,7 +191,6 @@ lua_Number getApplicationProperty(lua_State *L, const char *name)
     return value;
 }
 
-// application:set("cursor","help")
 void setApplicationCursor(lua_State *L, const char* name)
 {
     lua_getglobal(L, "application");
@@ -2695,7 +2711,7 @@ int ImGui_impl_Combo(lua_State *L)
 
     switch (arg_type)
     {
-    case LUA_TTABLE:
+        case LUA_TTABLE:
         {
             luaL_checktype(L, 4, LUA_TTABLE);
             int len = luaL_getn(L, 4);
@@ -2729,7 +2745,7 @@ int ImGui_impl_Combo(lua_State *L)
         } break;
         default:
         {
-            lua_pushstring(L, "Incorrect data type to #4");
+            lua_pushfstring(L, "bad argument #3 to 'combo' (table/string expected, got %s)", lua_typename(L, 4));
             lua_error(L);
             return 0;
         }
@@ -3486,15 +3502,13 @@ int ImGui_impl_InputText(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     const char* text = luaL_checkstring(L, 3);
-    unsigned int size_t = luaL_checkinteger(L, 4);
-    char *buffer = new char[size_t];
+    int buffer_size = luaL_checkinteger(L, 4);
+    char *buffer = new char[buffer_size];
     sprintf(buffer, "%s", text);
 
     ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
-    //ImGuiInputTextCallback callback = NULL;
-    //void* user_data = NULL;
 
-    bool result = ImGui::InputText(label, buffer, size_t, flags, &TextInputCallback, L);
+    bool result = ImGui::InputText(label, buffer, buffer_size, flags, &TextInputCallback, L);
 
     lua_pushstring(L, &buffer[0]);
     lua_pushboolean(L, result);
@@ -3506,15 +3520,16 @@ int ImGui_impl_InputTextMultiline(lua_State *L)
 {
     const char* label = luaL_checkstring(L, 2);
     const char* text = luaL_checkstring(L, 3);
-    size_t buf_size = luaL_checkinteger(L, 4);
-    char *buffer = new char[buf_size];
+    int buffer_size = luaL_checkinteger(L, 4);
+
+    char *buffer = new char[buffer_size];
     sprintf(buffer, "%s", text);
 
     ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
     ImGuiInputTextFlags flags = luaL_optinteger(L, 7, 0);
     // ImGuiInputTextCallback callback = NULL; void* user_data = NULL;
 
-    bool result = ImGui::InputTextMultiline(label, buffer, buf_size, size, flags);
+    bool result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags);
     lua_pushstring(L, &buffer[0]);
     lua_pushboolean(L, result);
     delete[] buffer;
@@ -6256,6 +6271,8 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
 int ImGui_my_Test2(lua_State *L)
 {
     float value = luaL_optnumber(L, 2, NULL);
+
+    LUA_ASSERT(L, value < 0, "bad argument #2");
 
     lua_getglobal(L, "print");
     lua_pushboolean(L, NULL == value);
