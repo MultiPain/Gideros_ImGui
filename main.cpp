@@ -1,5 +1,5 @@
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui_beta"
+#define PLUGIN_NAME "ImGui"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -25,7 +25,7 @@ static lua_State *L;
 static Application* application;
 static char keyWeak = ' ';
 
-#define LUA_ASSERT(L, EXP, MSG, ...) if (!(EXP)) { lua_pushfstring(L, MSG, ...); lua_error(L); }
+#define LUA_ASSERT(L, EXP, MSG) if (!(EXP)) { lua_pushfstring(L, MSG); lua_error(L); }
 //#define LUA_ASSERT(L, EXP, MSG)  ((void)(_EXPR))
 
 #include "imgui_src/imgui.h"
@@ -638,8 +638,16 @@ private:
 static GImGui* getInstance(lua_State *L)
 {
     Binder binder(L);
-    SpriteProxy* psp = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-    return static_cast<GImGui*>(psp->getContext());
+    SpriteProxy* sp = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+    return static_cast<GImGui*>(sp->getContext());
+}
+
+static Sprite* getParentInstance(lua_State *L)
+{
+    Binder binder(L);
+
+    SpriteProxy *sp = static_cast<SpriteProxy*>(binder.getInstance("Sprite", 1));
+    return static_cast<Sprite*>(sp->getContext());
 }
 
 static void _Draw(void *c, const CurrentTransform&t, float sx, float sy, float ex, float ey)
@@ -1401,11 +1409,6 @@ int ImGui_impl_IO_SetConfigDockingTransparentPayload(lua_State *L)
 int ImGui_impl_IO_isMouseDown(lua_State *L)
 {
     int button = convertGiderosMouseButton(L, luaL_checkinteger(L, 2));
-    if (button < 0 || button > 5)
-    {
-        lua_pushstring(L, "Button index is out of bounds!");
-        lua_error(L);
-    }
     ImGuiIO& io = ImGui::GetIO();
     lua_pushboolean(L, io.MouseDown[button]);
     return  1;
@@ -1605,11 +1608,47 @@ int ImGui_addFonts(lua_State *L)
 
 /// MOUSE INPUTS
 
+/*
+Matrix4:
+
+sx	0	0	0
+0	sy	0	0
+0	0	sz	0
+tx	ty	tz	1
+
+*/
+
+static ImVec2 getTranslatedMousePos(lua_State *L)
+{
+    Binder binder(L);
+    SpriteProxy *sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+    const Matrix4 mat = sprite->matrix();
+
+    float pos_x = mat[12];
+    float pos_y = mat[13];
+    float scale_x = mat[0];
+    float scale_y = mat[5];
+
+    float event_x = getfield(L, "x");
+    float event_y = getfield(L, "y");
+
+    if ((scale_x != 0.0f) && (scale_y != 0.0f))
+    {
+        return ImVec2((event_x - pos_x) / scale_x, (event_y - pos_y) / scale_y);
+    }
+    else
+    {
+        lua_pushstring(L, "SCALE CANT BE 0!");
+        lua_error(L);
+        return ImVec2();
+    }
+}
+
 int ImGui_impl_MouseHover(lua_State *L)
 {
+
     ImGuiIO& io = ImGui::GetIO();
-    io.MousePos.x = getfield(L, "x");
-    io.MousePos.y = getfield(L, "y");
+    io.MousePos = getTranslatedMousePos(L);
 
     return 0;
 }
@@ -1619,8 +1658,7 @@ int ImGui_impl_MouseMove(lua_State *L)
     int button = convertGiderosMouseButton(L, (int)getfield(L, "button"));
 
     ImGuiIO& io = ImGui::GetIO();
-    io.MousePos.x = getfield(L, "x");
-    io.MousePos.y = getfield(L, "y");
+    io.MousePos = getTranslatedMousePos(L);
     io.MouseDown[button] = true;
 
     return 0;
@@ -1631,8 +1669,7 @@ int ImGui_impl_MouseDown(lua_State *L)
     int button = convertGiderosMouseButton(L, (int)getfield(L, "button"));
 
     ImGuiIO& io = ImGui::GetIO();
-    io.MousePos.x = getfield(L, "x");
-    io.MousePos.y = getfield(L, "y");
+    io.MousePos = getTranslatedMousePos(L);
     io.MouseDown[button] = true;
 
     return 0;
@@ -1643,8 +1680,7 @@ int ImGui_impl_MouseUp(lua_State *L)
     int button = convertGiderosMouseButton(L, (int)getfield(L, "button"));
 
     ImGuiIO& io = ImGui::GetIO();
-    io.MousePos.x = getfield(L, "x");
-    io.MousePos.y = getfield(L, "y");
+    io.MousePos = getTranslatedMousePos(L);
     io.MouseDown[button] = false;
 
     return 0;
@@ -1656,8 +1692,7 @@ int ImGui_impl_MouseWheel(lua_State *L)
 
     ImGuiIO& io = ImGui::GetIO();
     io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
-    io.MousePos.x = getfield(L, "x");
-    io.MousePos.y = getfield(L, "y");
+    io.MousePos = getTranslatedMousePos(L);
 
     return 0;
 }
@@ -6876,4 +6911,4 @@ static void g_initializePlugin(lua_State *L)
 
 static void g_deinitializePlugin(lua_State *_UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
