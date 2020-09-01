@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.12.4, 2020-09-02T00:54:25. -->
+<!-- Written by QtCreator 4.12.4, 2020-09-02T00:58:37. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -83,8 +83,8 @@
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
     <value type="bool">true</value>
     <value type="int" key="EnableQmlDebugging">0</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">E:\Soft\Code\Gideros\All Plugins\build-ImGui_beta_docking-Desktop_Qt_5_14_2_MinGW_32_bit-Debug</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">E:/Soft/Code/Gideros/All Plugins/build-ImGui_beta_docking-Desktop_Qt_5_14_2_MinGW_32_bit-Debug</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">E:\Soft\Code\Gideros\All Plugins\build-ImGui_beta_docking</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">E:/Soft/Code/Gideros/All Plugins/build-ImGui_beta_docking</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
