@@ -675,7 +675,7 @@ GImGui::~GImGui()
     ImGui::DestroyContext();
 }
 
-void GImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
+void GImGui::doDraw(const CurrentTransform&t, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
 {
     ImDrawData* draw_data = ImGui::GetDrawData();
     if (!draw_data) return;
@@ -719,9 +719,12 @@ void GImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy
        shp->setData(ShaderProgram::DataTexture, ShaderProgram::DFLOAT,2, &texcoords[0], vtx_size, true, NULL);
        shp->setData(ShaderProgram::DataColor, ShaderProgram::DUBYTE,4, &colors[0], vtx_size, true, NULL);
 
+
+
        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
        {
           const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+
           if (pcmd->UserCallback)
           {
               pcmd->UserCallback(cmd_list, pcmd);
@@ -1608,40 +1611,17 @@ int ImGui_addFonts(lua_State *L)
 
 /// MOUSE INPUTS
 
-/*
-Matrix4:
-
-sx	0	0	0
-0	sy	0	0
-0	0	sz	0
-tx	ty	tz	1
-
-*/
-
 static ImVec2 getTranslatedMousePos(lua_State *L)
 {
-    Binder binder(L);
-    SpriteProxy *sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-    const Matrix4 mat = sprite->matrix();
-
-    float pos_x = mat[12];
-    float pos_y = mat[13];
-    float scale_x = mat[0];
-    float scale_y = mat[5];
-
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
 
-    if ((scale_x != 0.0f) && (scale_y != 0.0f))
-    {
-        return ImVec2((event_x - pos_x) / scale_x, (event_y - pos_y) / scale_y);
-    }
-    else
-    {
-        lua_pushstring(L, "SCALE CANT BE 0!");
-        lua_error(L);
-        return ImVec2();
-    }
+    Binder binder(L);
+    SpriteProxy *sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+    Matrix4 inv = sprite->matrix().inverse();
+    ImVec2 out = ImVec2();
+    inv.transformPoint(event_x, event_y, &out.x, &out.y);
+    return out;
 }
 
 int ImGui_impl_MouseHover(lua_State *L)
