@@ -4803,7 +4803,7 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
                 ImGui::LogToClipboard();
             else
                 ImGui::LogToTTY();
-            ImGui::LogText("local style = imgui:getStyle()");
+            ImGui::LogText("%s", "local style = imgui:getStyle()");
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
                 const ImVec4& col = style.Colors[i];
