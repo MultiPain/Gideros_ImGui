@@ -4764,7 +4764,7 @@ static void HelpMarker(const char* desc)
 }
 
 
-int ImGui_my_ShowLuaStyleEditor(lua_State *L)
+int ImGui_my_ShowLuaStyleEditor(lua_State *_UNUSED(L))
 {
 
     ImGui::Begin("Style editor [CUSTOM]", NULL);
@@ -4803,7 +4803,7 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
                 ImGui::LogToClipboard();
             else
                 ImGui::LogToTTY();
-            ImGui::LogText("%s", "local style = imgui:getStyle()");
+            ImGui::LogText("%s", "local style = imgui:getStyle()\r\n");
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
                 const ImVec4& col = style.Colors[i];
@@ -4855,7 +4855,7 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
         }
         ImGui::PopItemWidth();
         ImGui::EndChild();
-        ImGui::End();
+    ImGui::End();
 
     return 0;
 }
