@@ -4803,13 +4803,14 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
                 ImGui::LogToClipboard();
             else
                 ImGui::LogToTTY();
+            ImGui::LogText("local style = imgui:getStyle()");
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
                 const ImVec4& col = style.Colors[i];
                 const char* name = ImGui::GetStyleColorName(i);
                 GColor gcolor = GColor::toHex(col);
                 if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
-                    ImGui::LogText("imgui:setStyleColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
+                    ImGui::LogText("style:setColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
             }
             ImGui::LogFinish();
         }
