@@ -4764,7 +4764,7 @@ static void HelpMarker(const char* desc)
 }
 
 
-int ImGui_my_ShowLuaStyleEditor(lua_State *L)
+int ImGui_my_ShowLuaStyleEditor(lua_State *_UNUSED(L))
 {
 
     ImGui::Begin("Style editor [CUSTOM]", NULL);
@@ -4803,13 +4803,14 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
                 ImGui::LogToClipboard();
             else
                 ImGui::LogToTTY();
+            ImGui::LogText("%s", "local style = imgui:getStyle()\r\n");
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
                 const ImVec4& col = style.Colors[i];
                 const char* name = ImGui::GetStyleColorName(i);
                 GColor gcolor = GColor::toHex(col);
                 if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
-                    ImGui::LogText("imgui:setStyleColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
+                    ImGui::LogText("style:setColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
             }
             ImGui::LogFinish();
         }
@@ -4854,7 +4855,7 @@ int ImGui_my_ShowLuaStyleEditor(lua_State *L)
         }
         ImGui::PopItemWidth();
         ImGui::EndChild();
-        ImGui::End();
+    ImGui::End();
 
     return 0;
 }
@@ -4884,6 +4885,20 @@ ImGuiStyle& getStyle(lua_State *L)
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////// AUTO GENERATED STYLE METHODS ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
+
+int ImGui_impl_Style_old_SetColor(lua_State *L)
+{
+    int idx = luaL_checkinteger(L, 2);
+    if (idx < 0 || idx > ImGuiCol_COUNT - 1)
+    {
+        lua_pushstring(L, "Color index is out of bounds.");
+        lua_error(L);
+    }
+
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.Colors[idx] = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
+    return 0;
+}
 
 int ImGui_impl_Style_SetColor(lua_State *L)
 {
@@ -6554,6 +6569,7 @@ int loader(lua_State *L)
 
     const luaL_Reg imguiFunctionList[] =
     {
+        {"setStyleColor", ImGui_impl_Style_old_SetColor}, // Backward capability
         // Draw list
         {"getStyle", ImGui_impl_GetStyle},
         {"getWindowDrawList", ImGui_impl_GetWindowDrawList},
