@@ -1064,11 +1064,11 @@ local list = ImGui:getBackgroundDrawList()
 
 ## Draw lists commands
 ```lua
-DrawList:drawListPushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
-DrawList:drawListPushClipRectFullScreen()
-DrawList:drawListPopClipRect()
-DrawList:drawListPushTextureID(texture)
-DrawList:drawListPopTextureID()
+DrawList:pushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
+DrawList:pushClipRectFullScreen()
+DrawList:popClipRect()
+DrawList:pushTextureID(texture)
+DrawList:popTextureID()
 x, y = DrawList:getClipRectMin()
 x, y = DrawList:getClipRectMax()
 DrawList:addLine(p1_x, p1_y, p2_x, p2_y, color, [thickness = 1])
