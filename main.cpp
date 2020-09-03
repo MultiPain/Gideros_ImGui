@@ -4886,6 +4886,20 @@ ImGuiStyle& getStyle(lua_State *L)
 ///////////////////////////// AUTO GENERATED STYLE METHODS ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
+int ImGui_impl_Style_old_SetColor(lua_State *L)
+{
+    int idx = luaL_checkinteger(L, 2);
+    if (idx < 0 || idx > ImGuiCol_COUNT - 1)
+    {
+        lua_pushstring(L, "Color index is out of bounds.");
+        lua_error(L);
+    }
+
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.Colors[idx] = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
+    return 0;
+}
+
 int ImGui_impl_Style_SetColor(lua_State *L)
 {
     int idx = luaL_checkinteger(L, 2);
@@ -6555,6 +6569,7 @@ int loader(lua_State *L)
 
     const luaL_Reg imguiFunctionList[] =
     {
+        {"setStyleColor", ImGui_impl_Style_old_SetColor}, // Backward capability
         // Draw list
         {"getStyle", ImGui_impl_GetStyle},
         {"getWindowDrawList", ImGui_impl_GetWindowDrawList},
