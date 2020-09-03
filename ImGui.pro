@@ -3,16 +3,16 @@ QT -= core ui
 TARGET = imgui_beta
 TEMPLATE = lib
 
-DESTDIR = ../../../plugins/
+DESTDIR = ../../plugins/
 
-INCLUDEPATH += ../../../Sdk/include
-INCLUDEPATH += ../../../Sdk/include/gideros
-INCLUDEPATH += ../../../Src/2dsg
-INCLUDEPATH += ../../../Src/2dsg/gfxbackends
-INCLUDEPATH += ../../../Src/libgideros
-INCLUDEPATH += ../../../Src/libgid/include
-INCLUDEPATH += ../../../Src/luabinding
-INCLUDEPATH += ../../../Src/lua/src
+INCLUDEPATH += ../../Sdk/include
+INCLUDEPATH += ../../Sdk/include/gideros
+INCLUDEPATH += ../../Src/2dsg
+INCLUDEPATH += ../../Src/2dsg/gfxbackends
+INCLUDEPATH += ../../Src/libgideros
+INCLUDEPATH += ../../Src/libgid/include
+INCLUDEPATH += ../../Src/luabinding
+INCLUDEPATH += ../../Src/lua/src
 
 SOURCES += \
     imgui_src/imgui.cpp \
@@ -20,6 +20,7 @@ SOURCES += \
     imgui_src/imgui_draw.cpp \
     imgui_src/imgui_widgets.cpp \
     imgui_user.cpp \
+    ../../Src/2dsg/Matrices.cpp \
     main.cpp \
     binder.cpp
 
@@ -33,6 +34,6 @@ HEADERS += \
     imgui_src/imstb_textedit.h \
     imgui_src/imstb_truetype.h
 
-LIBS += -L"../../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs
+LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs
 
 DEFINES += GID_LIBRARY
