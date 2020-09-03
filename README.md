@@ -2,7 +2,7 @@
 
 * [Fonts](#fonts-wip)
 * [Inputs](#inputs)
-* [Style setters/getters](#style-settersgetters)
+* [Style setters/getters ***NEW***](#style-settersgetters)
 * [Styles](#default-styles)
 * [IO ***NEW***](#io-functions)
 * [Widgets](#windgets--stuff)
