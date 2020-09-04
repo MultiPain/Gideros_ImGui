@@ -5,7 +5,7 @@
 * [Style setters/getters ***NEW***](#style-settersgetters)
 * [Styles](#default-styles)
 * [IO ***NEW***](#io-functions)
-* [Widgets](#windgets--stuff)
+* [Widgets](#widgets--stuff)
 * [Windows](#windows)
 * [Child windows](#child-windows)
 * [Windows utilities](#windows-utilities)
@@ -250,7 +250,7 @@ w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
 ```
 [To top](#api)
-# WINDGETS & STUFF
+# WIDGETS & STUFF
 ## Windows
 ```lua
 -- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
