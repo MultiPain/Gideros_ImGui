@@ -5,7 +5,7 @@
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
 * [IO](#io-functions)
-* [Widgets](#windgets--stuff)
+* [Widgets](#widgets--stuff)
 * [Windows](#windows)
 * [Child windows](#child-windows)
 * [Windows utilities](#windows-utilities)
