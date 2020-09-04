@@ -257,7 +257,7 @@ number = ImGui:getMouseDelta(button)
 number = ImGui:getMouseDownSec(button)
 ```
 [To top](#api)
-# WINDGETS & STUFF
+# WIDGETS & STUFF
 ## Windows
 ```lua
 -- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
