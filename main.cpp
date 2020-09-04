@@ -3791,6 +3791,78 @@ int ImGui_impl_IsWindowDocked(lua_State *L)
     return 1;
 }
 
+int ImGui_impl_DockBuilderDockWindow(lua_State *L)
+{
+
+    return 0;
+}
+
+int ImGui_impl_DockBuilderGetNode(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderSetNodePos(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderSetNodeSize(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderAddNode(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderRemoveNode(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderRemoveNodeChildNodes(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderRemoveNodeDockedWindows(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderSplitNode(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderCopyNodeRec(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderCopyNode(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderCopyWindowSettings(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderCopyDockSpace(lua_State *L)
+{
+    return 0;
+}
+
+int ImGui_impl_DockBuilderFinish(lua_State *L)
+{
+    return 0;
+}
+
+
 #endif
 
 // Logging/Capture
