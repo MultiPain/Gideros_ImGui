@@ -75,7 +75,6 @@ Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
 --	fontNo - number
 --	oversampleH - number
 --	oversampleV - number
---	sizePixels - number
 --	glyphExtraSpacingX - number
 --	glyphExtraSpacingY - number
 --	glyphOffsetX - number
