@@ -750,15 +750,18 @@ ImGui:showLuaStyleEditor()
 ```
 [To top](#api)
 ## ENUMS
+
+### FocusedFlags
 ```lua
--- ImGuiFocusedFlags
 ImGui.FocusedFlags_ChildWindows
 ImGui.FocusedFlags_AnyWindow
 ImGui.FocusedFlags_RootWindow
 ImGui.FocusedFlags_RootAndChildWindows
 ImGui.FocusedFlags_None
+```
 
--- ImGuiPopupFlags
+### PopupFlags
+```lua
 ImGui.PopupFlags_NoOpenOverExistingPopup
 ImGui.PopupFlags_MouseButtonLeft
 ImGui.PopupFlags_MouseButtonMask
@@ -770,8 +773,10 @@ ImGui.PopupFlags_None
 ImGui.PopupFlags_AnyPopup
 ImGui.PopupFlags_AnyPopupLevel
 ImGui.PopupFlags_NoOpenOverItems
+```
 
--- ImGuiHoveredFlags
+### HoveredFlags
+```lua
 ImGui.HoveredFlags_None
 ImGui.HoveredFlags_RootAndChildWindows
 ImGui.HoveredFlags_AllowWhenBlockedByPopup
@@ -782,8 +787,10 @@ ImGui.HoveredFlags_AllowWhenDisabled
 ImGui.HoveredFlags_AllowWhenOverlapped
 ImGui.HoveredFlags_AnyWindow
 ImGui.HoveredFlags_RootWindow
+```
 
--- ImGuiInputTextFlags
+### InputTextFlags
+```lua
 ImGui.InputTextFlags_EnterReturnsTrue
 ImGui.InputTextFlags_CallbackCompletion
 ImGui.InputTextFlags_None
@@ -805,8 +812,10 @@ ImGui.InputTextFlags_NoHorizontalScroll
 ImGui.InputTextFlags_AlwaysInsertMode
 ImGui.InputTextFlags_CharsUppercase
 ImGui.InputTextFlags_NoBackground -- do not draw background frame
+```
 
--- ImGuiNavInput
+### NavInput
+```lua
 ImGui.NavInput_FocusNext
 ImGui.NavInput_TweakFast
 ImGui.NavInput_Input
@@ -823,8 +832,10 @@ ImGui.NavInput_TweakSlow
 ImGui.NavInput_DpadUp
 ImGui.NavInput_Menu
 ImGui.NavInput_Cancel
+```
 
--- ImGuiTabBarFlags
+### TabBarFlags
+```lua
 ImGui.TabBarFlags_AutoSelectNewTabs
 ImGui.TabBarFlags_NoCloseWithMiddleMouseButton
 ImGui.TabBarFlags_TabListPopupButton
@@ -836,8 +847,10 @@ ImGui.TabBarFlags_FittingPolicyScroll
 ImGui.TabBarFlags_FittingPolicyResizeDown
 ImGui.TabBarFlags_None
 ImGui.TabBarFlags_NoTabListScrollingButtons
+```
 
--- ImGuiTreeNodeFlags
+### TreeNodeFlags
+```lua
 ImGui.TreeNodeFlags_Bullet
 ImGui.TreeNodeFlags_None
 ImGui.TreeNodeFlags_CollapsingHeader
@@ -854,8 +867,10 @@ ImGui.TreeNodeFlags_Selected
 ImGui.TreeNodeFlags_SpanAvailWidth
 ImGui.TreeNodeFlags_OpenOnDoubleClick
 ImGui.TreeNodeFlags_DefaultOpen
+```
 
--- ImGuiStyleVar
+### StyleVar
+```lua
 ImGui.StyleVar_GrabRounding
 ImGui.StyleVar_Alpha
 ImGui.StyleVar_WindowMinSize
@@ -879,8 +894,10 @@ ImGui.StyleVar_WindowTitleAlign
 ImGui.StyleVar_SelectableTextAlign
 ImGui.StyleVar_PopupRounding
 ImGui.StyleVar_ButtonTextAlign
+```
 
--- ImGuiCol_
+### Col
+```lua
 ImGui.Col_PlotHistogram
 ImGui.Col_TitleBg
 ImGui.Col_Separator
@@ -929,8 +946,10 @@ ImGui.Col_NavHighlight
 ImGui.Col_FrameBgHovered
 ImGui.Col_TextDisabled
 ImGui.Col_ResizeGrip
+```
 
--- ImGuiDataType
+### DataType
+```lua
 ImGui.DataType_U8
 ImGui.DataType_S64
 ImGui.DataType_Float
@@ -941,15 +960,18 @@ ImGui.DataType_S8
 ImGui.DataType_U32
 ImGui.DataType_S32
 ImGui.DataType_U64
+```
 
--- ImGuiDir
+### Dir
 ImGui.Dir_None
 ImGui.Dir_Left
 ImGui.Dir_Up
 ImGui.Dir_Down
 ImGui.Dir_Right
+```
 
--- ImGuiWindowFlags
+### WindowFlags
+```lua
 ImGui.WindowFlags_NoScrollWithMouse
 ImGui.WindowFlags_None
 ImGui.WindowFlags_NoScrollbar
@@ -975,16 +997,20 @@ ImGui.WindowFlags_MenuBar
 ImGui.WindowFlags_NoBackground
 ImGui.WindowFlags_AlwaysAutoResize
 ImGui.WindowFlags_NoDocking
+```
 
--- ImGuiTabItemFlags
+### TabItemFlags
+```lua
 ImGui.TabItemFlags_SetSelected
 ImGui.TabItemFlags_NoCloseWithMiddleMouseButton
 ImGui.TabItemFlags_NoTooltip
 ImGui.TabItemFlags_None
 ImGui.TabItemFlags_NoPushId
 ImGui.TabItemFlags_UnsavedDocument
+```
 
--- ImGuiComboFlags
+### ComboFlags
+```lua
 ImGui.ComboFlags_HeightSmall
 ImGui.ComboFlags_HeightLarge
 ImGui.ComboFlags_PopupAlignLeft
@@ -994,23 +1020,28 @@ ImGui.ComboFlags_HeightRegular
 ImGui.ComboFlags_HeightMask
 ImGui.ComboFlags_NoArrowButton
 ImGui.ComboFlags_HeightLargest
-
--- ImGuiCond
+```
+### Cond
+```lua
 ImGui.Cond_Appearing
 ImGui.Cond_None
 ImGui.Cond_Always
 ImGui.Cond_FirstUseEver
 ImGui.Cond_Once
+```
 
--- ImGuiSelectableFlags
+### SelectableFlags
+```lua
 ImGui.SelectableFlags_None
 ImGui.SelectableFlags_SpanAllColumns
 ImGui.SelectableFlags_AllowItemOverlap
 ImGui.SelectableFlags_DontClosePopups
 ImGui.SelectableFlags_AllowDoubleClick
 ImGui.SelectableFlags_Disabled
+```
 
--- ImGuiMouseCursor
+### MouseCursor
+```lua
 ImGui.MouseCursor_Hand
 ImGui.MouseCursor_ResizeAll
 ImGui.MouseCursor_ResizeEW
@@ -1021,13 +1052,17 @@ ImGui.MouseCursor_NotAllowed
 ImGui.MouseCursor_ResizeNWSE
 ImGui.MouseCursor_ResizeNESW
 ImGui.MouseCursor_TextInput
+```
 
--- ImGuiMouseButton
+### MouseButton
+```lua
 ImGui.MouseButton_Right
 ImGui.MouseButton_Middle
 ImGui.MouseButton_Left
+```
 
--- ImGuiColorEditFlags
+### ColorEditFlags
+```lua
 ImGui.ColorEditFlags_AlphaPreview
 ImGui.ColorEditFlags_DisplayRGB
 ImGui.ColorEditFlags_DisplayHex
@@ -1053,8 +1088,10 @@ ImGui.ColorEditFlags_NoSmallPreview
 ImGui.ColorEditFlags_NoBorder
 ImGui.ColorEditFlags_NoLabel
 ImGui.ColorEditFlags_NoTooltip
+```
 
--- ImGuiDragDropFlags
+###DragDropFlags
+```lua
 ImGui.DragDropFlags_SourceNoPreviewTooltip
 ImGui.DragDropFlags_SourceAllowNullID
 ImGui.DragDropFlags_AcceptNoDrawDefaultRect
@@ -1066,8 +1103,10 @@ ImGui.DragDropFlags_SourceAutoExpirePayload
 ImGui.DragDropFlags_SourceExtern
 ImGui.DragDropFlags_None
 ImGui.DragDropFlags_SourceNoDisableHover
+```
 
--- ImDrawCornerFlags
+### CornerFlags
+```lua
 ImGui.CornerFlags_None
 ImGui.CornerFlags_TopLeft
 ImGui.CornerFlags_TopRight
@@ -1078,8 +1117,10 @@ ImGui.CornerFlags_Bot
 ImGui.CornerFlags_Left
 ImGui.CornerFlags_Right
 ImGui.CornerFlags_All
+```
 
--- ImGuiConfigFlags
+### ConfigFlags
+```lua
 ImGui.ConfigFlags_None                   
 ImGui.ConfigFlags_NavEnableKeyboard      
 ImGui.ConfigFlags_NavEnableGamepad       
@@ -1090,22 +1131,28 @@ ImGui.ConfigFlags_NoMouseCursorChange
 ImGui.ConfigFlags_IsSRGB                 
 ImGui.ConfigFlags_IsTouchScreen
 ImGui.ConfigFlags_DockingEnable
+```
 
--- ImGuiBackendFlags
+### BackendFlags
+```lua
 ImGui.BackendFlags_None
 ImGui.BackendFlags_HasGamepad
 ImGui.BackendFlags_HasMouseCursors
 ImGui.BackendFlags_HasSetMousePos
 ImGui.BackendFlags_RendererHasVtxOffset
+```
 
--- ImGuiSliderFlags
+### SliderFlags
+```lua
 ImGui.SliderFlags_None        
 ImGui.SliderFlags_ClampOnInput  
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
+```
 
--- ImGuiDockNodeFlags
+### DockNodeFlags
+```lua
 ImGui.DockNodeFlags_None
 ImGui.DockNodeFlags_KeepAliveOnly
 ImGui.DockNodeFlags_NoDockingInCentralNode
@@ -1113,7 +1160,18 @@ ImGui.DockNodeFlags_PassthruCentralNode
 ImGui.DockNodeFlags_NoSplit
 ImGui.DockNodeFlags_NoResize
 ImGui.DockNodeFlags_AutoHideTabBar
+```
 
+### GlyphRanges
+```lua
+ImGui.GlyphRanges_Default,
+ImGui.GlyphRanges_Korean,
+ImGui.GlyphRanges_ChineseFull,
+ImGui.GlyphRanges_ChineseSimplifiedCommon,
+ImGui.GlyphRanges_Japanese,
+ImGui.GlyphRanges_Cyrillic,
+ImGui.GlyphRanges_Thai,
+ImGui.GlyphRanges_Vietnamese
 ```
 [To top](#api)
 ## DRAW LISTS
