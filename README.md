@@ -90,9 +90,9 @@ Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
 --		chars(table): list of specific char code (example: {0x7262, ...})
 --		ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
 
-Fonts:addDefaultFont()
-Fonts:build()
-Fonts:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
+FontAtlas:addDefaultFont()
+FontAtlas:build()
+FontAtlas:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
 
 ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...)
 ImGui:popFont()
@@ -1092,7 +1092,7 @@ ImGui.ColorEditFlags_NoLabel
 ImGui.ColorEditFlags_NoTooltip
 ```
 [To top](#api)
-###DragDropFlags
+### DragDropFlags
 ```lua
 ImGui.DragDropFlags_SourceNoPreviewTooltip
 ImGui.DragDropFlags_SourceAllowNullID
