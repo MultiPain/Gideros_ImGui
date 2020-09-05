@@ -3881,12 +3881,28 @@ int ImGui_impl_DockBuilderSplitNode(lua_State *L)
     ImGuiID id = luaL_checkinteger(L, 2);
     ImGuiDir split_dir = luaL_checkinteger(L, 3);
     float size_ratio_for_node_at_dir = luaL_checknumber(L, 4);
-    ImGuiID out_id_at_dir = luaL_checkinteger(L, 5);
-    ImGuiID out_id_at_opposite_dir = luaL_checkinteger(L, 6);
+    ImGuiID* out_id_at_dir;
+    ImGuiID* out_id_at_opposite_dir;
 
-    lua_pushinteger(L, ImGui::DockBuilderSplitNode(id, split_dir, size_ratio_for_node_at_dir, &out_id_at_dir, &out_id_at_opposite_dir));
-    lua_pushinteger(L, out_id_at_dir);
-    lua_pushinteger(L, out_id_at_opposite_dir);
+    if (lua_isnil(L, 5))
+        out_id_at_dir = nullptr;
+    else
+    {
+        ImGuiID id = luaL_checkinteger(L, 5);
+        out_id_at_dir = &id;
+    }
+
+    if (lua_isnil(L, 6))
+        out_id_at_opposite_dir = nullptr;
+    else
+    {
+        ImGuiID id = luaL_checkinteger(L, 6);
+        out_id_at_opposite_dir = &id;
+    }
+
+    lua_pushinteger(L, ImGui::DockBuilderSplitNode(id, split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir));
+    lua_pushinteger(L, *out_id_at_dir);
+    lua_pushinteger(L, *out_id_at_opposite_dir);
     return 3;
 }
 
