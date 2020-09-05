@@ -596,7 +596,6 @@ ImGui:dockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id)
 ImGui:dockBuilderFinish(node_id)
 ```
 [To top](#api)
-[To top](#api)
 ## Logging/Capture
 ```lua
 ImGui:logToTTY(auto_open_depth = -1) 
