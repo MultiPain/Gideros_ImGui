@@ -2585,7 +2585,13 @@ TYPE ImGui::ScaleValueFromRatioT(ImGuiDataType data_type, float t, TYPE v_min, T
             // This code is carefully tuned to work with large values (e.g. high ranges of U64) while preserving this property..
             FLOATTYPE v_new_off_f = (v_max - v_min) * t;
             TYPE v_new_off_floor = (TYPE)(v_new_off_f);
-            TYPE v_new_off_round = (TYPE)(v_new_off_f + (FLOATTYPE)0.5);
+            //TYPE v_new_off_round = (TYPE)(v_new_off_f + (FLOATTYPE)0.5);
+            TYPE v_new_off_round;
+            if (v_min <= v_max)
+                v_new_off_round= (TYPE)(v_new_off_f + (FLOATTYPE)0.5);
+            else
+                v_new_off_round= (TYPE)(v_new_off_f - (FLOATTYPE)0.5);
+
             if (v_new_off_floor < v_new_off_round)
                 result = v_min + v_new_off_round;
             else

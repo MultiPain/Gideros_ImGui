@@ -6316,7 +6316,45 @@ const ImWchar* getRanges(ImFontAtlas* atlas, const int ranges)
     }
 }
 
-static void loadFontConfig(lua_State* L, int index, ImFontConfig &config)
+typedef void (*GidConfCallback)(ImFontGlyphRangesBuilder&, ImFontAtlas*, int);
+
+void readConfTable(lua_State* L, const char* name, ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, GidConfCallback f)
+{
+    lua_getfield(L, -1, name);
+    luaL_checktype(L, 1, LUA_TTABLE);
+    int len = luaL_getn(L, -1);
+
+    if (!lua_isnil(L, -1) && len > 0)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            lua_rawgeti(L, -1, i + 1);
+            f(builder, atlas, luaL_checkinteger(L, -1));
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
+}
+
+
+void addConfChars(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+{
+    builder.AddChar(value);
+}
+
+void addConfRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+{
+    builder.AddRanges(getRanges(atlas, value));
+}
+
+// TODO
+void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+{
+
+}
+
+
+static void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
 {
     float GlyphExtraSpacingX = 0.0f;
     float GlyphExtraSpacingY = 0.0f;
@@ -6397,20 +6435,26 @@ static void loadFontConfig(lua_State* L, int index, ImFontConfig &config)
         ImFontGlyphRangesBuilder builder;
 
         luaL_checktype(L, 1, LUA_TTABLE);
-        //builder.AddText("Hello world");
-        //builder.AddChar(0x7262);
+
+        lua_getfield(L, -1, "text");
+        if (!lua_isnil(L, -1)) builder.AddText(luaL_checkstring(L, -1));
+        lua_pop(L, 1);
+
+        readConfTable(L, "chars", builder, atlas, addConfChars);
+        readConfTable(L, "ranges", builder, atlas, addConfRanges);
+        readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
+
         //builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
 
         builder.BuildRanges(&ranges);
         config.GlyphRanges = ranges.Data;
     }
     lua_pop(L, 1);
-
-
 }
 
 int ImGui_impl_Fonts_AddFont(lua_State* L)
 {
+    ImFontAtlas* atlas = getFontAtlas(L);
     ImFontConfig font_cfg = ImFontConfig();
 
     const char* file_name = luaL_checkstring(L, 2);
@@ -6421,7 +6465,7 @@ int ImGui_impl_Fonts_AddFont(lua_State* L)
     {
         luaL_checktype(L, 4, LUA_TTABLE);
         lua_pushvalue(L, 4); // push options table to top
-        loadFontConfig(L, 4, font_cfg);
+        loadFontConfig(L, 4, font_cfg, atlas);
         lua_pop(L, 1); // pop options table
     }
 
@@ -6429,7 +6473,6 @@ int ImGui_impl_Fonts_AddFont(lua_State* L)
     for (p = file_name + strlen(file_name); p > file_name && p[-1] != '/' && p[-1] != '\\'; p--) {}
     ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", p, size_pixels);
 
-    ImFontAtlas* atlas = getFontAtlas(L);
     FontData font_data = getFontData(L, file_name);
     ImFont* font = atlas->AddFontFromMemoryTTF(font_data.data, font_data.size, size_pixels, &font_cfg);
 
