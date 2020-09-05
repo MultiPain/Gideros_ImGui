@@ -1089,15 +1089,15 @@ ImGui.DockNodeFlags_AutoHideTabBar
 
 ### Window draw list
 ```lua
-local list = ImGui:getWindowDrawList()
+DrawList = ImGui:getWindowDrawList()
 ```
 ### Background draw list
 ```lua
-local list = ImGui:getBackgroundDrawList()
+DrawList = ImGui:getBackgroundDrawList()
 ```
 ### Foreground draw list
 ```lua
-local list = ImGui:getForegroundDrawList()
+DrawList = ImGui:getForegroundDrawList()
 ```
 
 ## Draw lists commands
