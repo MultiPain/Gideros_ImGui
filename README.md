@@ -1095,9 +1095,9 @@ local list = ImGui:getWindowDrawList()
 ```lua
 local list = ImGui:getBackgroundDrawList()
 ```
-### Background draw list
+### Foreground draw list
 ```lua
-local list = ImGui:getBackgroundDrawList()
+local list = ImGui:getForegroundDrawList()
 ```
 
 ## Draw lists commands
