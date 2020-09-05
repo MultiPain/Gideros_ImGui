@@ -26,17 +26,4 @@ namespace ImGui
 
     IMGUI_API void ImageFilled(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1,1), const ImVec4& bg_col = ImVec4(1,1,1,0), const ImVec4& tint_col = ImVec4(1,1,1,1), const ImVec4& border_col = ImVec4(0,0,0,0));
 
-    IMGUI_API void Internal_DockBuilderDockWindow(const char* window_name, ImGuiID node_id);
-    IMGUI_API ImGuiDockNode* Internal_DockBuilderGetNode(ImGuiID node_id);
-    IMGUI_API void Internal_DockBuilderSetNodePos(ImGuiID node_id, ImVec2 pos);
-    IMGUI_API void Internal_DockBuilderSetNodeSize(ImGuiID node_id, ImVec2 size);
-    IMGUI_API ImGuiID Internal_DockBuilderAddNode(ImGuiID node_id = 0, ImGuiDockNodeFlags flags = 0);
-    IMGUI_API void Internal_DockBuilderRemoveNode(ImGuiID node_id);
-    IMGUI_API void Internal_DockBuilderRemoveNodeChildNodes(ImGuiID node_id);
-    IMGUI_API void Internal_DockBuilderRemoveNodeDockedWindows(ImGuiID node_id, bool clear_settings_refs = true);
-    IMGUI_API ImGuiID Internal_DockBuilderSplitNode(ImGuiID id, ImGuiDir split_dir, float size_ratio_for_node_at_dir, ImGuiID* out_id_at_dir, ImGuiID* out_id_at_opposite_dir);
-    IMGUI_API void Internal_DockBuilderCopyNode(ImGuiID src_node_id, ImGuiID dst_node_id, ImVector<ImGuiID>* out_node_remap_pairs);
-    IMGUI_API void Internal_DockBuilderCopyWindowSettings(const char* src_name, const char* dst_name);
-    IMGUI_API void Internal_DockBuilderCopyDockSpace(ImGuiID src_dockspace_id, ImGuiID dst_dockspace_id, ImVector<const char*>* in_window_remap_pairs);
-    IMGUI_API void Internal_DockBuilderFinish(ImGuiID node_id);
 }

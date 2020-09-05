@@ -5,6 +5,7 @@
 #define FONTS_CLASS_NAME "ImGuiFont"
 #define DRAW_LIST_CLASS_NAME "ImDrawList"
 #define STYLES_CLASS_NAME "ImGuiStyle"
+#define DOCK_NODE_CLASS_NAME "ImGuiDockNode"
 
 #include "gplugin.h"
 #include "gfile.h"
@@ -32,31 +33,18 @@ static char keyWeak = ' ';
 #define LUA_ASSERT(L, EXP, MSG) if (!(EXP)) { lua_pushfstring(L, MSG); lua_error(L); }
 //#define LUA_ASSERT(L, EXP, MSG)  ((void)(_EXPR))
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "imgui_src_docking/imgui.h"
+#include "imgui_src_docking/imgui_internal.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// HELPERS
 ///
 ////////////////////////////////////////////////////////////////////////////////
-
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
-static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)              { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
-static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
-static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
-static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
-static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
-static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
-static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
-static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
-static inline ImVec2& operator*=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x *= rhs.x; lhs.y *= rhs.y; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x /= rhs.x; lhs.y /= rhs.y; return lhs; }
-static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
-static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
-static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
-#endif
 
 /*
 static std::map<int, int> mouse_map =
@@ -612,20 +600,21 @@ void BindEnums(lua_State *L)
     lua_pushinteger(L, ImGuiCol_DockingPreview);                        lua_setfield(L, -2, "Col_DockingPreview");
     lua_pushinteger(L, ImGuiCol_DockingEmptyBg);                        lua_setfield(L, -2, "Col_DockingEmptyBg");
 #endif
+
     lua_pop(L, 1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
-/// GImGui
+/// GidImGui
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-class GImGui
+class GidImGui
 {
 public:
-    GImGui(LuaApplication* application, lua_State *L);
-    ~GImGui();
+    GidImGui(LuaApplication* application, lua_State *L);
+    ~GidImGui();
 
     SpriteProxy *proxy;
 
@@ -637,11 +626,11 @@ private:
     VertexBuffer<VColor> colors;
 };
 
-static GImGui* getInstance(lua_State *L)
+static GidImGui* getInstance(lua_State *L)
 {
     Binder binder(L);
     SpriteProxy* sp = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-    return static_cast<GImGui*>(sp->getContext());
+    return static_cast<GidImGui*>(sp->getContext());
 }
 
 static Sprite* getParentInstance(lua_State *L)
@@ -654,28 +643,28 @@ static Sprite* getParentInstance(lua_State *L)
 
 static void _Draw(void *c, const CurrentTransform&t, float sx, float sy, float ex, float ey)
 {
-    ((GImGui *) c)->doDraw(t, sx, sy, ex, ey);
+    ((GidImGui *) c)->doDraw(t, sx, sy, ex, ey);
 }
 
 static void _Destroy(void *c)
 {
-    delete ((GImGui *) c);
+    delete ((GidImGui *) c);
 }
 
-GImGui::GImGui(LuaApplication* application, lua_State *L)
+GidImGui::GidImGui(LuaApplication* application, lua_State *L)
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
 }
 
-GImGui::~GImGui()
+GidImGui::~GidImGui()
 {
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->TexID = 0;
     ImGui::DestroyContext();
 }
 
-void GImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
+void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
 {
     ImDrawData* draw_data = ImGui::GetDrawData();
     if (!draw_data) return;
@@ -983,7 +972,7 @@ int initImGui(lua_State *L)
     g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
     io.Fonts->TexID = (void *)texture;
 
-    GImGui *imgui = new GImGui(application, L);
+    GidImGui *imgui = new GidImGui(application, L);
     binder.pushInstance(CLASS_NAME, imgui->proxy);
 
     luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
@@ -3791,79 +3780,152 @@ int ImGui_impl_IsWindowDocked(lua_State *L)
     return 1;
 }
 
+// DockBuilder [BETA API]
+
+void lua_setintfield(lua_State *L, int idx, int index)
+{
+    lua_pushinteger(L, index);
+    lua_insert(L, -2);
+    lua_settable(L,idx-(idx<0));
+}
+/*
+void createDockNodeTable(lua_State *L, ImGuiDockNode *node)
+{
+    if (!node)
+    {
+        lua_pushnil(L);
+        return;
+    }
+
+    lua_newtable(L);
+    lua_pushinteger(L, node->ID); lua_setfield(L, -2, "ID");
+    lua_pushinteger(L, node->SharedFlags); lua_setfield(L, -2, "sharedFlags");
+    lua_pushinteger(L, node->LocalFlags); lua_setfield(L, -2, "localFlags");
+
+    // ParentNode
+    if (node->ParentNode)
+    {
+        createDockNodeTable(L, node->ParentNode);
+        lua_pushvalue(L, -1);
+        lua_pop(L, 1);
+        lua_setfield(L, -2, "parentNode");
+    }
+}
+*/
+
 int ImGui_impl_DockBuilderDockWindow(lua_State *L)
 {
-
+    const char* window_name = luaL_checkstring(L, 2);
+    ImGuiID node_id = luaL_checkinteger(L, 3);
+    ImGui::DockBuilderDockWindow(window_name, node_id);
     return 0;
 }
-
+/*
 int ImGui_impl_DockBuilderGetNode(lua_State *L)
 {
-    return 0;
-}
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
 
+    createDockNodeTable(L, node);
+    return 1;
+}
+*/
 int ImGui_impl_DockBuilderSetNodePos(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImVec2 pos = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    ImGui::DockBuilderSetNodePos(node_id, pos);
     return 0;
 }
 
 int ImGui_impl_DockBuilderSetNodeSize(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    ImGui::DockBuilderSetNodeSize(node_id, size);
     return 0;
 }
 
 int ImGui_impl_DockBuilderAddNode(lua_State *L)
 {
-    return 0;
+    ImGuiID node_id = luaL_optinteger(L, 2, 0);
+    ImGuiDockNodeFlags flags = luaL_optinteger(L, 3, 0);
+    lua_pushinteger(L, ImGui::DockBuilderAddNode(node_id, flags));
+    return 1;
 }
 
 int ImGui_impl_DockBuilderRemoveNode(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImGui::DockBuilderRemoveNode(node_id);
     return 0;
 }
 
 int ImGui_impl_DockBuilderRemoveNodeChildNodes(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImGui::DockBuilderRemoveNodeChildNodes(node_id);
     return 0;
 }
 
 int ImGui_impl_DockBuilderRemoveNodeDockedWindows(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    bool clear_settings_refs = lua_toboolean(L, 3);
+    ImGui::DockBuilderRemoveNodeDockedWindows(node_id, clear_settings_refs);
     return 0;
 }
 
 int ImGui_impl_DockBuilderSplitNode(lua_State *L)
 {
-    return 0;
+    ImGuiID id = luaL_checkinteger(L, 2);
+    ImGuiDir split_dir = luaL_checkinteger(L, 3);
+    float size_ratio_for_node_at_dir = luaL_checknumber(L, 4);
+    ImGuiID out_id_at_dir = luaL_checkinteger(L, 5);
+    ImGuiID out_id_at_opposite_dir = luaL_checkinteger(L, 6);
+
+    lua_pushinteger(L, ImGui::DockBuilderSplitNode(id, split_dir, size_ratio_for_node_at_dir, &out_id_at_dir, &out_id_at_opposite_dir));
+    lua_pushinteger(L, out_id_at_dir);
+    lua_pushinteger(L, out_id_at_opposite_dir);
+    return 3;
 }
 
-int ImGui_impl_DockBuilderCopyNodeRec(lua_State *L)
-{
-    return 0;
-}
-
+// TODO
 int ImGui_impl_DockBuilderCopyNode(lua_State *L)
 {
+    ImGuiID src_node_id = luaL_checkinteger(L, 2);
+    ImGuiID dst_node_id = luaL_checkinteger(L, 3);
+    ImVector<ImGuiID>* out_node_remap_pairs;
+
+    ImGui::DockBuilderCopyNode(src_node_id, dst_node_id, out_node_remap_pairs);
     return 0;
 }
 
 int ImGui_impl_DockBuilderCopyWindowSettings(lua_State *L)
 {
+    const char* src_name = luaL_checkstring(L, 2);
+    const char* dst_name = luaL_checkstring(L, 3);
+    ImGui::DockBuilderCopyWindowSettings(src_name, dst_name);
     return 0;
 }
 
 int ImGui_impl_DockBuilderCopyDockSpace(lua_State *L)
 {
+    ImGuiID src_dockspace_id = luaL_checkinteger(L, 2);
+    ImGuiID dst_dockspace_id = luaL_checkinteger(L, 3);
+    ImVector<const char*>* in_window_remap_pairs;
+    ImGui::DockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id, in_window_remap_pairs);
     return 0;
 }
 
 int ImGui_impl_DockBuilderFinish(lua_State *L)
 {
+    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImGui::DockBuilderFinish(node_id);
     return 0;
 }
 
-
-#endif
+#endif // IMGUI_HAS_DOCK
 
 // Logging/Capture
 int ImGui_impl_LogToTTY(lua_State *L)
@@ -4627,11 +4689,6 @@ int ImGui_impl_GetStyle(lua_State *L)
     Binder binder(L);
 
     ImGuiStyle* style = &ImGui::GetStyle();
-
-    lua_getglobal(L, "print");
-    lua_pushfstring(L, "%p", style);
-    lua_call(L, 1, 0);
-
     binder.pushInstance(STYLES_CLASS_NAME, style);
     return 1;
 }
@@ -6994,6 +7051,20 @@ int loader(lua_State *L)
         {"setNextWindowDockID", ImGui_impl_SetNextWindowDockID},
         {"getWindowDockID", ImGui_impl_GetWindowDockID},
         {"isWindowDocked", ImGui_impl_IsWindowDocked},
+
+        {"dockBuilderDockWindow", ImGui_impl_DockBuilderDockWindow},
+        //{"dockBuilderGetNode", ImGui_impl_DockBuilderGetNode},
+        {"dockBuilderSetNodePos", ImGui_impl_DockBuilderSetNodePos},
+        {"dockBuilderSetNodeSize", ImGui_impl_DockBuilderSetNodeSize},
+        {"dockBuilderAddNode", ImGui_impl_DockBuilderAddNode},
+        {"dockBuilderRemoveNode", ImGui_impl_DockBuilderRemoveNode},
+        {"dockBuilderRemoveNodeChildNodes", ImGui_impl_DockBuilderRemoveNodeChildNodes},
+        {"dockBuilderRemoveNodeDockedWindows", ImGui_impl_DockBuilderRemoveNodeDockedWindows},
+        {"dockBuilderSplitNode", ImGui_impl_DockBuilderSplitNode},
+        {"dockBuilderCopyNode", ImGui_impl_DockBuilderCopyNode},
+        {"dockBuilderCopyWindowSettings", ImGui_impl_DockBuilderCopyWindowSettings},
+        {"dockBuilderCopyDockSpace", ImGui_impl_DockBuilderCopyDockSpace},
+        {"dockBuilderFinish", ImGui_impl_DockBuilderFinish},
 #endif
 
         {NULL, NULL}
