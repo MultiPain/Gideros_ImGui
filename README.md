@@ -2,9 +2,9 @@
 
 * [Fonts](#fonts-wip)
 * [Inputs](#inputs)
-* [Style setters/getters ***NEW***](#style-settersgetters)
+* [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
-* [IO ***NEW***](#io-functions)
+* [IO](#io-functions)
 * [Widgets](#widgets--stuff)
 * [Windows](#windows)
 * [Child windows](#child-windows)
@@ -40,7 +40,7 @@
 * [Render](#render)
 * [ImGui Demos](#demos)
 * [ENUMS](#enums)
-* [Custom drawing ***NEW***](#draw-lists)
+* [Custom drawing](#draw-lists)
 
 !VERY IMPORTANT!</br> 
 every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
