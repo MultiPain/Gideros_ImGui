@@ -64,7 +64,38 @@ ImGui.new([width, height, fontsTable])
 ```
 ## FONTS (W.I.P)
 ```lua
---ImGui:addFonts()
+IO = imgui:getIO()
+FontAtlas = IO:getFonts()
+
+Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
+-- options (table): all parameters are optional
+--	fontDataOwnedByAtlas - bool
+--	pixelSnapH - bool
+--	mergeMode - bool
+--	fontNo - number
+--	oversampleH - number
+--	oversampleV - number
+--	sizePixels - number
+--	glyphExtraSpacingX - number
+--	glyphExtraSpacingY - number
+--	glyphOffsetX - number
+--	glyphOffsetY - number
+--	glyphMinAdvanceX - number
+--	glyphMaxAdvanceX - number
+--	rasterizerFlags - number
+--	rasterizerMultiply - number
+--	
+--	glyphs - table:
+--		text(string): represents avaliable chars
+--		chars(table): list of specific char code (example: {0x7262, ...})
+--		ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
+
+Fonts:addDefaultFont()
+Fonts:build()
+Fonts:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
+
+ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...)
+ImGui:popFont()
 ```
 [To top](#api)
 ## INPUTS
