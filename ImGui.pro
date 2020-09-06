@@ -3,7 +3,7 @@ QT -= core ui
 TARGET = imgui_beta
 TEMPLATE = lib
 
-DESTDIR = ../../plugins/
+#DESTDIR = ../../plugins/
 
 INCLUDEPATH += ../../Sdk/include
 INCLUDEPATH += ../../Sdk/include/gideros
@@ -21,11 +21,11 @@ SOURCES += \
     imgui_src/imgui_widgets.cpp \
     imgui_user.cpp \
     ../../Src/2dsg/Matrices.cpp \
-    main.cpp \
-    binder.cpp
+    ../../Src/luabinding/binder.cpp \
+    main.cpp
 
 HEADERS += \
-    binder.h \
+    ../../Src/luabinding/binder.h \
     imgui_user.h \
     imgui_src/imconfig.h \
     imgui_src/imgui.h \
