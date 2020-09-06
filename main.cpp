@@ -6481,6 +6481,11 @@ int ImGui_impl_Fonts_AddFont(lua_State* L)
     return 1;
 }
 
+// TODO
+int ImGui_impl_Fonts_AddFonts(lua_State* L)
+{
+}
+
 int ImGui_impl_Fonts_AddDefaultFont(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
@@ -6925,7 +6930,6 @@ int loader(lua_State* L)
     };
     binder.createClass(IO_CLASS_NAME, 0, NULL, NULL, imguiIoFunctionList);
 
-    // TODO
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
         {"addFont", ImGui_impl_Fonts_AddFont},
