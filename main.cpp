@@ -152,6 +152,8 @@ struct GColor {
     {
         return GColor::toU32(color.hex, color.alpha);
     }
+
+
 };
 
 double getfield(lua_State* L, const char* key)
@@ -4271,6 +4273,31 @@ int ImGui_impl_StyleClassic(lua_State* L)
 }
 
 /// Color Utilities
+
+int ImGui_impl_ColorConvertHEXtoRGB(lua_State* L)
+{
+    GColor color = GColor(luaL_checkinteger(L, 2), luaL_optnumber(L, 3, 1.0f));
+    ImVec4 vec = GColor::toVec4(color);
+
+    lua_pushnumber(L, vec.x);
+    lua_pushnumber(L, vec.y);
+    lua_pushnumber(L, vec.z);
+    lua_pushnumber(L, vec.w);
+    return 4;
+}
+
+int ImGui_impl_ColorConvertRGBtoHEX(lua_State* L)
+{
+    float r = luaL_checknumber(L, 2);
+    float g = luaL_checknumber(L, 3);
+    float b = luaL_checknumber(L, 4);
+
+    GColor color = GColor::toHex(r, g, b, 1.0f);
+
+    lua_pushinteger(L, color.hex);
+    return 1;
+}
+
 int ImGui_impl_ColorConvertRGBtoHSV(lua_State* L)
 {
     float r = luaL_checknumber(L, 2);
@@ -6978,8 +7005,10 @@ int loader(lua_State* L)
         /////////////////////////////////////////////////////////////////////////////// Inputs -
 
         // Colors TODO
-        //{"colorConvertRGBtoHSV", ImGui_impl_ColorConvertRGBtoHSV},
-        //{"colorConvertHSVtoRGB", ImGui_impl_ColorConvertHSVtoRGB},
+        {"colorConvertHEXtoRGB", ImGui_impl_ColorConvertHEXtoRGB},
+        {"colorConvertRGBtoHEX", ImGui_impl_ColorConvertRGBtoHEX},
+        {"colorConvertRGBtoHSV", ImGui_impl_ColorConvertRGBtoHSV},
+        {"colorConvertHSVtoRGB", ImGui_impl_ColorConvertHSVtoRGB},
 
         // Style themes
         {"setDarkStyle", ImGui_impl_StyleDark},
