@@ -6,6 +6,7 @@
 * [Inputs](#inputs)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
+* [Color convert](#color-convert)
 * [IO](#io-functions)
 * [Widgets](#widgets--stuff)
 * [Windows](#windows)
@@ -227,6 +228,14 @@ flag = Style:getAntiAliasedFill()
 Style:setDarkStyle()
 ImGui:setLightStyle()
 ImGui:setClassicStyle()
+```
+[To top](#api)
+## Color convert
+```lua
+r, g, b, a = ImGui:colorConvertHEXtoRGB(color, [alpha = 1])
+hex = ImGui:colorConvertRGBtoHEX(r, g, b)
+h, s, v = ImGui:colorConvertRGBtoHSV(r, g, b)
+r, g, b = ImGui:colorConvertHSVtoRGB(h, s, v)
 ```
 [To top](#api)
 ## IO Functions
