@@ -43,11 +43,69 @@ static char keyWeak = ' ';
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// DEBUG TOOL
+///
+////////////////////////////////////////////////////////////////////////////////
+
+static int dump_index = 0;
+
+static void stackDump(lua_State* L)
+{
+    int i = lua_gettop(L);
+    lua_getglobal(L, "print");
+    lua_pushfstring(L, "----------------      %d      ----------------\n----------------  Stack Dump ----------------", dump_index);
+    lua_call(L, 1, 0);
+    while (i) {
+        int t = lua_type(L, i);
+        switch (t) {
+        case LUA_TSTRING:
+            {
+                lua_getglobal(L, "print");
+                lua_pushfstring(L, "%d:`%s'", i, lua_tostring(L, i));
+                lua_call(L, 1, 0);
+            }
+            break;
+        case LUA_TBOOLEAN:
+            {
+                lua_getglobal(L, "print");
+                lua_pushfstring(L, "%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
+                lua_call(L, 1, 0);
+            }
+            break;
+        case LUA_TNUMBER:
+            {
+                lua_getglobal(L, "print");
+                lua_pushfstring(L, "%d: %g", i, lua_tonumber(L, i));
+                lua_call(L, 1, 0);
+            }
+            break;
+        default:
+            {
+                lua_getglobal(L, "print");
+                lua_pushfstring(L, "%d: %s", i, lua_typename(L, t));
+                lua_call(L, 1, 0);
+            }
+            break;
+        }
+        i--;
+    }
+    lua_getglobal(L, "print");
+    lua_pushstring(L, "------------ Stack Dump Finished ------------\n");
+    lua_call(L, 1, 0);
+
+    dump_index++;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// HELPERS
 ///
 ////////////////////////////////////////////////////////////////////////////////
+
 
 /*
 static std::map<int, int> mouse_map =
@@ -5965,7 +6023,17 @@ static void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFont
     lua_pop(L, 1);
 }
 
-int ImGui_impl_Fonts_AddFont(lua_State* L)
+ImFont* addFont(ImFontAtlas* atlas, const char* file_name, double size_pixels, ImFontConfig& font_cfg)
+{
+    const char* p;
+    for (p = file_name + strlen(file_name); p > file_name && p[-1] != '/' && p[-1] != '\\'; p--) {}
+    ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", p, size_pixels);
+
+    FontData font_data = getFontData(L, file_name);
+    return atlas->AddFontFromMemoryTTF(font_data.data, font_data.size, size_pixels, &font_cfg);
+}
+
+int ImGui_impl_FontAtlas_AddFont(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
     ImFontConfig font_cfg = ImFontConfig();
@@ -5982,38 +6050,88 @@ int ImGui_impl_Fonts_AddFont(lua_State* L)
         lua_pop(L, 1); // pop options table
     }
 
-    const char* p;
-    for (p = file_name + strlen(file_name); p > file_name && p[-1] != '/' && p[-1] != '\\'; p--) {}
-    ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", p, size_pixels);
-
-    FontData font_data = getFontData(L, file_name);
-    ImFont* font = atlas->AddFontFromMemoryTTF(font_data.data, font_data.size, size_pixels, &font_cfg);
-
+    ImFont* font = addFont(atlas, file_name, size_pixels, font_cfg);
     Binder binder(L);
     binder.pushInstance(FONT_CLASS_NAME, font);
     return 1;
 }
 
-// TODO
-int ImGui_impl_Fonts_AddFonts(lua_State* L)
+int ImGui_impl_FontAtlas_AddFonts(lua_State* L)
 {
+    ImFontAtlas* atlas = getFontAtlas(L);
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+    int len = luaL_getn(L, 2);
+
+    for (int i = 0; i < len; i++)
+    {
+        lua_rawgeti(L, 2, i + 1);
+
+        lua_rawgeti(L, 3, 1);
+        const char* file_name = luaL_checkstring(L, -1);
+        lua_pop(L, 1);
+
+        lua_rawgeti(L, 3, 2);
+        double size_pixels = luaL_checknumber(L, -1);
+        lua_pop(L, 1);
+
+        ImFontConfig font_cfg = ImFontConfig();
+
+        // options table
+        lua_rawgeti(L, 3, 3);
+        if (!lua_isnil(L, -1))
+        {
+            luaL_checktype(L, -1, LUA_TTABLE);
+            lua_pushvalue(L, -1); // push options table to top
+            loadFontConfig(L, -1, font_cfg, atlas);
+            lua_pop(L, 1); // pop options table
+        }
+        lua_pop(L, 1);
+
+        addFont(atlas, file_name, size_pixels, font_cfg);
+
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    return 0;
 }
 
-int ImGui_impl_Fonts_AddDefaultFont(lua_State* L)
+int ImGui_impl_FontAtlas_GetFontByIndex(lua_State* L)
+{
+    int index = luaL_checkinteger(L, 2);
+
+    ImFontAtlas* atlas = getFontAtlas(L);
+    int fonts_count = atlas->Fonts.Size;
+
+    LUA_ASSERT(L, index >= 0 && index <= fonts_count, "Font index is out of bounds!");
+
+    Binder binder(L);
+    binder.pushInstance(FONT_CLASS_NAME, atlas->Fonts[index]);
+    return 1;
+}
+
+int ImGui_impl_FontAtlas_GetCurrentFont(lua_State* L)
+{
+    Binder binder(L);
+    binder.pushInstance(FONT_CLASS_NAME, ImGui::GetFont());
+    return 1;
+}
+
+int ImGui_impl_FontAtlas_AddDefaultFont(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
     atlas->AddFontDefault();
     return 0;
 }
 
-int ImGui_impl_Fonts_BuildFont(lua_State* L)
+int ImGui_impl_FontAtlas_BuildFont(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
     atlas->Build();
     return 0;
 }
 
-int ImGui_impl_Fonts_Bake(lua_State* L)
+int ImGui_impl_FontAtlas_Bake(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
 
@@ -6968,10 +7086,13 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
-        {"addFont", ImGui_impl_Fonts_AddFont},
-        {"addDefaultFont", ImGui_impl_Fonts_AddDefaultFont},
-        {"build", ImGui_impl_Fonts_BuildFont},
-        {"bake", ImGui_impl_Fonts_Bake},
+        {"addFont", ImGui_impl_FontAtlas_AddFont},
+        {"addFonts", ImGui_impl_FontAtlas_AddFonts},
+        {"getFont", ImGui_impl_FontAtlas_GetFontByIndex},
+        {"getCurrentFont", ImGui_impl_FontAtlas_GetCurrentFont},
+        {"addDefaultFont", ImGui_impl_FontAtlas_AddDefaultFont},
+        {"build", ImGui_impl_FontAtlas_BuildFont},
+        {"bake", ImGui_impl_FontAtlas_Bake},
         {NULL, NULL}
     };
     binder.createClass(FONT_ATLAS_CLASS_NAME, 0, NULL, NULL, imguiFontAtlasFunctionList);
