@@ -1,9 +1,13 @@
+# Dear ImGui LUA binding for [Gideros mobile](http://giderosmobile.com/)
+
 # API
 
-* [Fonts](#fonts-wip)
+
+* [Fonts ***NEW***](#fonts-wip)
 * [Inputs](#inputs)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
+* [Color convert](#color-convert)
 * [IO](#io-functions)
 * [Widgets](#widgets--stuff)
 * [Windows](#windows)
@@ -39,54 +43,45 @@
 * [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [ImGui Demos](#demos)
-* [ENUMS](#enums)
-   - [FocusedFlags](#focusedflags)
-   - [PopoupFlags](#opoupflags)
-   - [HoveredFlags](#hoveredflags)
-   - [InputtextFlags](#inputtextflags)
-   - [NavInput](#navinput)
-   - [TabbarFlags](#tabbarflags)
-   - [TreenodeFlags](#treenodeflags)
-   - [Stylevar](#stylevar)
-   - [Col](#col)
-   - [DataType](#datatype)
-   - [Dir](#dir)
-   - [WindowFlags](#windowflags)
-   - [TabitemFlags](#tabitemflags)
-   - [ComboFlags](#comboflags)
-   - [Cond](#cond)
-   - [SelectableFlags](#selectableflags)
-   - [Mousecursor](#mousecursor)
-   - [Mousebutton](#mousebutton)
-   - [ColoreditFlags](#coloreditflags)
-   - [DragdropFlags](#dragdropflags)
-   - [CornerFlags](#cornerflags)
-   - [ConfigFlags](#configflags)
-   - [BackendFlags](#backendflags)
-   - [SliderFlags](#sliderflags)
-   - [DocknodeFlags](#docknodeflags)
-   - [GlyphRanges](#glyphranges)
+* [ENUMS ***NEW***](#enums)
+    - [FocusedFlags](#focusedflags)
+    - [PopoupFlags](#opoupflags)
+    - [HoveredFlags](#hoveredflags)
+    - [InputtextFlags](#inputtextflags)
+    - [NavInput](#navinput)
+    - [TabbarFlags](#tabbarflags)
+    - [TreenodeFlags](#treenodeflags)
+    - [Stylevar](#stylevar)
+    - [Col](#col)
+    - [DataType](#datatype)
+    - [Dir](#dir)
+    - [WindowFlags](#windowflags)
+    - [TabitemFlags](#tabitemflags)
+    - [ComboFlags](#comboflags)
+    - [Cond](#cond)
+    - [SelectableFlags](#selectableflags)
+    - [Mousecursor](#mousecursor)
+    - [Mousebutton](#mousebutton)
+    - [ColoreditFlags](#coloreditflags)
+    - [DragdropFlags](#dragdropflags)
+    - [CornerFlags](#cornerflags)
+    - [ConfigFlags](#configflags)
+    - [BackendFlags](#backendflags)
+    - [SliderFlags](#sliderflags)
+    - [GlyphRanges](#glyphranges)
 * [Custom drawing](#draw-lists)
 
 !VERY IMPORTANT!</br> 
 every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
 for example:</br> 
-```ImGui:drawListAddRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])```</br> 
-usage: ```imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)```</br> 
+```DrawList:addRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])```</br> 
+usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)```</br> 
 
 # Constructor
 ```lua
 ImGui.new([width, height, fontsTable])
 -- width (number, default = application:getContentWidth()): screen width
 -- height (number, default = application:getContentHeight()): screen height
--- fontsTable (table, optional): {font1Desc, font2Desc, ...}
---	fontDesc (table): {fontName, fontSize, [oversampleH, oversampleV, offsetX, offsetY]} 
--- 		fontName (string): path to font (from Gideros project tree) 
--- 		fontSize (number): font size in px
--- 		oversampleH (number, default = 1): makes edges less sharp
--- 		oversampleV (number, default = 1): makes edges less sharp 
--- 		offsetX (number, default = 0): font offset by X
--- 		offsetY (number, default = 0): font offset by Y
 ```
 ## FONTS (W.I.P)
 ```lua
@@ -94,32 +89,49 @@ IO = imgui:getIO()
 FontAtlas = IO:getFonts()
 
 Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
--- options (table): all parameters are optional
---	fontDataOwnedByAtlas - bool
---	pixelSnapH - bool
---	mergeMode - bool
---	fontNo - number
---	oversampleH - number
---	oversampleV - number
---	glyphExtraSpacingX - number
---	glyphExtraSpacingY - number
---	glyphOffsetX - number
---	glyphOffsetY - number
---	glyphMinAdvanceX - number
---	glyphMaxAdvanceX - number
---	rasterizerFlags - number
---	rasterizerMultiply - number
---	
---	glyphs - table:
---		text(string): represents avaliable chars
---		chars(table): list of specific char code (example: {0x7262, ...})
---		ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
 
-FontAtlas:addDefaultFont()
+-- options (table): all parameters are optional
+--	    fontDataOwnedByAtlas - bool
+--	    pixelSnapH - bool
+--	    mergeMode - bool
+--	    fontNo - number
+--	    oversampleH - number
+--	    oversampleV - number
+--	    glyphExtraSpacingX - number
+--	    glyphExtraSpacingY - number
+--	    glyphOffsetX - number
+--	    glyphOffsetY - number
+--	    glyphMinAdvanceX - number
+--	    glyphMaxAdvanceX - number
+--	    rasterizerFlags - number
+--	    rasterizerMultiply - number
+--	
+--	    glyphs - table:
+--		    text(string): represents avaliable chars
+--		    chars(table): list of specific char code (example: {0x7262, ...})
+--		    ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
+FontAtlas:addFonts(fontsDescription)
+-- fontsDescriptions (table):
+--      description (table):
+--          ttf_font_path (string): path to a font
+--          font_size (number): font size
+--          options (table): see description above
+-- example:
+-- FontAtlas:addFonts{ {"fonts/DroidSans.ttf", 16}, {"fonts/ProggyTiny.ttf", 16} }
+
+Font = FontAtlas:getFont([index]) -- get font by index (if index is 0 or nil you will get default font instance)
 FontAtlas:build()
 FontAtlas:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
+FontAtlas:clearInputData()
+FontAtlas:clearTexData()
+FontAtlas:clearFonts()
+FontAtlas:clear()
+flag = FontAtlas:isBuilt()
+number = FontAtlas:addCustomRectRegular(width, height)
+number = FontAtlas:addCustomRectFontGlyph(font, id, width, height, advance_x, [offset_x, offset_y])
+w, h, x, y, glyph_id, offset_x, offset_y, font, is_packed_flag = FontAtlas:getCustomRectByIndex(index)
 
-ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...)
+ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...) or FontAtlas:getFont([index])
 ImGui:popFont()
 ```
 [To top](#api)
@@ -237,6 +249,7 @@ local IO = ImGui:getIO()
 ```
 
 ```lua
+IO:setFontDefault(font)
 ImGuiConfigFlag = IO:getConfigFlags()
 IO:setConfigFlags(ImGuiConfigFlag)
 IO:addConfigFlags(ImGuiConfigFlag)
