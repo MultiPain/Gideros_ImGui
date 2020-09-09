@@ -5070,7 +5070,9 @@ ImFontAtlas* getFontAtlas(lua_State* L, int index = 1)
 ImFont* getFont(lua_State* L, int index = 1)
 {
     Binder binder(L);
-    return static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, index));
+    ImFont* font = static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, index));
+    LUA_ASSERT(L, font, "Font is nil!");
+    return font;
 }
 
 ImGuiIO& getIO(lua_State* L, int index = 1)
@@ -6157,29 +6159,83 @@ int ImGui_impl_FontAtlas_Bake(lua_State* L)
     return 0;
 }
 
+int ImGui_impl_FontAtlas_ClearInputData(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    atlas->ClearInputData();
+    return 0;
+}
 
-/*
-    IMGUI_API ImFont*           AddFontFromMemoryTTF(void* font_data, int font_size, float size_pixels, const ImFontConfig* font_cfg = NULL, const ImWchar* glyph_ranges = NULL);
+int ImGui_impl_FontAtlas_ClearTexData(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    atlas->ClearTexData();
+    return 0;
+}
 
-    IMGUI_API void              ClearInputData();
-    IMGUI_API void              ClearTexData();
-    IMGUI_API void              ClearFonts();
-    IMGUI_API void              Clear();
-    IMGUI_API bool              Build();
+int ImGui_impl_FontAtlas_ClearFonts(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    atlas->ClearFonts();
+    return 0;
+}
 
-    bool                        IsBuilt() const             { return Fonts.Size > 0 && (TexPixelsAlpha8 != NULL || TexPixelsRGBA32 != NULL); }
-    IMGUI_API const ImWchar*    GetGlyphRangesDefault();
-    IMGUI_API const ImWchar*    GetGlyphRangesKorean();
-    IMGUI_API const ImWchar*    GetGlyphRangesJapanese();
-    IMGUI_API const ImWchar*    GetGlyphRangesChineseFull();
-    IMGUI_API const ImWchar*    GetGlyphRangesChineseSimplifiedCommon();
-    IMGUI_API const ImWchar*    GetGlyphRangesCyrillic();
-    IMGUI_API const ImWchar*    GetGlyphRangesThai();
-    IMGUI_API const ImWchar*    GetGlyphRangesVietnamese();
-    IMGUI_API int               AddCustomRectRegular(int width, int height);
-    IMGUI_API int               AddCustomRectFontGlyph(ImFont* font, ImWchar id, int width, int height, float advance_x, const ImVec2& offset = ImVec2(0, 0));
-    ImFontAtlasCustomRect*      GetCustomRectByIndex(int index) { IM_ASSERT(index >= 0); return &CustomRects[index]; }
-*/
+int ImGui_impl_FontAtlas_Clear(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    atlas->Clear();
+    return 0;
+}
+
+int ImGui_impl_FontAtlas_IsBuilt(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    lua_pushboolean(L, atlas->IsBuilt());
+    return 1;
+}
+
+int ImGui_impl_FontAtlas_AddCustomRectRegular(lua_State* L)
+{
+    int width  = luaL_checkinteger(L, 2);
+    int height = luaL_checkinteger(L, 3);
+    ImFontAtlas* atlas = getFontAtlas(L);
+    lua_pushinteger(L, atlas->AddCustomRectRegular(width, height));
+    return 1;
+}
+
+int ImGui_impl_FontAtlas_AddCustomRectFontGlyph(lua_State* L)
+{
+    ImFont* font = getFont(L, 2);
+    ImWchar id = (ImWchar)luaL_checkinteger(L, 3);
+    int width = luaL_checkinteger(L, 4);
+    int height = luaL_checkinteger(L, 5);
+    float advance_x = luaL_checkinteger(L, 6);
+    const ImVec2& offset = ImVec2(luaL_optnumber(L, 7, 0.0f), luaL_optnumber(L, 8, 0.0f));
+
+    ImFontAtlas* atlas = getFontAtlas(L);
+    lua_pushinteger(L, atlas->AddCustomRectFontGlyph(font, id, width, height, advance_x, offset));
+    return 1;
+}
+
+int ImGui_impl_FontAtlas_GetCustomRectByIndex(lua_State* L)
+{
+    int index = luaL_checkinteger(L, 2);
+    ImFontAtlas* atlas = getFontAtlas(L);
+    ImFontAtlasCustomRect* rect = atlas->GetCustomRectByIndex(index);
+    lua_pushinteger(L, rect->Width);
+    lua_pushinteger(L, rect->Height);
+    lua_pushinteger(L, rect->X);
+    lua_pushinteger(L, rect->Y);
+    lua_pushinteger(L, rect->X);
+    lua_pushinteger(L, rect->GlyphID);
+    lua_pushnumber(L, rect->GlyphOffset.x);
+    lua_pushnumber(L, rect->GlyphOffset.y);
+    Binder binder(L);
+    binder.pushInstance(FONT_CLASS_NAME, rect->Font);
+    lua_pushboolean(L, rect->IsPacked());
+    return 10;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// DRAW LIST
@@ -7106,6 +7162,14 @@ int loader(lua_State* L)
         {"addDefaultFont", ImGui_impl_FontAtlas_AddDefaultFont},
         {"build", ImGui_impl_FontAtlas_BuildFont},
         {"bake", ImGui_impl_FontAtlas_Bake},
+        {"clearInputData", ImGui_impl_FontAtlas_ClearInputData},
+        {"clearTexData", ImGui_impl_FontAtlas_ClearTexData},
+        {"clearFonts", ImGui_impl_FontAtlas_ClearFonts},
+        {"clear", ImGui_impl_FontAtlas_Clear},
+        {"isBuilt", ImGui_impl_FontAtlas_IsBuilt},
+        {"addCustomRectRegular", ImGui_impl_FontAtlas_AddCustomRectRegular},
+        {"addCustomRectFontGlyph", ImGui_impl_FontAtlas_AddCustomRectFontGlyph},
+        {"getCustomRectByIndex", ImGui_impl_FontAtlas_GetCustomRectByIndex},
         {NULL, NULL}
     };
     binder.createClass(FONT_ATLAS_CLASS_NAME, 0, NULL, NULL, imguiFontAtlasFunctionList);
