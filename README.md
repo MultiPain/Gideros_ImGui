@@ -108,19 +108,19 @@ Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
 --		    chars(table): list of specific char code (example: {0x7262, ...})
 --		    ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
 FontAtlas:addFonts(fontsDescription)
--- fontsDescriptions(talbe):
---      description(table):
---          ttf_font_path(string): path to a font
---          font_size(number): font size
---          options(table): see description above
+-- fontsDescriptions (table):
+--      description (table):
+--          ttf_font_path (string): path to a font
+--          font_size (number): font size
+--          options (table): see description above
 -- example:
 -- FontAtlas:addFonts{ {"fonts/DroidSans.ttf", 16}, {"fonts/ProggyTiny.ttf", 16} }
 
-FontAtlas:getFont([index]) -- get font by index (if index is 0 or nil you will get default font instance)
+Font = FontAtlas:getFont([index]) -- get font by index (if index is 0 or nil you will get default font instance)
 FontAtlas:build()
 FontAtlas:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
 
-ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...)
+ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...) or FontAtlas:getFont([index])
 ImGui:popFont()
 ```
 [To top](#api)
