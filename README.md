@@ -79,14 +79,6 @@ usage: ```imgui:drawListAddRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CO
 ImGui.new([width, height, fontsTable])
 -- width (number, default = application:getContentWidth()): screen width
 -- height (number, default = application:getContentHeight()): screen height
--- fontsTable (table, optional): {font1Desc, font2Desc, ...}
---	fontDesc (table): {fontName, fontSize, [oversampleH, oversampleV, offsetX, offsetY]} 
--- 		fontName (string): path to font (from Gideros project tree) 
--- 		fontSize (number): font size in px
--- 		oversampleH (number, default = 1): makes edges less sharp
--- 		oversampleV (number, default = 1): makes edges less sharp 
--- 		offsetX (number, default = 0): font offset by X
--- 		offsetY (number, default = 0): font offset by Y
 ```
 ## FONTS (W.I.P)
 ```lua
