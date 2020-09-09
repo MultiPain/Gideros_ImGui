@@ -4092,6 +4092,15 @@ int ImGui_impl_GetStyleColorName(lua_State* L)
     return 1;
 }
 
+int ImGui_impl_GetStyleColor(lua_State *L)
+{
+    int idx = luaL_checkinteger(L, 2);
+    GColor color = GColor::toHex(ImGui::GetStyleColorVec4(idx));
+    lua_pushinteger(L, color.hex);
+    lua_pushnumber(L, color.alpha);
+    return 2;
+}
+
 int ImGui_impl_CalcListClipping(lua_State* L)
 {
     int items_count = luaL_checkinteger(L, 2);
@@ -7486,6 +7495,7 @@ int loader(lua_State* L)
         {"getTime", ImGui_impl_GetTime},
         {"getFrameCount", ImGui_impl_GetFrameCount},
         {"getStyleColorName", ImGui_impl_GetStyleColorName},
+        {"getStyleColor", ImGui_impl_GetStyleColor},
         {"calcListClipping", ImGui_impl_CalcListClipping},
         {"beginChildFrame", ImGui_impl_BeginChildFrame},
         {"endChildFrame", ImGui_impl_EndChildFrame},
