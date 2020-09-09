@@ -94,28 +94,37 @@ IO = imgui:getIO()
 FontAtlas = IO:getFonts()
 
 Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
--- options (table): all parameters are optional
---	fontDataOwnedByAtlas - bool
---	pixelSnapH - bool
---	mergeMode - bool
---	fontNo - number
---	oversampleH - number
---	oversampleV - number
---	glyphExtraSpacingX - number
---	glyphExtraSpacingY - number
---	glyphOffsetX - number
---	glyphOffsetY - number
---	glyphMinAdvanceX - number
---	glyphMaxAdvanceX - number
---	rasterizerFlags - number
---	rasterizerMultiply - number
---	
---	glyphs - table:
---		text(string): represents avaliable chars
---		chars(table): list of specific char code (example: {0x7262, ...})
---		ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
 
-FontAtlas:addDefaultFont()
+-- options (table): all parameters are optional
+--	    fontDataOwnedByAtlas - bool
+--	    pixelSnapH - bool
+--	    mergeMode - bool
+--	    fontNo - number
+--	    oversampleH - number
+--	    oversampleV - number
+--	    glyphExtraSpacingX - number
+--	    glyphExtraSpacingY - number
+--	    glyphOffsetX - number
+--	    glyphOffsetY - number
+--	    glyphMinAdvanceX - number
+--	    glyphMaxAdvanceX - number
+--	    rasterizerFlags - number
+--	    rasterizerMultiply - number
+--	
+--	    glyphs - table:
+--		    text(string): represents avaliable chars
+--		    chars(table): list of specific char code (example: {0x7262, ...})
+--		    ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
+FontAtlas:addFonts(fontsDescription)
+-- fontsDescriptions(talbe):
+--      description(table):
+--          ttf_font_path(string): path to a font
+--          font_size(number): font size
+--          options(table): see description above
+-- example:
+-- FontAtlas:addFonts{ {"fonts/DroidSans.ttf", 16}, {"fonts/ProggyTiny.ttf", 16} }
+
+FontAtlas:getFont([index]) -- get font by index (if index is 0 or nil you will get default font instance)
 FontAtlas:build()
 FontAtlas:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
 
@@ -245,6 +254,7 @@ local IO = ImGui:getIO()
 ```
 
 ```lua
+IO:setFontDefault(font)
 ImGuiConfigFlag = IO:getConfigFlags()
 IO:setConfigFlags(ImGuiConfigFlag)
 IO:addConfigFlags(ImGuiConfigFlag)
