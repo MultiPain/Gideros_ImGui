@@ -859,12 +859,12 @@ int initImGui(lua_State* L)
     io.KeyMap[ImGuiKey_Y] = GINPUT_KEY_Y;
     io.KeyMap[ImGuiKey_Z] = GINPUT_KEY_Z;
 
-    //unsigned char* pixels;
-    //int width, height;
-    //io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    //g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
-    //io.Fonts->TexID = (void* )texture;
+    g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
+    io.Fonts->TexID = (void* )texture;
 
     GidImGui* imgui = new GidImGui(application, L);
     binder.pushInstance(CLASS_NAME, imgui->proxy);
@@ -5061,19 +5061,30 @@ int ImGui_impl_Style_GetAntiAliasedFill(lua_State* L)
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+ImFontAtlas* getFontAtlas(lua_State* L, int index = 1)
+{
+    Binder binder(L);
+    return static_cast<ImFontAtlas*>(binder.getInstance(FONT_ATLAS_CLASS_NAME, index));
+}
+
+ImFont* getFont(lua_State* L, int index = 1)
+{
+    Binder binder(L);
+    return static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, index));
+}
+
+ImGuiIO& getIO(lua_State* L, int index = 1)
+{
+    Binder binder(L);
+    ImGuiIO &io = *(static_cast<ImGuiIO*>(binder.getInstance(IO_CLASS_NAME, index)));
+    return io;
+}
 
 int ImGui_impl_GetIO(lua_State* L)
 {
     Binder binder(L);
     binder.pushInstance(IO_CLASS_NAME, &ImGui::GetIO());
     return 1;
-}
-
-ImGuiIO& getIO(lua_State* L)
-{
-    Binder binder(L);
-    ImGuiIO &io = *(static_cast<ImGuiIO*>(binder.getInstance(IO_CLASS_NAME, 1)));
-    return io;
 }
 
 #ifdef IMGUI_HAS_DOCK
@@ -5133,6 +5144,15 @@ int ImGui_impl_IO_SetConfigDockingTransparentPayload(lua_State* L)
     return 0;
 }
 #endif
+
+int ImGui_impl_IO_SetFontDefault(lua_State* L)
+{
+    ImGuiIO& io = getIO(L);
+    ImFont* font = getFont(L, 2);
+    if (font)
+        io.FontDefault = font;
+    return 0;
+}
 
 int ImGui_impl_IO_GetFonts(lua_State* L)
 {
@@ -5844,6 +5864,7 @@ int ImGui_impl_Fonts_PushFont(lua_State* L)
 {
     Binder binder(L);
     ImFont* font = static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, 2));
+    LUA_ASSERT(L, font, "Font is nil");
     ImGui::PushFont(font);
     return 0;
 }
@@ -5852,18 +5873,6 @@ int ImGui_impl_Fonts_PopFont(lua_State* _UNUSED(L))
 {
     ImGui::PopFont();
     return 0;
-}
-
-ImFontAtlas* getFontAtlas(lua_State* L)
-{
-    Binder binder(L);
-    return static_cast<ImFontAtlas*>(binder.getInstance(FONT_ATLAS_CLASS_NAME, 1));
-}
-
-ImFont* getFont(lua_State* L, int index = 1)
-{
-    Binder binder(L);
-    return static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, index));
 }
 
 const ImWchar* getRanges(ImFontAtlas* atlas, const int ranges)
@@ -6098,15 +6107,18 @@ int ImGui_impl_FontAtlas_AddFonts(lua_State* L)
 
 int ImGui_impl_FontAtlas_GetFontByIndex(lua_State* L)
 {
-    int index = luaL_checkinteger(L, 2);
-
     ImFontAtlas* atlas = getFontAtlas(L);
+    int index = 0;
+    if (lua_gettop(L) > 1 && !lua_isnil(L, 2))
+    {
+        index = luaL_checkinteger(L, 2);
+    }
     int fonts_count = atlas->Fonts.Size;
-
-    LUA_ASSERT(L, index >= 0 && index <= fonts_count, "Font index is out of bounds!");
-
+    LUA_ASSERT(L, index >= 0 && index < fonts_count, "Font index is out of bounds!");
+    ImFont* font = atlas->Fonts[index];
+    LUA_ASSERT(L, font, "Font is nil");
     Binder binder(L);
-    binder.pushInstance(FONT_CLASS_NAME, atlas->Fonts[index]);
+    binder.pushInstance(FONT_CLASS_NAME, font);
     return 1;
 }
 
@@ -6997,6 +7009,7 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiIoFunctionList[] =
     {
+        {"setFontDefault", ImGui_impl_IO_SetFontDefault},
         {"getFonts", ImGui_impl_IO_GetFonts},
         {"getDeltaTime", ImGui_impl_IO_GetDeltaTime},
         {"isMouseDown", ImGui_impl_IO_isMouseDown},
@@ -7115,7 +7128,6 @@ int loader(lua_State* L)
         {"getBackgroundDrawList", ImGui_impl_GetBackgroundDrawList},
         {"getForegroundDrawList", ImGui_impl_GetForegroundDrawList},
         {"getIO", ImGui_impl_GetIO},
-        //{"getFonts", ImGui_impl_GetFonts},
 
         /////////////////////////////////////////////////////////////////////////////// Inputs +
         /// Mouse
