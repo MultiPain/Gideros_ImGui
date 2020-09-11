@@ -79,7 +79,7 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
-ImGui.new([width, height, fontsTable])
+ImGui.new([width, height])
 -- width (number, default = application:getContentWidth()): screen width
 -- height (number, default = application:getContentHeight()): screen height
 ```
