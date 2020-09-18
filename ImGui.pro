@@ -21,11 +21,15 @@ SOURCES += \
     imgui_src/imgui_widgets.cpp \
     imgui_user.cpp \
     ../../Src/2dsg/Matrices.cpp \
+    ../../Src/2dsg/mouseevent.cpp \
+    ../../Src/2dsg/keyboardevent.cpp \
     ../../Src/luabinding/binder.cpp \
     main.cpp
 
 HEADERS += \
     ../../Src/luabinding/binder.h \
+    ../../Src/2dsg/mouseevent.h \
+    ../../Src/2dsg/keyboardevent.h \
     imgui_user.h \
     imgui_src/imconfig.h \
     imgui_src/imgui.h \
