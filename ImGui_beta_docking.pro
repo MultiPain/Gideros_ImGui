@@ -18,12 +18,16 @@ SOURCES += \
     binder.cpp \
     imgui_user.cpp \
     ../../Src/2dsg/Matrices.cpp \
+    ../../Src/2dsg/mouseevent.cpp \
+    ../../Src/2dsg/keyboardevent.cpp \
     imgui_src_docking/imgui.cpp \
     imgui_src_docking/imgui_demo.cpp \
     imgui_src_docking/imgui_draw.cpp \
     imgui_src_docking/imgui_widgets.cpp
 
 HEADERS += \
+    ../../Src/2dsg/mouseevent.h \
+    ../../Src/2dsg/keyboardevent.h \
     binder.h \
     imgui_user.h \
     imgui_src_docking/imconfig.h \

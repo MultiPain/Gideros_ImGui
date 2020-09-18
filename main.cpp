@@ -21,6 +21,8 @@
 #include "luautil.h"
 #include "sprite.h"
 #include "binder.h"
+#include "mouseevent.h"
+#include "keyboardevent.h"
 
 #include "texturebase.h"
 #include "bitmapdata.h"
@@ -675,6 +677,118 @@ void BindEnums(lua_State* L)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
+/// EVENT LISTENER
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+// called when using ImGui:mouseDown(e) / ImGui:mouseMove(e) / ImGui:mouseUp(e) / ImGui:mouseHover(e)
+static ImVec2 getTranslatedMousePos(lua_State* L)
+{
+    Binder binder(L);
+    SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+    const Matrix4 mat = sprite->matrix().inverse();
+
+    float event_x = getfield(L, "x");
+    float event_y = getfield(L, "y");
+
+    Vector3 v = mat * Vector3(event_x, event_y, 0.0f);
+
+    return ImVec2(v.x, v.y);
+}
+
+// used by EventListener
+static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float event_y)
+{
+    const Matrix4 mat = sprite->matrix().inverse();
+
+    Vector3 v = mat * Vector3(event_x, event_y, 0.0f);
+
+    return ImVec2(v.x, v.y);
+}
+
+class EventListener : public EventDispatcher
+{
+public:
+    EventListener(lua_State *L, SpriteProxy *proxy) :
+        L(L),
+        proxy(proxy)
+    {
+    }
+
+    ~EventListener()
+    {
+    }
+
+    void mouseDown(MouseEvent *event)
+    {
+        int button = convertGiderosMouseButton(L, event->button);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MouseDown[button] = true;
+    }
+
+    void mouseUp(MouseEvent *event)
+    {
+        int button = convertGiderosMouseButton(L, event->button);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MouseDown[button] = false;
+    }
+
+    void mouseHover(MouseEvent *event)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+    }
+
+    void mouseWheel(MouseEvent *event)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.MouseWheel += event->wheel < 0 ? -1.0f : 1.0f;
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+    }
+
+    void keyDown(KeyboardEvent *event)
+    {
+        int keyCode = event->keyCode;
+        ImGuiIO& io = ImGui::GetIO();
+        io.KeysDown[keyCode] = true;
+
+        int mod = getKeyboardModifiers(L);
+        io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
+        io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
+        io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
+        io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+    }
+
+    void keyUp(KeyboardEvent *event)
+    {
+        int keyCode = event->keyCode;
+        ImGuiIO& io = ImGui::GetIO();
+        io.KeysDown[keyCode] = false;
+
+        int mod = getKeyboardModifiers(L);
+        io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
+        io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
+        io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
+        io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+    }
+
+    void keyChar(KeyboardEvent *event)
+    {
+        std::string text = event->charCode;
+        ImGuiIO& io = ImGui::GetIO();
+        io.AddInputCharactersUTF8(text.c_str());
+    }
+
+    lua_State *L;
+    SpriteProxy *proxy;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
 /// GidImGui
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -686,6 +800,7 @@ public:
     ~GidImGui();
 
     SpriteProxy* proxy;
+    EventListener* eventListener;
 
     void doDraw(const CurrentTransform&, float sx, float sy, float ex, float ey);
 private:
@@ -694,14 +809,6 @@ private:
     VertexBuffer<Point2f> texcoords;
     VertexBuffer<VColor> colors;
 };
-
-static Sprite* getParentInstance(lua_State* L)
-{
-    Binder binder(L);
-
-    SpriteProxy* sp = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-    return static_cast<Sprite*>(sp->getContext());
-}
 
 static void _Draw(void* c, const CurrentTransform&t, float sx, float sy, float ex, float ey)
 {
@@ -713,10 +820,21 @@ static void _Destroy(void* c)
     delete ((GidImGui* ) c);
 }
 
-GidImGui::GidImGui(LuaApplication* application, lua_State* _UNUSED(L))
+GidImGui::GidImGui(LuaApplication* application, lua_State* L)
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
+
+    eventListener = new EventListener(L, proxy);
+    proxy->addEventListener(MouseEvent::MOUSE_DOWN,  eventListener, &EventListener::mouseDown);
+    proxy->addEventListener(MouseEvent::MOUSE_UP,    eventListener, &EventListener::mouseUp);
+    proxy->addEventListener(MouseEvent::MOUSE_MOVE,  eventListener, &EventListener::mouseDown);
+    proxy->addEventListener(MouseEvent::MOUSE_HOVER, eventListener, &EventListener::mouseHover);
+    proxy->addEventListener(MouseEvent::MOUSE_WHEEL, eventListener, &EventListener::mouseWheel);
+
+    proxy->addEventListener(KeyboardEvent::KEY_DOWN, eventListener, &EventListener::keyDown);
+    proxy->addEventListener(KeyboardEvent::KEY_UP,   eventListener, &EventListener::keyUp);
+    proxy->addEventListener(KeyboardEvent::KEY_CHAR, eventListener, &EventListener::keyChar);
 }
 
 GidImGui::~GidImGui()
@@ -724,7 +842,9 @@ GidImGui::~GidImGui()
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->TexID = 0;
     ImGui::DestroyContext();
+    proxy->removeEventListeners();
     delete proxy;
+    delete eventListener;
 }
 
 void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
@@ -804,8 +924,6 @@ int initImGui(lua_State* L)
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
     ::application = application->getApplication();
 
-    Binder binder(L);
-
     // init ImGui itself
     ImGui::CreateContext();
 
@@ -822,10 +940,10 @@ int initImGui(lua_State* L)
     int swidth = 0;
     int sheight = 0;
 
-    if (lua_type(L, 1) == LUA_TNUMBER && lua_type(L, 2) == LUA_TNUMBER)
+    if (lua_gettop(L) > 0)
     {
-        swidth = lua_tointeger(L, 1);
-        sheight = lua_tointeger(L, 2);
+        swidth = luaL_checkinteger(L, 1);
+        sheight = luaL_checkinteger(L, 2);
     }
     else
     {
@@ -866,6 +984,7 @@ int initImGui(lua_State* L)
     g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
     io.Fonts->TexID = (void* )texture;
 
+    Binder binder(L);
     GidImGui* imgui = new GidImGui(application, L);
     binder.pushInstance(CLASS_NAME, imgui->proxy);
 
@@ -891,23 +1010,7 @@ int destroyImGui(lua_State* _UNUSED(L))
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-
-
 /// MOUSE INPUTS
-
-static ImVec2 getTranslatedMousePos(lua_State* L)
-{
-    Binder binder(L);
-    SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-    const Matrix4 mat = sprite->matrix().inverse();
-
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
-
-    Vector3 v = mat * Vector3(event_x, event_y, 0.0f);
-
-    return ImVec2(v.x, v.y);
-}
 
 int ImGui_impl_MouseHover(lua_State* L)
 {
@@ -961,6 +1064,7 @@ int ImGui_impl_MouseWheel(lua_State* L)
 
     return 0;
 }
+
 
 /// KEYBOARD INPUTS
 
@@ -1018,7 +1122,6 @@ int ImGui_impl_NewFrame(lua_State* L)
 
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = deltaTime;
-
     ImGui::NewFrame();
 
     return 0;
