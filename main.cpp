@@ -2364,8 +2364,8 @@ int ImGui_impl_DragScalar(lua_State* L)
     ImGuiDataType data_type = luaL_checkinteger(L, 3);
     double value = luaL_checknumber(L, 4);
     double v_speed = luaL_checknumber(L, 5);
-    double v_min = luaL_optnumber(L, 6, NULL);
-    double v_max = luaL_optnumber(L, 7, NULL);
+    double v_min = luaL_optnumber(L, 6, 0.0);
+    double v_max = luaL_optnumber(L, 7, 0.0);
     const char* format = luaL_optstring(L, 8, NULL);
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -2882,13 +2882,15 @@ int ImGui_impl_VFilledSliderScalar(lua_State* L)
 }
 
 // TODO: callbacks?
+/*
 static int TextInputCallback(ImGuiInputTextCallbackData* data)
 {
-    //lua_State* L = (lua_State *)data->UserData;
-    //lua_pushstring(L, data->Buf);
-    //lua_error(L);
+    lua_State* L = (lua_State *)data->UserData;
+    lua_pushstring(L, data->Buf);
+    lua_error(L);
     return 0;
 }
+*/
 
 // Widgets: Input with Keyboard
 int ImGui_impl_InputText(lua_State* L)
@@ -3543,15 +3545,35 @@ int ImGui_impl_BeginPopup(lua_State* L)
 int ImGui_impl_BeginPopupModal(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 2);
-    bool p_open = lua_tointeger(L, 3) > 0;
-    ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 
-    bool result = ImGui::BeginPopupModal(name, &p_open, flags);
+    switch(lua_type(L, 3))
+    {
+        case LUA_TBOOLEAN:
+            {
+                bool p_open = lua_tointeger(L, 3) > 0;
+                ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
+                bool result = ImGui::BeginPopupModal(name, &p_open, flags);
 
-    lua_pushboolean(L, p_open);
-    lua_pushboolean(L, result);
-
-    return 2;
+                lua_pushboolean(L, p_open);
+                lua_pushboolean(L, result);
+                return 2;
+            }
+            break;
+        case LUA_TNIL:
+            {
+                ImGuiWindowFlags flags = luaL_checkinteger(L, 4);
+                lua_pushboolean(L, ImGui::BeginPopupModal(name, NULL, flags));
+                return 1;
+            }
+            break;
+        default:
+            {
+                lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
+                lua_error(L);
+                return 0;
+            }
+        break;
+    }
 }
 
 int ImGui_impl_EndPopup(lua_State* _UNUSED(L))
@@ -4014,7 +4036,7 @@ int ImGui_impl_EndDragDropTarget(lua_State* _UNUSED(L))
 
 int ImGui_impl_GetDragDropPayload(lua_State* _UNUSED(L))
 {
-    const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+    //const ImGuiPayload* payload = ImGui::GetDragDropPayload();
     //TODO
     return 0;
 }
@@ -6023,7 +6045,7 @@ void readConfTable(lua_State* L, const char* name, ImFontGlyphRangesBuilder &bui
     lua_pop(L, 1);
 }
 
-void addConfChars(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+void addConfChars(ImFontGlyphRangesBuilder &builder, ImFontAtlas* _UNUSED(atlas), int value)
 {
     builder.AddChar(value);
 }
@@ -6034,10 +6056,12 @@ void addConfRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int va
 }
 
 // TODO
+/*
 void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
 {
 
 }
+*/
 
 static void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
 {
@@ -6127,7 +6151,7 @@ static void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFont
 
         readConfTable(L, "chars", builder, atlas, addConfChars);
         readConfTable(L, "ranges", builder, atlas, addConfRanges);
-        readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
+        //readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
 
         //builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
 
