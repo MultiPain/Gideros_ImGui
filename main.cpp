@@ -632,7 +632,8 @@ void BindEnums(lua_State* L)
     //ImGuiSliderFlags_
 
     lua_pushinteger(L, ImGuiSliderFlags_None);                          lua_setfield(L, -2, "SliderFlags_None");
-    lua_pushinteger(L, ImGuiSliderFlags_ClampOnInput);                  lua_setfield(L, -2, "SliderFlags_ClampOnInput");
+    lua_pushinteger(L, ImGuiSliderFlags_AlwaysClamp);                   lua_setfield(L, -2, "SliderFlags_ClampOnInput"); // backward capability
+    lua_pushinteger(L, ImGuiSliderFlags_AlwaysClamp);                   lua_setfield(L, -2, "SliderFlags_AlwaysClamp");
     lua_pushinteger(L, ImGuiSliderFlags_Logarithmic);                   lua_setfield(L, -2, "SliderFlags_Logarithmic");
     lua_pushinteger(L, ImGuiSliderFlags_NoRoundToFormat);               lua_setfield(L, -2, "SliderFlags_NoRoundToFormat");
     lua_pushinteger(L, ImGuiSliderFlags_NoInput);                       lua_setfield(L, -2, "SliderFlags_NoInput");
@@ -3569,13 +3570,21 @@ int ImGui_impl_OpenPopup(lua_State* L)
     return 0;
 }
 
-int ImGui_impl_OpenPopupContextItem(lua_State* L)
+int ImGui_impl_OpenPopupContextItem(lua_State* L) // renamed in 1.79 (backward capability)
 {
     const char* str_id = luaL_optstring(L, 2, NULL);
     ImGuiPopupFlags popup_flags = luaL_optinteger(L, 3, 1);
+    ImGui::OpenPopupOnItemClick(str_id, popup_flags);
+    return 0;
+}
 
-    lua_pushboolean(L, ImGui::OpenPopupContextItem(str_id, popup_flags));
-    return 1;
+
+int ImGui_impl_OpenPopupOnItemClick(lua_State* L)
+{
+    const char* str_id = luaL_optstring(L, 2, NULL);
+    ImGuiPopupFlags popup_flags = luaL_optinteger(L, 3, 1);
+    ImGui::OpenPopupOnItemClick(str_id, popup_flags);
+    return 0;
 }
 
 int ImGui_impl_CloseCurrentPopup(lua_State* _UNUSED(L))
@@ -4873,14 +4882,30 @@ int ImGui_impl_Style_GetTabBorderSize(lua_State* L)
 int ImGui_impl_Style_SetTabMinWidthForUnselectedCloseButton(lua_State* L)
 {
     ImGuiStyle &style = getStyle(L);
-    style.TabMinWidthForUnselectedCloseButton = luaL_checknumber(L, 2);
+    //style.TabMinWidthForUnselectedCloseButton = luaL_checknumber(L, 2); // renamed in 1.79 (backward capability)
+    style.TabMinWidthForCloseButton = luaL_checknumber(L, 2);
     return 0;
 }
 
 int ImGui_impl_Style_GetTabMinWidthForUnselectedCloseButton(lua_State* L)
 {
     ImGuiStyle &style = getStyle(L);
-    lua_pushnumber(L, style.TabMinWidthForUnselectedCloseButton);
+    //lua_pushnumber(L, style.TabMinWidthForUnselectedCloseButton);
+    lua_pushnumber(L, style.TabMinWidthForCloseButton);  // renamed in 1.79 (backward capability)
+    return 1;
+}
+
+int ImGui_impl_Style_SetTabMinWidthForCloseButton(lua_State* L)
+{
+    ImGuiStyle &style = getStyle(L);
+    style.TabMinWidthForCloseButton = luaL_checknumber(L, 2);
+    return 0;
+}
+
+int ImGui_impl_Style_GetTabMinWidthForCloseButton(lua_State* L)
+{
+    ImGuiStyle &style = getStyle(L);
+    lua_pushnumber(L, style.TabMinWidthForCloseButton);
     return 1;
 }
 
@@ -7080,6 +7105,8 @@ int loader(lua_State* L)
         {"getTabBorderSize", ImGui_impl_Style_GetTabBorderSize},
         {"setTabMinWidthForUnselectedCloseButton", ImGui_impl_Style_SetTabMinWidthForUnselectedCloseButton},
         {"getTabMinWidthForUnselectedCloseButton", ImGui_impl_Style_GetTabMinWidthForUnselectedCloseButton},
+        {"setTabMinWidthForCloseButton", ImGui_impl_Style_SetTabMinWidthForCloseButton},
+        {"getTabMinWidthForCloseButton", ImGui_impl_Style_GetTabMinWidthForCloseButton},
         {"setMouseCursorScale", ImGui_impl_Style_SetMouseCursorScale},
         {"getMouseCursorScale", ImGui_impl_Style_GetMouseCursorScale},
         {"setCurveTessellationTol", ImGui_impl_Style_SetCurveTessellationTol},
@@ -7701,4 +7728,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
