@@ -646,6 +646,7 @@ ImGui:endTabBar()
 p_open, bool = ImGui:beginTabItem(label, p_open, [ImGuiTabItemFlags = 0])
 ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
+ImGui:tabItemButton(label, [ImGuiTabItemFlags = 0])
 ```
 [To top](#api)
 ## Logging/Capture
@@ -1028,6 +1029,9 @@ ImGui.TabItemFlags_NoTooltip
 ImGui.TabItemFlags_None
 ImGui.TabItemFlags_NoPushId
 ImGui.TabItemFlags_UnsavedDocument
+ImGui.TabItemFlags_Leading
+ImGui.TabItemFlags_Trailing
+ImGui.TabItemFlags_NoReorder
 ```
 [To top](#api)
 ### ComboFlags
