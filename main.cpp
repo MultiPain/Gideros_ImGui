@@ -238,11 +238,11 @@ int getKeyboardModifiers(lua_State* L)
 
 double getApplicationProperty(lua_State* L, const char* name)
 {
-    lua_getglobal(L, "application");
-    lua_getfield(L, -1, name);
-    lua_getglobal(L, "application");
-    lua_call(L,1,1);
-    double value = luaL_checknumber(L, -1);
+    lua_getglobal(L, "application"); // application
+    lua_getfield(L, -1, name);       // application[name]
+    lua_getglobal(L, "application"); // application[name], application
+    lua_call(L,1,1);                 // application[name](application)
+    double value = luaL_checknumber(L, -1); // value, application.name
     lua_pop(L, 2);
 
     return value;
@@ -306,6 +306,29 @@ int convertGiderosMouseButton(lua_State* L, int button)
 int luaL_optboolean(lua_State* L, int narg, int def)
 {
     return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
+}
+
+ImVec4 getApplicationBounds(lua_State* L)
+{
+    lua_getglobal(L, "application");
+    lua_getfield(L, -1, "getLogicalBounds");
+    lua_getglobal(L, "application");
+    lua_call(L,1,4);
+    double minX = luaL_checknumber(L, -4);
+    double minY = luaL_checknumber(L, -3);
+    double maxX = luaL_checknumber(L, -2);
+    double maxY = luaL_checknumber(L, -1);
+    lua_pop(L, 5);
+
+    return ImVec4(minX, minY, maxX - minX, maxY - minY);
+}
+
+ImVec2 getApplicationReverseScale(lua_State* L)
+{
+    double sx = getApplicationProperty(L, "getLogicalScaleX");
+    double sy = getApplicationProperty(L, "getLogicalScaleY");
+
+    return ImVec2(1.0 / sx, 1.0 / sy);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -700,8 +723,9 @@ static ImVec2 getTranslatedMousePos(lua_State* L)
 }
 
 // used by EventListener
-static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float event_y)
+static ImVec2 getTranslatedMousePos(lua_State* L, SpriteProxy* sprite, float event_x, float event_y)
 {
+    ImVec4 app_bounds = getApplicationBounds(L);
     const Matrix4 mat = sprite->matrix().inverse();
 
     Vector3 v = mat * Vector3(event_x, event_y, 0.0f);
@@ -724,33 +748,41 @@ public:
 
     void mouseDown(MouseEvent *event)
     {
+        ImVec2 app_scale = getApplicationReverseScale(L);
         int button = convertGiderosMouseButton(L, event->button);
 
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
         io.MouseDown[button] = true;
+        io.MousePos *= app_scale;
     }
 
     void mouseUp(MouseEvent *event)
     {
+        ImVec2 app_scale = getApplicationReverseScale(L);
         int button = convertGiderosMouseButton(L, event->button);
 
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
         io.MouseDown[button] = false;
+        io.MousePos *= app_scale;
     }
 
     void mouseHover(MouseEvent *event)
     {
+        ImVec2 app_scale = getApplicationReverseScale(L);
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
+        io.MousePos *= app_scale;
     }
 
     void mouseWheel(MouseEvent *event)
     {
+        ImVec2 app_scale = getApplicationReverseScale(L);
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheel += event->wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
+        io.MousePos *= app_scale;
     }
 
     void keyDown(KeyboardEvent *event)
@@ -1162,7 +1194,7 @@ int ImGui_impl_Begin(lua_State* L)
             break;
         case LUA_TNIL:
             {
-                ImGuiWindowFlags flags = luaL_checkinteger(L, 4);
+                ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
                 lua_pushboolean(L, ImGui::Begin(name, NULL, flags));
                 return 1;
             }
