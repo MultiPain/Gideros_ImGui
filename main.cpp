@@ -46,7 +46,6 @@ static char keyWeak = ' ';
 #include "imgui_src/imgui_internal.h"
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// DEBUG TOOL
@@ -534,6 +533,9 @@ void BindEnums(lua_State* L)
     lua_pushinteger(L, ImGuiTabItemFlags_None);                         lua_setfield(L, -2, "TabItemFlags_None");
     lua_pushinteger(L, ImGuiTabItemFlags_NoPushId);                     lua_setfield(L, -2, "TabItemFlags_NoPushId");
     lua_pushinteger(L, ImGuiTabItemFlags_UnsavedDocument);              lua_setfield(L, -2, "TabItemFlags_UnsavedDocument");
+    lua_pushinteger(L, ImGuiTabItemFlags_Leading);                      lua_setfield(L, -2, "TabItemFlags_Leading");   // 1.79
+    lua_pushinteger(L, ImGuiTabItemFlags_Trailing);                     lua_setfield(L, -2, "TabItemFlags_Trailing");  // 1.79
+    lua_pushinteger(L, ImGuiTabItemFlags_NoReorder);                    lua_setfield(L, -2, "TabItemFlags_NoReorder"); // 1.79
 
     // ImGuiComboFlags
     lua_pushinteger(L, ImGuiComboFlags_HeightSmall);                    lua_setfield(L, -2, "ComboFlags_HeightSmall");
@@ -2030,10 +2032,10 @@ int ImGui_impl_Checkbox(lua_State* L)
 int ImGui_impl_CheckboxFlags(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    unsigned int* flags = 0;
-    unsigned int flags_value = 0;
+    int flags = luaL_optinteger(L, 3, 0);
+    int flags_value = luaL_optinteger(L, 4, 0);
 
-    lua_pushboolean(L, ImGui::CheckboxFlags(label, flags, flags_value));
+    lua_pushboolean(L, ImGui::CheckboxFlags(label, (unsigned int*)&flags, (unsigned int)flags_value));
     return 1;
 }
 
@@ -3724,6 +3726,14 @@ int ImGui_impl_EndTabItem(lua_State* _UNUSED(L))
 {
     ImGui::EndTabItem();
     return 0;
+}
+
+int ImGui_impl_TabItemButton(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    ImGuiTabItemFlags flags = luaL_optinteger(L, 3, 0);
+    lua_pushboolean(L, ImGui::TabItemButton(label, flags));
+    return 1;
 }
 
 int ImGui_impl_SetTabItemClosed(lua_State* L)
@@ -7578,6 +7588,7 @@ int loader(lua_State* L)
         {"endTabBar", ImGui_impl_EndTabBar},
         {"beginTabItem", ImGui_impl_BeginTabItem},
         {"endTabItem", ImGui_impl_EndTabItem},
+        {"tabItemButton", ImGui_impl_TabItemButton},
         {"setTabItemClosed", ImGui_impl_SetTabItemClosed},
 
         {"logToTTY", ImGui_impl_LogToTTY},
