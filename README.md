@@ -190,8 +190,10 @@ Style:setTabRounding(value)
 value = Style:getlTabRounding()
 Style:setTabBorderSize(value)
 value = Style:getlTabBorderSize()
-Style:setTabMinWidthForUnselectedCloseButton(value)
-value = Style:getlTabMinWidthForUnselectedCloseButton()
+Style:setTabMinWidthForUnselectedCloseButton(value)     -- renamed in 1.79 (can be still used until 1.80)
+value = Style:getlTabMinWidthForUnselectedCloseButton() -- renamed in 1.79 (can be still used until 1.80)
+Style:setTabMinWidthForCloseButton(value)               -- "setTabMinWidthForUnselectedCloseButton"
+value = Style:getTabMinWidthForCloseButton()            -- "getlTabMinWidthForUnselectedCloseButton"
 Style:setMouseCursorScale(value)
 value = Style:getlMouseCursorScale()
 Style:setCurveTessellationTol(value)
@@ -616,7 +618,8 @@ result? = ImGui:beginPopup(str_id, [ImGuiWindowFlags = 0])
 p_open, result? = ImGui:beginPopupModal(str_id, p_open, [ImGuiWindowFlags = 0])
 ImGui:endPopup()
 ImGui:openPopup(str_id, [ImGuiPopupFlags = 0])
-result? = ImGui:openPopupContextItem(str_id, [ImGuiPopupFlags = 0])
+ImGui:openPopupContextItem(str_id, [ImGuiPopupFlags = 0]) -- reanmed in 1.79 (can be still used until 1.80)
+ImGui:openPopupOnItemClick(str_id, [ImGuiPopupFlags = 0])
 ImGui:closeCurrentPopup()
 result? = ImGui:beginPopupContextItem(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:beginPopupContextWindow(str_id, [ImGuiPopupFlags = 0])
@@ -1163,7 +1166,8 @@ ImGui.BackendFlags_RendererHasVtxOffset
 ### SliderFlags
 ```lua
 ImGui.SliderFlags_None        
-ImGui.SliderFlags_ClampOnInput  
+ImGui.SliderFlags_ClampOnInput -- renamed in 1.79 to "SliderFlags_AlwaysClamp" (can be still used unyil 1.80)
+ImGui.SliderFlags_AlwaysClamp
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
