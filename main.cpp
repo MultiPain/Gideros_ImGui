@@ -23,6 +23,7 @@
 #include "binder.h"
 #include "mouseevent.h"
 #include "keyboardevent.h"
+#include "event.h"
 
 #include "texturebase.h"
 #include "bitmapdata.h"
@@ -215,6 +216,11 @@ struct GColor {
 
 };
 
+float map(float value, float in_min, float in_max, float out_min, float out_max)
+{
+    return (value - in_min) / (in_max - in_min) * (out_max - out_min) + out_min;
+}
+
 double getfield(lua_State* L, const char* key)
 {
     lua_pushstring(L, key);
@@ -314,6 +320,7 @@ ImVec4 getApplicationBounds(lua_State* L)
     lua_getfield(L, -1, "getLogicalBounds");
     lua_getglobal(L, "application");
     lua_call(L,1,4);
+    // minX, minY, maxX, maxY
     double minX = luaL_checknumber(L, -4);
     double minY = luaL_checknumber(L, -3);
     double maxX = luaL_checknumber(L, -2);
@@ -723,23 +730,29 @@ static ImVec2 getTranslatedMousePos(lua_State* L)
 }
 
 // used by EventListener
-static ImVec2 getTranslatedMousePos(lua_State* L, SpriteProxy* sprite, float event_x, float event_y)
+static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float event_y)
 {
-    ImVec4 app_bounds = getApplicationBounds(L);
-    const Matrix4 mat = sprite->matrix().inverse();
-
-    Vector3 v = mat * Vector3(event_x, event_y, 0.0f);
+    Vector3 v = sprite->matrix().inverse() * Vector3(event_x, event_y, 0.0f);
 
     return ImVec2(v.x, v.y);
 }
 
+
 class EventListener : public EventDispatcher
 {
+private:
+    ImVec2 app_scale;
+    ImVec4 app_bounds;
 public:
+
+    lua_State *L;
+    SpriteProxy *proxy;
+
     EventListener(lua_State *L, SpriteProxy *proxy) :
         L(L),
         proxy(proxy)
     {
+        applicationResize(nullptr);
     }
 
     ~EventListener()
@@ -748,41 +761,33 @@ public:
 
     void mouseDown(MouseEvent *event)
     {
-        ImVec2 app_scale = getApplicationReverseScale(L);
         int button = convertGiderosMouseButton(L, event->button);
 
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y) * app_scale;
         io.MouseDown[button] = true;
-        io.MousePos *= app_scale;
     }
 
     void mouseUp(MouseEvent *event)
     {
-        ImVec2 app_scale = getApplicationReverseScale(L);
         int button = convertGiderosMouseButton(L, event->button);
 
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y) * app_scale;
         io.MouseDown[button] = false;
-        io.MousePos *= app_scale;
     }
 
     void mouseHover(MouseEvent *event)
     {
-        ImVec2 app_scale = getApplicationReverseScale(L);
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
-        io.MousePos *= app_scale;
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y) * app_scale;
     }
 
     void mouseWheel(MouseEvent *event)
     {
-        ImVec2 app_scale = getApplicationReverseScale(L);
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheel += event->wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = getTranslatedMousePos(L, proxy, (float)event->x, (float)event->y);
-        io.MousePos *= app_scale;
+        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y) * app_scale;
     }
 
     void keyDown(KeyboardEvent *event)
@@ -818,8 +823,27 @@ public:
         io.AddInputCharactersUTF8(text.c_str());
     }
 
-    lua_State *L;
-    SpriteProxy *proxy;
+    void applicationResize(Event *)
+    {
+        app_scale = getApplicationReverseScale(L);
+        app_bounds = getApplicationBounds(L);
+
+        ImGuiIO& io = ImGui::GetIO();
+        //io.DisplayFramebufferScale = app_scale;
+
+        float scaleX = proxy->scaleX();
+        float reverseScaleX = 0.0f;
+        if (scaleX != 0.0f) reverseScaleX = 1.0f / scaleX;
+
+        float scaleY = proxy->scaleY();
+        float reverseScaleY = 0.0f;
+        if (scaleY != 0.0f) reverseScaleY = 1.0f / scaleY;
+
+        io.DisplaySize.x = app_bounds.z * reverseScaleX;
+        io.DisplaySize.y = app_bounds.w * reverseScaleY;
+
+        proxy->setXY(app_bounds.x, app_bounds.y);
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -861,15 +885,18 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L)
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
 
     eventListener = new EventListener(L, proxy);
-    proxy->addEventListener(MouseEvent::MOUSE_DOWN,  eventListener, &EventListener::mouseDown);
-    proxy->addEventListener(MouseEvent::MOUSE_UP,    eventListener, &EventListener::mouseUp);
-    proxy->addEventListener(MouseEvent::MOUSE_MOVE,  eventListener, &EventListener::mouseDown);
-    proxy->addEventListener(MouseEvent::MOUSE_HOVER, eventListener, &EventListener::mouseHover);
-    proxy->addEventListener(MouseEvent::MOUSE_WHEEL, eventListener, &EventListener::mouseWheel);
 
-    proxy->addEventListener(KeyboardEvent::KEY_DOWN, eventListener, &EventListener::keyDown);
-    proxy->addEventListener(KeyboardEvent::KEY_UP,   eventListener, &EventListener::keyUp);
-    proxy->addEventListener(KeyboardEvent::KEY_CHAR, eventListener, &EventListener::keyChar);
+    proxy->addEventListener(MouseEvent::MOUSE_DOWN,    eventListener, &EventListener::mouseDown);
+    proxy->addEventListener(MouseEvent::MOUSE_UP,      eventListener, &EventListener::mouseUp);
+    proxy->addEventListener(MouseEvent::MOUSE_MOVE,    eventListener, &EventListener::mouseDown);
+    proxy->addEventListener(MouseEvent::MOUSE_HOVER,   eventListener, &EventListener::mouseHover);
+    proxy->addEventListener(MouseEvent::MOUSE_WHEEL,   eventListener, &EventListener::mouseWheel);
+
+    proxy->addEventListener(KeyboardEvent::KEY_DOWN,   eventListener, &EventListener::keyDown);
+    proxy->addEventListener(KeyboardEvent::KEY_UP,     eventListener, &EventListener::keyUp);
+    proxy->addEventListener(KeyboardEvent::KEY_CHAR,   eventListener, &EventListener::keyChar);
+
+    proxy->addEventListener(Event::APPLICATION_RESIZE, eventListener, &EventListener::applicationResize);
 }
 
 GidImGui::~GidImGui()
@@ -877,7 +904,20 @@ GidImGui::~GidImGui()
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->TexID = 0;
     ImGui::DestroyContext();
-    proxy->removeEventListeners();
+    //proxy->removeEventListeners();
+
+    proxy->removeEventListener(MouseEvent::MOUSE_DOWN,    eventListener, &EventListener::mouseDown);
+    proxy->removeEventListener(MouseEvent::MOUSE_UP,      eventListener, &EventListener::mouseUp);
+    proxy->removeEventListener(MouseEvent::MOUSE_MOVE,    eventListener, &EventListener::mouseDown);
+    proxy->removeEventListener(MouseEvent::MOUSE_HOVER,   eventListener, &EventListener::mouseHover);
+    proxy->removeEventListener(MouseEvent::MOUSE_WHEEL,   eventListener, &EventListener::mouseWheel);
+
+    proxy->removeEventListener(KeyboardEvent::KEY_DOWN,   eventListener, &EventListener::keyDown);
+    proxy->removeEventListener(KeyboardEvent::KEY_UP,     eventListener, &EventListener::keyUp);
+    proxy->removeEventListener(KeyboardEvent::KEY_CHAR,   eventListener, &EventListener::keyChar);
+
+    proxy->removeEventListener(Event::APPLICATION_RESIZE, eventListener, &EventListener::applicationResize);
+
     delete proxy;
     delete eventListener;
 }
@@ -971,24 +1011,6 @@ int initImGui(lua_State* L)
     io.BackendPlatformName = "Gideros";
     io.BackendRendererName = "Gideros";
 
-    // Setup display size
-    int swidth = 0;
-    int sheight = 0;
-
-    if (lua_gettop(L) > 0)
-    {
-        swidth = luaL_checkinteger(L, 1);
-        sheight = luaL_checkinteger(L, 2);
-    }
-    else
-    {
-        swidth = (int)getApplicationProperty(L, "getContentWidth");
-        sheight = (int)getApplicationProperty(L, "getContentHeight");
-    }
-
-    io.DisplaySize.x = swidth;
-    io.DisplaySize.y = sheight;
-
     // Keyboard map
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
     io.KeyMap[ImGuiKey_Tab] = GINPUT_KEY_TAB;
@@ -1044,6 +1066,15 @@ int destroyImGui(lua_State* _UNUSED(L))
 /// BINDINGS.
 ///
 ////////////////////////////////////////////////////////////////////////////////
+
+int ImGui_impl_updateScale(lua_State* L)
+{
+    Binder binder(L);
+    SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+    auto v = (GidImGui*)sprite->getContext();
+    v->eventListener->applicationResize(nullptr);
+    return 0;
+}
 
 /// MOUSE INPUTS
 
@@ -7353,6 +7384,8 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFunctionList[] =
     {
+        {"updateScale", ImGui_impl_updateScale},
+
         // Fonts API
         {"pushFont", ImGui_impl_Fonts_PushFont},
         {"popFont", ImGui_impl_Fonts_PopFont},
