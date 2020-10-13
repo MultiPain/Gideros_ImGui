@@ -99,7 +99,7 @@ namespace ImGui
         if (temp_input_is_active)
         {
             // Only clamp CTRL+Click input when ImGuiSliderFlags_ClampInput is set
-            const bool is_clamp_input = (flags & ImGuiSliderFlags_ClampOnInput) != 0;
+            const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
             return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
         }
 
