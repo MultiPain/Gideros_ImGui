@@ -740,6 +740,32 @@ static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float ev
     return ImVec2(v.x, v.y);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// GidImGui
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+class EventListener;
+
+class GidImGui
+{
+public:
+    GidImGui(LuaApplication* application, lua_State* L);
+    ~GidImGui();
+
+    SpriteProxy* proxy;
+    EventListener* eventListener;
+
+    void doDraw(const CurrentTransform&, float sx, float sy, float ex, float ey);
+    void setPos(float x, float y);
+private:
+    ImVec2 pos_;
+    LuaApplication* application;
+    VertexBuffer<Point2f> vertices;
+    VertexBuffer<Point2f> texcoords;
+    VertexBuffer<VColor> colors;
+};
+
 class EventListener : public EventDispatcher
 {
 private:
@@ -768,7 +794,7 @@ public:
 
     void mouseUp(MouseEvent *event)
     {
-        onMouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(L, event->button), true);
+        onMouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(L, event->button), false);
     }
 
     void onMouseUpOrDown(float x, float y, int button, bool state)
@@ -891,31 +917,10 @@ public:
         io.DisplaySize.x = app_bounds.z * reverseScaleX;
         io.DisplaySize.y = app_bounds.w * reverseScaleY;
 
-        proxy->setXY(app_bounds.x, app_bounds.y);
+        //proxy->setXY(app_bounds.x, app_bounds.y);
+        GidImGui* ptr = (GidImGui*)proxy->getContext();
+        ptr->setPos(app_bounds.x, app_bounds.y);
     }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-///
-/// GidImGui
-///
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-class GidImGui
-{
-public:
-    GidImGui(LuaApplication* application, lua_State* L);
-    ~GidImGui();
-
-    SpriteProxy* proxy;
-    EventListener* eventListener;
-
-    void doDraw(const CurrentTransform&, float sx, float sy, float ex, float ey);
-private:
-    LuaApplication* application;
-    VertexBuffer<Point2f> vertices;
-    VertexBuffer<Point2f> texcoords;
-    VertexBuffer<VColor> colors;
 };
 
 static void _Draw(void* c, const CurrentTransform&t, float sx, float sy, float ex, float ey)
@@ -932,6 +937,7 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L)
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
+    pos_ = ImVec2();
 
     eventListener = new EventListener(L, proxy);
 
@@ -983,7 +989,7 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 
     ShaderEngine* engine=gtexture_get_engine();
     ShaderProgram* shp=engine->getDefault(ShaderEngine::STDP_TEXTURECOLOR);
-    ImVec2 pos = draw_data->DisplayPos;
+    ImVec2 pos = draw_data->DisplayPos - pos_;
 
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
@@ -996,8 +1002,8 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
        colors.resize(vtx_size);
        for (size_t i=0;i<vtx_size;i++)
        {
-           vertices[i].x = vtx_buffer[i].pos.x;
-           vertices[i].y = vtx_buffer[i].pos.y;
+           vertices[i].x = vtx_buffer[i].pos.x + pos_.x;
+           vertices[i].y = vtx_buffer[i].pos.y + pos_.y;
            texcoords[i].x = vtx_buffer[i].uv.x;
            texcoords[i].y = vtx_buffer[i].uv.y;
 
@@ -1042,6 +1048,12 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 
     }
 
+}
+
+void GidImGui::setPos(float x, float y)
+{
+    pos_.x = x;
+    pos_.y = y;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
