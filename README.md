@@ -1,5 +1,5 @@
 # Dear ImGui LUA binding for [Gideros mobile](http://giderosmobile.com/)
-[Dear ImGui](https://github.com/ocornut/imgui)
+
 # API
 
 * [Fonts ***NEW***](#fonts-wip)
@@ -76,7 +76,7 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
-ImGui.new([width, height])
+ImGui.new([width, height, fontsTable])
 -- width (number, default = application:getContentWidth()): screen width
 -- height (number, default = application:getContentHeight()): screen height
 ```
@@ -190,10 +190,8 @@ Style:setTabRounding(value)
 value = Style:getlTabRounding()
 Style:setTabBorderSize(value)
 value = Style:getlTabBorderSize()
-Style:setTabMinWidthForUnselectedCloseButton(value)     -- renamed in 1.79 (can be still used until 1.80)
-value = Style:getlTabMinWidthForUnselectedCloseButton() -- renamed in 1.79 (can be still used until 1.80)
-Style:setTabMinWidthForCloseButton(value)               -- "setTabMinWidthForUnselectedCloseButton"
-value = Style:getTabMinWidthForCloseButton()            -- "getlTabMinWidthForUnselectedCloseButton"
+Style:setTabMinWidthForUnselectedCloseButton(value)
+value = Style:getlTabMinWidthForUnselectedCloseButton()
 Style:setMouseCursorScale(value)
 value = Style:getlMouseCursorScale()
 Style:setCurveTessellationTol(value)
@@ -618,8 +616,7 @@ result? = ImGui:beginPopup(str_id, [ImGuiWindowFlags = 0])
 p_open, result? = ImGui:beginPopupModal(str_id, p_open, [ImGuiWindowFlags = 0])
 ImGui:endPopup()
 ImGui:openPopup(str_id, [ImGuiPopupFlags = 0])
-ImGui:openPopupContextItem(str_id, [ImGuiPopupFlags = 0]) -- reanmed in 1.79 (can be still used until 1.80)
-ImGui:openPopupOnItemClick(str_id, [ImGuiPopupFlags = 0])
+result? = ImGui:openPopupContextItem(str_id, [ImGuiPopupFlags = 0])
 ImGui:closeCurrentPopup()
 result? = ImGui:beginPopupContextItem(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:beginPopupContextWindow(str_id, [ImGuiPopupFlags = 0])
@@ -646,7 +643,6 @@ ImGui:endTabBar()
 p_open, bool = ImGui:beginTabItem(label, p_open, [ImGuiTabItemFlags = 0])
 ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
-ImGui:tabItemButton(label, [ImGuiTabItemFlags = 0])
 ```
 [To top](#api)
 ## Logging/Capture
@@ -1029,9 +1025,6 @@ ImGui.TabItemFlags_NoTooltip
 ImGui.TabItemFlags_None
 ImGui.TabItemFlags_NoPushId
 ImGui.TabItemFlags_UnsavedDocument
-ImGui.TabItemFlags_Leading
-ImGui.TabItemFlags_Trailing
-ImGui.TabItemFlags_NoReorder
 ```
 [To top](#api)
 ### ComboFlags
@@ -1170,8 +1163,7 @@ ImGui.BackendFlags_RendererHasVtxOffset
 ### SliderFlags
 ```lua
 ImGui.SliderFlags_None        
-ImGui.SliderFlags_ClampOnInput -- renamed in 1.79 to "SliderFlags_AlwaysClamp" (can be still used unyil 1.80)
-ImGui.SliderFlags_AlwaysClamp
+ImGui.SliderFlags_ClampOnInput  
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
