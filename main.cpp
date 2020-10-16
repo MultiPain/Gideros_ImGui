@@ -1158,7 +1158,7 @@ GidImGui* getImgui(lua_State* L)
 int ImGui_impl_setScale(lua_State* L)
 {
     Binder binder(L);
-    GidImGui* imgui = getImgui(L);
+    SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
 
     lua_Number x = luaL_checknumber(L, 2);
     lua_Number y = lua_isnoneornil(L, 3) ? x : luaL_checknumber(L, 3);
@@ -1167,7 +1167,7 @@ int ImGui_impl_setScale(lua_State* L)
         //imgui->proxy->setScaleXY(x, y); // Only scale X and Y
         lua_getglobal(L, "Sprite");     // Sprite
         lua_getfield(L, -1, "setScale");// Sprite.setScale
-        binder.pushInstance(CLASS_NAME, imgui->proxy); // Sprite.setScale, imgui
+        binder.pushInstance(CLASS_NAME, sprite); // Sprite.setScale, imgui
         lua_pushnumber(L, x); // Sprite.setScale, imgui, x
         lua_pushnumber(L, y); // Sprite.setScale, imgui, x, y
         lua_call(L, 3, 0);    // call Sprite.setScale(imgui, x, y)
@@ -1178,7 +1178,7 @@ int ImGui_impl_setScale(lua_State* L)
         //imgui->proxy->setScaleXYZ(x, y, z);
         lua_getglobal(L, "Sprite");
         lua_getfield(L, -1, "setScale");
-        binder.pushInstance(CLASS_NAME, imgui->proxy);
+        binder.pushInstance(CLASS_NAME, sprite);
         lua_pushnumber(L, x);
         lua_pushnumber(L, y);
         lua_pushnumber(L, z);
@@ -1302,6 +1302,8 @@ int ImGui_impl_setAutoscale(lua_State* L)
     if (imgui->autoscale)
         imgui->eventListener->applicationResize(nullptr);
 }
+
+int ImGui_impl_setKeepRatio
 
 /// RESIZE CALLBACK
 
