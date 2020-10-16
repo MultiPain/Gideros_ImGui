@@ -30,6 +30,7 @@ HEADERS += \
     ../../Src/luabinding/binder.h \
     ../../Src/2dsg/mouseevent.h \
     ../../Src/2dsg/keyboardevent.h \
+    ../../Src/2dsg/application.h \
     imgui_user.h \
     imgui_src/imconfig.h \
     imgui_src/imgui.h \

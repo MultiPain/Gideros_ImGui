@@ -229,11 +229,11 @@ int getKeyboardModifiers(lua_State* L)
 
 double getApplicationProperty(lua_State* L, const char* name)
 {
-    lua_getglobal(L, "application");
-    lua_getfield(L, -1, name);
-    lua_getglobal(L, "application");
-    lua_call(L,1,1);
-    double value = luaL_checknumber(L, -1);
+    lua_getglobal(L, "application"); // application
+    lua_getfield(L, -1, name);       // application[name]
+    lua_getglobal(L, "application"); // application[name], application
+    lua_call(L,1,1);                 // application[name](application)
+    double value = luaL_checknumber(L, -1); // value, application.name
     lua_pop(L, 2);
 
     return value;
@@ -299,7 +299,6 @@ int luaL_optboolean(lua_State* L, int narg, int def)
     return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
 }
 
-<<<<<<< HEAD
 ImVec4 getApplicationBounds(lua_State* L)
 {
     lua_getglobal(L, "application");
@@ -347,8 +346,6 @@ void printMatrix(lua_State* L, SpriteProxy* proxy)
     }
 }
 
-=======
->>>>>>> parent of 203e92e... beginWinfow fix
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// ENUMS
@@ -733,17 +730,10 @@ static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float ev
     return ImVec2(v.x, v.y);
 }
 
-<<<<<<< HEAD
 static ImVec2 getMousePos(SpriteProxy* proxy, float x, float y, ImVec2 r_app_scale, ImVec4 app_bounds)
 {
     float nx = 0.0f;
     float ny = 0.0f;
-=======
-// used by EventListener
-static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float event_y)
-{
-    const Matrix4 mat = sprite->matrix().inverse();
->>>>>>> parent of 203e92e... beginWinfow fix
 
     const Sprite* curr = proxy;
 
@@ -806,41 +796,23 @@ public:
 
     void mouseDown(MouseEvent *event)
     {
-<<<<<<< HEAD
         onMouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(L, event->button), true);
-=======
-        int button = convertGiderosMouseButton(L, event->button);
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
-        io.MouseDown[button] = true;
->>>>>>> parent of 203e92e... beginWinfow fix
     }
 
     void mouseUp(MouseEvent *event)
     {
-<<<<<<< HEAD
         onMouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(L, event->button), false);
     }
-=======
-        int button = convertGiderosMouseButton(L, event->button);
->>>>>>> parent of 203e92e... beginWinfow fix
 
     void onMouseUpOrDown(float x, float y, int button, bool state)
     {
         ImGuiIO& io = ImGui::GetIO();
-<<<<<<< HEAD
         io.MousePos = getMousePos(proxy, x, y, r_app_scale, app_bounds);
         io.MouseDown[button] = state;
-=======
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
-        io.MouseDown[button] = false;
->>>>>>> parent of 203e92e... beginWinfow fix
     }
 
     void mouseHover(MouseEvent *event)
     {
-<<<<<<< HEAD
         mouseHover((float)event->x, (float)event->y);
     }
 
@@ -848,15 +820,10 @@ public:
     {
         ImGuiIO& io = ImGui::GetIO();
         io.MousePos = getMousePos(proxy, x, y, r_app_scale, app_bounds);
-=======
-        ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
->>>>>>> parent of 203e92e... beginWinfow fix
     }
 
     void mouseWheel(MouseEvent *event)
     {
-<<<<<<< HEAD
         mouseWheel((float)event->x, (float)event->y, event->wheel);
     }
 
@@ -885,11 +852,6 @@ public:
     void touchesCancel(TouchEvent *event)
     {
         onMouseUpOrDown(event->tx, event->ty, GINPUT_LEFT_BUTTON, false);
-=======
-        ImGuiIO& io = ImGui::GetIO();
-        io.MouseWheel += event->wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = getTranslatedMousePos(proxy, (float)event->x, (float)event->y);
->>>>>>> parent of 203e92e... beginWinfow fix
     }
 
     void keyDown(KeyboardEvent *event)
@@ -1379,7 +1341,7 @@ int ImGui_impl_Begin(lua_State* L)
             break;
         case LUA_TNIL:
             {
-                ImGuiWindowFlags flags = luaL_checkinteger(L, 4);
+                ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
                 lua_pushboolean(L, ImGui::Begin(name, NULL, flags));
                 return 1;
             }
