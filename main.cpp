@@ -108,6 +108,21 @@ static void stackDump(lua_State* L)
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
+
+/*
+static std::map<int, int> mouse_map =
+{
+    {GINPUT_LEFT_BUTTON, ImGuiMouseButton_Left},
+    {GINPUT_RIGHT_BUTTON, ImGuiMouseButton_Right},
+    {GINPUT_MIDDLE_BUTTON, ImGuiMouseButton_Middle},
+};
+
+static std::map<int, int> key_map =
+{
+    {GINPUT_ALT_MODIFIER, ImGuiKeyModFlags_Alt},
+};
+*/
+
 struct MyTextureData
 {
     void* texture;
@@ -206,13 +221,31 @@ float map(float value, float in_min, float in_max, float out_min, float out_max)
     return (value - in_min) / (in_max - in_min) * (out_max - out_min) + out_min;
 }
 
-lua_Number getfield(lua_State* L, const char* key)
+double getfieldf(lua_State* L, const char* key)
 {
     lua_pushstring(L, key);
     lua_gettable(L, -2);
-    lua_Number result = lua_tonumber(L, -1);
+    double result = lua_tonumber(L, -1);
     lua_pop(L, 1);
     return result;
+}
+
+int getfieldi(lua_State* L, const char* key)
+{
+    lua_pushstring(L, key);
+    lua_gettable(L, -2);
+    int result = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    return result;
+}
+
+const char* getfieldc(lua_State* L, const char* key)
+{
+    lua_pushstring(L, key);
+    lua_gettable(L, -2);
+    const char* text = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    return text;
 }
 
 int getKeyboardModifiers(lua_State* L)
@@ -315,35 +348,12 @@ ImVec4 getApplicationBounds(lua_State* L)
     return ImVec4(minX, minY, maxX - minX, maxY - minY);
 }
 
-ImVec2 getApplicationScale(lua_State* L)
+ImVec2 getApplicationReverseScale(lua_State* L)
 {
     double sx = getApplicationProperty(L, "getLogicalScaleX");
     double sy = getApplicationProperty(L, "getLogicalScaleY");
 
-    return ImVec2(sx, sy);
-}
-
-void printMatrix(lua_State* L, SpriteProxy* proxy)
-{
-    int i = 0;
-    Matrix4 mat = proxy->matrix();
-    for (int y = 0; y < 4; y++)
-    {
-        int c = 0;
-        lua_getglobal(L, "print");
-        for (int x = 0; x < 4; x++)
-        {
-            lua_pushnumber(L, mat[i]);
-            c++;
-            i++;
-        }
-        if (y == 3)
-        {
-            lua_pushstring(L, "\n");
-            c++;
-        }
-        lua_call(L, c, 0);
-    }
+    return ImVec2(1.0 / sx, 1.0 / sy);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -730,21 +740,6 @@ static ImVec2 getTranslatedMousePos(SpriteProxy* sprite, float event_x, float ev
     return ImVec2(v.x, v.y);
 }
 
-static ImVec2 getMousePos(SpriteProxy* proxy, float x, float y, ImVec2 r_app_scale, ImVec4 app_bounds)
-{
-    float nx = 0.0f;
-    float ny = 0.0f;
-
-    const Sprite* curr = proxy;
-
-    while (curr) {
-        curr->matrix().transformPoint(x * r_app_scale.x, y * r_app_scale.y, &nx, &ny);
-        curr = curr->parent();
-    }
-
-    return ImVec2((nx + app_bounds.x) * 1.0f / proxy->scaleX(), (ny + app_bounds.y) * 1.0f / proxy->scaleY());
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// GidImGui
@@ -773,12 +768,10 @@ private:
 
 class EventListener : public EventDispatcher
 {
-public:
+private:
     ImVec2 app_scale;
-    ImVec2 r_app_scale;
     ImVec4 app_bounds;
-    ImVec2 reverse_scale;
-    ImVec2 app_logical_size;
+public:
 
     lua_State *L;
     SpriteProxy *proxy;
@@ -807,7 +800,7 @@ public:
     void onMouseUpOrDown(float x, float y, int button, bool state)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getMousePos(proxy, x, y, r_app_scale, app_bounds);
+        io.MousePos = getTranslatedMousePos(proxy, x, y) * app_scale;
         io.MouseDown[button] = state;
     }
 
@@ -819,7 +812,7 @@ public:
     void mouseHover(float x, float y)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getMousePos(proxy, x, y, r_app_scale, app_bounds);
+        io.MousePos = getTranslatedMousePos(proxy, x, y) * app_scale;
     }
 
     void mouseWheel(MouseEvent *event)
@@ -831,7 +824,7 @@ public:
     {
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = getMousePos(proxy, x, y, r_app_scale, app_bounds);
+        io.MousePos = getTranslatedMousePos(proxy, x, y) * app_scale;
     }
 
     void touchesBegin(TouchEvent *event)
@@ -907,31 +900,26 @@ public:
 
     void applicationResize(Event *)
     {
-
-        app_scale = getApplicationScale(L);
-        r_app_scale.x = 1.0f / app_scale.x;
-        r_app_scale.y = 1.0f / app_scale.y;
-
+        app_scale = getApplicationReverseScale(L);
         app_bounds = getApplicationBounds(L);
 
         ImGuiIO& io = ImGui::GetIO();
+        //io.DisplayFramebufferScale = app_scale;
 
         float scaleX = proxy->scaleX();
-        reverse_scale.x = 0.0f;
-        if (scaleX != 0.0f) reverse_scale.x = 1.0f / scaleX;
+        float reverseScaleX = 0.0f;
+        if (scaleX != 0.0f) reverseScaleX = 1.0f / scaleX;
 
         float scaleY = proxy->scaleY();
-        reverse_scale.y = 0.0f;
-        if (scaleY != 0.0f) reverse_scale.y = 1.0f / scaleY;
+        float reverseScaleY = 0.0f;
+        if (scaleY != 0.0f) reverseScaleY = 1.0f / scaleY;
 
-        float lw = getApplicationProperty(L, "getLogicalWidth");
-        float lh = getApplicationProperty(L, "getLogicalHeight");
+        io.DisplaySize.x = app_bounds.z * reverseScaleX;
+        io.DisplaySize.y = app_bounds.w * reverseScaleY;
 
-        app_logical_size.x = lw;
-        app_logical_size.y = lh;
-
-        io.DisplaySize.x = lw * reverse_scale.x;
-        io.DisplaySize.y = lh * reverse_scale.y;
+        //proxy->setXY(app_bounds.x, app_bounds.y);
+        GidImGui* ptr = (GidImGui*)proxy->getContext();
+        ptr->setPos(app_bounds.x, app_bounds.y);
     }
 };
 
@@ -968,7 +956,7 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L)
     proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
     proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
 
-    //proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
+    proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
 }
 
 GidImGui::~GidImGui()
@@ -999,37 +987,9 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
     ImDrawData* draw_data = ImGui::GetDrawData();
     if (!draw_data) return;
 
-
-
-    eventListener->app_scale = getApplicationScale(L);
-    eventListener->r_app_scale.x = 1.0f / eventListener->app_scale.x;
-    eventListener->r_app_scale.y = 1.0f / eventListener->app_scale.y;
-
-    eventListener->app_bounds = getApplicationBounds(L);
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    float scaleX = proxy->scaleX();
-    eventListener->reverse_scale.x = 0.0f;
-    if (scaleX != 0.0f) eventListener->reverse_scale.x = 1.0f / scaleX;
-
-    float scaleY = proxy->scaleY();
-    eventListener->reverse_scale.y = 0.0f;
-    if (scaleY != 0.0f) eventListener->reverse_scale.y = 1.0f / scaleY;
-
-    float lw = getApplicationProperty(L, "getLogicalWidth");
-    float lh = getApplicationProperty(L, "getLogicalHeight");
-
-    eventListener->app_logical_size.x = lw;
-    eventListener->app_logical_size.y = lh;
-
-    io.DisplaySize.x = lw * eventListener->reverse_scale.x;
-    io.DisplaySize.y = lh * eventListener->reverse_scale.y;
-
-
     ShaderEngine* engine=gtexture_get_engine();
     ShaderProgram* shp=engine->getDefault(ShaderEngine::STDP_TEXTURECOLOR);
-    ImVec2 pos = draw_data->DisplayPos;
+    ImVec2 pos = draw_data->DisplayPos - pos_;
 
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
@@ -1042,8 +1002,8 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
        colors.resize(vtx_size);
        for (size_t i=0;i<vtx_size;i++)
        {
-           vertices[i].x = vtx_buffer[i].pos.x;
-           vertices[i].y = vtx_buffer[i].pos.y;
+           vertices[i].x = vtx_buffer[i].pos.x + pos_.x;
+           vertices[i].y = vtx_buffer[i].pos.y + pos_.y;
            texcoords[i].x = vtx_buffer[i].uv.x;
            texcoords[i].y = vtx_buffer[i].uv.y;
 
@@ -1088,6 +1048,12 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 
     }
 
+}
+
+void GidImGui::setPos(float x, float y)
+{
+    pos_.x = x;
+    pos_.y = y;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1187,8 +1153,8 @@ int ImGui_impl_MouseHover(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
+    float event_x = getfieldf(L, "x");
+    float event_y = getfieldf(L, "y");
 
     imgui->eventListener->mouseHover(event_x, event_y);
 
@@ -1199,9 +1165,9 @@ int ImGui_impl_MouseMove(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(L, getfield(L, "button"));
+    float event_x = getfieldf(L, "x");
+    float event_y = getfieldf(L, "y");
+    int button = convertGiderosMouseButton(L, getfieldi(L, "button"));
 
     imgui->eventListener->onMouseUpOrDown(event_x, event_y, button, true);
 
@@ -1212,9 +1178,9 @@ int ImGui_impl_MouseDown(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(L, getfield(L, "button"));
+    float event_x = getfieldf(L, "x");
+    float event_y = getfieldf(L, "y");
+    int button = convertGiderosMouseButton(L, getfieldi(L, "button"));
 
     imgui->eventListener->onMouseUpOrDown(event_x, event_y, button, true);
 
@@ -1225,9 +1191,9 @@ int ImGui_impl_MouseUp(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(L, getfield(L, "button"));
+    float event_x = getfieldf(L, "x");
+    float event_y = getfieldf(L, "y");
+    int button = convertGiderosMouseButton(L, getfieldi(L, "button"));
 
     imgui->eventListener->onMouseUpOrDown(event_x, event_y, button, false);
 
@@ -1238,9 +1204,9 @@ int ImGui_impl_MouseWheel(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    float event_x = getfield(L, "x");
-    float event_y = getfield(L, "y");
-    int wheel = getfield(L, "wheel");
+    float event_x = getfieldf(L, "x");
+    float event_y = getfieldf(L, "y");
+    int wheel = getfieldi(L, "wheel");
 
     imgui->eventListener->mouseWheel(event_x, event_y, wheel);
 
@@ -1254,7 +1220,7 @@ int ImGui_impl_KeyUp(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    int keyCode = getfield(L, "keyCode");
+    int keyCode = getfieldi(L, "keyCode");
 
     imgui->eventListener->keyUp(keyCode);
 
@@ -1265,7 +1231,7 @@ int ImGui_impl_KeyDown(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    int keyCode = getfield(L, "keyCode");
+    int keyCode = getfieldi(L, "keyCode");
 
     imgui->eventListener->keyDown(keyCode);
 
@@ -1276,10 +1242,7 @@ int ImGui_impl_KeyChar(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
 
-    lua_pushstring(L, "text");
-    lua_gettable(L, -2);
-    const char* text = lua_tostring(L, -1);
-    lua_pop(L, 1);
+    const char* text = getfieldc(L, "text");
 
     imgui->eventListener->keyChar2(text);
 
@@ -1300,7 +1263,7 @@ int ImGui_impl_applicationResize(lua_State* L)
 
 int ImGui_impl_NewFrame(lua_State* L)
 {
-    double deltaTime = getfield(L, "deltaTime");
+    double deltaTime = getfieldf(L, "deltaTime");
 
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = deltaTime;
