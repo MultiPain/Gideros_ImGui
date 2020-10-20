@@ -1,7 +1,7 @@
 // regex: (\s\*)+\b
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui_beta"
+#define PLUGIN_NAME "ImGui_beta_docking"
 #define CLASS_NAME "ImGui"
 #define IO_CLASS_NAME "ImGuiIO"
 #define FONT_ATLAS_CLASS_NAME "ImFontAtlas"
@@ -7830,4 +7830,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta_docking)

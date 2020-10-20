@@ -1,6 +1,6 @@
 QT -= core ui
 
-TARGET = imgui_beta
+TARGET = imgui_beta_docking
 TEMPLATE = lib
 
 #DESTDIR = ../../plugins/
