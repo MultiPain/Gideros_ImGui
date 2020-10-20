@@ -108,6 +108,19 @@ static void stackDump(lua_State* L)
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
+static std::map<int, const char *> giderosCursorsMap = {
+    {ImGuiMouseCursor_Hand, "openHand"},
+    {ImGuiMouseCursor_None, "blank"},
+    {ImGuiMouseCursor_Arrow, "arrow"},
+    {ImGuiMouseCursor_ResizeEW, "sizeHor"},
+    {ImGuiMouseCursor_ResizeNS, "sizeVer"},
+    {ImGuiMouseCursor_ResizeAll, "sizeAll"},
+    {ImGuiMouseCursor_TextInput, "IBeam"},
+    {ImGuiMouseCursor_NotAllowed, "forbidden"},
+    {ImGuiMouseCursor_ResizeNESW, "sizeBDiag"},
+    {ImGuiMouseCursor_ResizeNWSE, "sizeFDiag"},
+};
+
 struct MyTextureData
 {
     void* texture;
@@ -206,7 +219,7 @@ float map(float value, float in_min, float in_max, float out_min, float out_max)
     return (value - in_min) / (in_max - in_min) * (out_max - out_min) + out_min;
 }
 
-lua_Number getfield(lua_State* L, const char* key)
+lua_Number getfield(lua_State *L, const char* key)
 {
     lua_pushstring(L, key);
     lua_gettable(L, -2);
@@ -215,7 +228,7 @@ lua_Number getfield(lua_State* L, const char* key)
     return result;
 }
 
-int getKeyboardModifiers(lua_State* L)
+int getKeyboardModifiers(lua_State *L)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, "getKeyboardModifiers");
@@ -227,7 +240,7 @@ int getKeyboardModifiers(lua_State* L)
     return mod;
 }
 
-double getApplicationProperty(lua_State* L, const char* name)
+double getApplicationProperty(lua_State *L, const char* name)
 {
     lua_getglobal(L, "application"); // application
     lua_getfield(L, -1, name);       // application[name]
@@ -239,7 +252,7 @@ double getApplicationProperty(lua_State* L, const char* name)
     return value;
 }
 
-void setApplicationCursor(lua_State* L, const char* name)
+void setApplicationCursor(lua_State *L, const char* name)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, "set");
@@ -250,7 +263,7 @@ void setApplicationCursor(lua_State* L, const char* name)
     lua_pop(L, 2);
 }
 
-MyTextureData getTexture(lua_State* L, int idx = 1)
+MyTextureData getTexture(lua_State *L, int idx = 1)
 {
     Binder binder(L);
 
@@ -278,12 +291,12 @@ MyTextureData getTexture(lua_State* L, int idx = 1)
     }
     else
     {
-        lua_pushstring(L, "Type mismatch. 'TextureBase' or 'TextureRegion' expected.");
+        lua_pushfstring(L, "bad argument #1 ('TextureBase' or 'TextureRegion' expected, got %s)", lua_typename(L, 2));
         lua_error(L);
     }
 }
 
-int convertGiderosMouseButton(lua_State* L, int button)
+int convertGiderosMouseButton(lua_State *L, int button)
 {
     if (button <= 0)
     {
@@ -294,12 +307,12 @@ int convertGiderosMouseButton(lua_State* L, int button)
     return log2(button);
 }
 
-int luaL_optboolean(lua_State* L, int narg, int def)
+int luaL_optboolean(lua_State *L, int narg, int def)
 {
     return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
 }
 
-ImVec4 getApplicationBounds(lua_State* L)
+ImVec2 getApplicationBounds(lua_State *L)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, "getLogicalBounds");
@@ -308,14 +321,14 @@ ImVec4 getApplicationBounds(lua_State* L)
     // minX, minY, maxX, maxY
     double minX = luaL_checknumber(L, -4);
     double minY = luaL_checknumber(L, -3);
-    double maxX = luaL_checknumber(L, -2);
-    double maxY = luaL_checknumber(L, -1);
+    //double maxX = luaL_checknumber(L, -2);
+    //double maxY = luaL_checknumber(L, -1);
     lua_pop(L, 5);
 
-    return ImVec4(minX, minY, maxX - minX, maxY - minY);
+    return ImVec2(minX, minY); //, maxX - minX, maxY - minY);
 }
 
-ImVec2 getApplicationScale(lua_State* L)
+ImVec2 getApplicationScale(lua_State *L)
 {
     double sx = getApplicationProperty(L, "getLogicalScaleX");
     double sy = getApplicationProperty(L, "getLogicalScaleY");
@@ -323,7 +336,7 @@ ImVec2 getApplicationScale(lua_State* L)
     return ImVec2(sx, sy);
 }
 
-void printMatrix(lua_State* L, SpriteProxy* proxy)
+void printMatrix(lua_State *L, SpriteProxy *proxy)
 {
     int i = 0;
     Matrix4 mat = proxy->matrix();
@@ -344,6 +357,23 @@ void printMatrix(lua_State* L, SpriteProxy* proxy)
         }
         lua_call(L, c, 0);
     }
+}
+
+static void localToGlobal(SpriteProxy *proxy, float x, float y, float *tx, float *ty)
+{
+    const Sprite* curr = proxy;
+
+    float z;
+    while (curr) {
+        curr->matrix().transformPoint(x, y, 0, &x, &y, &z);
+        curr = curr->parent();
+    }
+
+    if (tx)
+        *tx = x;
+
+    if (ty)
+        *ty = y;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -701,6 +731,9 @@ void BindEnums(lua_State* L)
     lua_pushinteger(L, ImGuiDockNodeFlags_NoResize);                    lua_setfield(L, -2, "DockNodeFlags_NoResize");
     lua_pushinteger(L, ImGuiDockNodeFlags_AutoHideTabBar);              lua_setfield(L, -2, "DockNodeFlags_AutoHideTabBar");
 
+    lua_pushinteger(L, ImGuiDockNodeFlags_NoWindowMenuButton);          lua_setfield(L, -2, "DockNodeFlags_NoWindowMenuButton");
+    lua_pushinteger(L, ImGuiDockNodeFlags_NoCloseButton);               lua_setfield(L, -2, "DockNodeFlags_NoCloseButton");
+
     lua_pushinteger(L, ImGuiCol_DockingPreview);                        lua_setfield(L, -2, "Col_DockingPreview");
     lua_pushinteger(L, ImGuiCol_DockingEmptyBg);                        lua_setfield(L, -2, "Col_DockingEmptyBg");
 #endif
@@ -722,12 +755,31 @@ void BindEnums(lua_State* L)
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-static ImVec2 getMousePos(SpriteProxy* proxy, float x, float y, ImVec2 r_app_scale, ImVec4 app_bounds)
+static ImVec2 getMousePos(SpriteProxy* proxy, float x, float y, ImVec2 r_app_scale, ImVec2 app_bounds)
 {
-    return ImVec2(
-        (x * r_app_scale.x + app_bounds.x - proxy->x()) * 1.0f / proxy->scaleX(),
-        (y * r_app_scale.y + app_bounds.y - proxy->y()) * 1.0f / proxy->scaleY()
-    );
+    std::stack<const Sprite*> stack;
+
+    //x = x * r_app_scale.x + app_bounds.x;
+    //y = y * r_app_scale.y + app_bounds.y;
+
+    x = x * r_app_scale.x + app_bounds.x;
+    y = y * r_app_scale.y + app_bounds.y;
+
+    const Sprite* curr = proxy;
+    while (curr)
+    {
+        stack.push(curr);
+        curr = curr->parent();
+    }
+
+    float z;
+    while (!stack.empty())
+    {
+        stack.top()->matrix().inverseTransformPoint(x, y, 0, &x, &y, &z);
+        stack.pop();
+    }
+
+    return ImVec2(x, y);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -759,7 +811,7 @@ class EventListener : public EventDispatcher
 public:
     ImVec2 app_scale;
     ImVec2 r_app_scale;
-    ImVec4 app_bounds;
+    ImVec2 app_bounds;
 
     lua_State *L;
     SpriteProxy *proxy;
@@ -929,7 +981,7 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L)
     proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
     proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
 
-    proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
+    //proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
 }
 
 GidImGui::~GidImGui()
@@ -1010,6 +1062,7 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
               );
               shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
               engine->popClip();
+
          }
          idx_buffer += pcmd->ElemCount;
        }
@@ -1241,6 +1294,8 @@ int ImGui_impl_EndFrame(lua_State* _UNUSED(L))
     return 0;
 }
 
+
+
 // Windows
 int ImGui_impl_Begin(lua_State* L)
 {
@@ -1365,6 +1420,29 @@ int ImGui_impl_GetWindowHeight(lua_State* L)
 {
     lua_pushnumber(L, ImGui::GetWindowHeight());
     return  1;
+}
+
+// @MultiPain
+int ImGui_impl_GetWindowBounds(lua_State *L)
+{
+    ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+    ImVec2 vMax = ImGui::GetWindowContentRegionMax();
+    ImVec2 pos = ImGui::GetWindowPos();
+    vMin += pos;
+    vMax += pos;
+
+    GidImGui *imgui = getImgui(L);
+    float x1, y1, x2, y2;
+
+    localToGlobal(imgui->proxy, vMin.x, vMin.y, &x1, &y1);
+    localToGlobal(imgui->proxy, vMax.x, vMax.y, &x2, &y2);
+
+    lua_pushnumber(L, x1);
+    lua_pushnumber(L, y1);
+    lua_pushnumber(L, x2);
+    lua_pushnumber(L, y2);
+
+    return 4;
 }
 
 int ImGui_impl_SetNextWindowPos(lua_State* L)
@@ -4549,6 +4627,15 @@ int ImGui_impl_SetMouseCursor(lua_State* L)
     return 0;
 }
 
+// @MultiPain
+int ImGui_impl_UpdateGiderosMouseCursor(lua_State* L)
+{
+    ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+    const char *cursorName = giderosCursorsMap[cursor];
+    setApplicationCursor(L, cursorName);
+    return 0;
+}
+
 int ImGui_impl_CaptureMouseFromApp(lua_State* L)
 {
     bool want_capture_mouse_value = luaL_optboolean(L, 2, 1) > 0;
@@ -7495,6 +7582,7 @@ int loader(lua_State* L)
         {"getWindowSize", ImGui_impl_GetWindowSize},
         {"getWindowWidth", ImGui_impl_GetWindowWidth},
         {"getWindowHeight", ImGui_impl_GetWindowHeight},
+        {"getWindowBounds", ImGui_impl_GetWindowBounds},
 
         {"setNextWindowPos", ImGui_impl_SetNextWindowPos},
         {"setNextWindowSize", ImGui_impl_SetNextWindowSize},
@@ -7780,6 +7868,7 @@ int loader(lua_State* L)
         {"resetMouseDragDelta", ImGui_impl_ResetMouseDragDelta},
         {"getMouseCursor", ImGui_impl_GetMouseCursor},
         {"setMouseCursor", ImGui_impl_SetMouseCursor},
+        {"updateMouseCursor", ImGui_impl_UpdateGiderosMouseCursor},
         {"captureMouseFromApp", ImGui_impl_CaptureMouseFromApp},
 
         // Windows
