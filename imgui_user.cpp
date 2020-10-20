@@ -4,8 +4,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui_src_docking/imgui.h"
-#include "imgui_src_docking/imgui_internal.h"
+#include "imgui_src/imgui.h"
+#include "imgui_src/imgui_internal.h"
 
 static const ImGuiDataTypeInfo GDataTypeInfo[] =
 {
@@ -99,7 +99,7 @@ namespace ImGui
         if (temp_input_is_active)
         {
             // Only clamp CTRL+Click input when ImGuiSliderFlags_ClampInput is set
-            const bool is_clamp_input = (flags & ImGuiSliderFlags_ClampOnInput) != 0;
+            const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
             return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
         }
 
@@ -378,7 +378,6 @@ namespace ImGui
             window->DrawList->AddImage(user_texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
         }
     }
-
 }
 
 #endif
