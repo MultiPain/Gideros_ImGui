@@ -1962,11 +1962,13 @@ int ImGui_impl_GetID(lua_State* L)
 
     if (lua_gettop(L) == 2)
     {
-        lua_pushnumber(L, ImGui::GetID(lua_topointer(L, 2)));
+        lua_Number id = (lua_Number)ImGui::GetID(lua_topointer(L, 2));
+        lua_pushnumber(L, id);
     }
     else
     {
-        lua_pushnumber(L, ImGui::GetID(luaL_checkstring(L, 2), luaL_checkstring(L, 3)));
+        lua_Number id = (lua_Number)ImGui::GetID(luaL_checkstring(L, 2), luaL_checkstring(L, 3));
+        lua_pushnumber(L, id);
     }
     return 1;
 }
@@ -3917,16 +3919,16 @@ void createDockNodeTable(lua_State* L, ImGuiDockNode* node)
 int ImGui_impl_DockBuilderDockWindow(lua_State* L)
 {
     const char* window_name = luaL_checkstring(L, 2);
-    ImGuiID node_id = luaL_checkinteger(L, 3);
-    ImGui::DockBuilderDockWindow(window_name, node_id);
+    lua_Number node_id = luaL_checknumber(L, 3);
+    ImGui::DockBuilderDockWindow(window_name, (ImGuiID)node_id);
     return 0;
 }
 
 int ImGui_impl_DockBuilderCheckNode(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
-    ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
-    lua_pushboolean(L, node == nullptr);
+    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode((ImGuiID)node_id);
+    lua_pushboolean(L, node != nullptr);
     return 1;
 }
 
@@ -3942,60 +3944,60 @@ int ImGui_impl_DockBuilderGetNode(lua_State* L)
 
 int ImGui_impl_DockBuilderSetNodePos(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
+    lua_Number node_id = luaL_checknumber(L, 2);
     ImVec2 pos = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImGui::DockBuilderSetNodePos(node_id, pos);
+    ImGui::DockBuilderSetNodePos((ImGuiID)node_id, pos);
     return 0;
 }
 
 int ImGui_impl_DockBuilderSetNodeSize(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
+    lua_Number node_id = luaL_checknumber(L, 2);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImGui::DockBuilderSetNodeSize(node_id, size);
+    ImGui::DockBuilderSetNodeSize((ImGuiID)node_id, size);
     return 0;
 }
 
 int ImGui_impl_DockBuilderAddNode(lua_State* L)
 {
-    ImGuiID node_id = luaL_optinteger(L, 2, 0);
+    lua_Number node_id = luaL_checknumber(L, 2);
     ImGuiDockNodeFlags flags = luaL_optinteger(L, 3, 0);
-    lua_pushinteger(L, ImGui::DockBuilderAddNode(node_id, flags));
+    lua_pushnumber(L, ImGui::DockBuilderAddNode((ImGuiID)node_id, flags));
     return 1;
 }
 
 int ImGui_impl_DockBuilderRemoveNode(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
-    ImGui::DockBuilderRemoveNode(node_id);
+    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGui::DockBuilderRemoveNode((ImGuiID)node_id);
     return 0;
 }
 
 int ImGui_impl_DockBuilderRemoveNodeChildNodes(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
-    ImGui::DockBuilderRemoveNodeChildNodes(node_id);
+    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGui::DockBuilderRemoveNodeChildNodes((ImGuiID)node_id);
     return 0;
 }
 
 int ImGui_impl_DockBuilderRemoveNodeDockedWindows(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
+    lua_Number node_id = luaL_checknumber(L, 2);
     bool clear_settings_refs = lua_toboolean(L, 3);
-    ImGui::DockBuilderRemoveNodeDockedWindows(node_id, clear_settings_refs);
+    ImGui::DockBuilderRemoveNodeDockedWindows((ImGuiID)node_id, clear_settings_refs);
     return 0;
 }
 
 int ImGui_impl_DockBuilderSplitNode(lua_State* L)
 {
-    ImGuiID id = luaL_checkinteger(L, 2);
+    lua_Number id = luaL_checknumber(L, 2);
     ImGuiDir split_dir = luaL_checkinteger(L, 3);
     float size_ratio_for_node_at_dir = luaL_checknumber(L, 4);
     ImGuiID* out_id_at_dir;
     ImGuiID* out_id_at_opposite_dir;
 
     if (lua_isnil(L, 5))
-        out_id_at_dir = nullptr;
+        out_id_at_dir = NULL;
     else
     {
         ImGuiID id = luaL_checkinteger(L, 5);
@@ -4003,24 +4005,23 @@ int ImGui_impl_DockBuilderSplitNode(lua_State* L)
     }
 
     if (lua_isnil(L, 6))
-        out_id_at_opposite_dir = nullptr;
+        out_id_at_opposite_dir = NULL;
     else
     {
         ImGuiID id = luaL_checkinteger(L, 6);
         out_id_at_opposite_dir = &id;
     }
 
-    lua_pushinteger(L, ImGui::DockBuilderSplitNode(id, split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir));
+    lua_pushinteger(L, ImGui::DockBuilderSplitNode((ImGuiID)id, split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir));
     if (out_id_at_dir == nullptr)
         lua_pushnil(L);
     else
-        lua_pushinteger(L, *out_id_at_dir);
+        lua_pushnumber(L, (lua_Number)(*out_id_at_dir));
 
     if (out_id_at_opposite_dir == nullptr)
         lua_pushnil(L);
     else
-        lua_pushinteger(L, *out_id_at_opposite_dir);
-
+        lua_pushnumber(L, (lua_Number)(*out_id_at_opposite_dir));
     return 3;
 }
 
@@ -4072,8 +4073,15 @@ int ImGui_impl_LogToTTY(lua_State* L)
 int ImGui_impl_LogToFile(lua_State* L)
 {
     int auto_open_depth = luaL_optinteger(L, 2, -1);
-    const char* filename = luaL_optstring(L, 3, NULL);
-    ImGui::LogToFile(auto_open_depth, filename);
+
+    if (lua_gettop(L) < 2 || lua_isnil(L, 3))
+        ImGui::LogToFile(auto_open_depth, NULL);
+    else
+    {
+        const char* filename = luaL_checkstring(L, 3);
+        ImGui::LogToFile(auto_open_depth, filename);
+    }
+
     return 0;
 }
 
@@ -5704,7 +5712,10 @@ int ImGui_impl_IO_GetIniFilename(lua_State* L)
 int ImGui_impl_IO_SetIniFilename(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-    io.IniFilename = luaL_optstring(L, 2, "imgui.ini");
+    if (lua_gettop(L) == 2 && lua_isnil(L, 2))
+        io.IniFilename = NULL;
+    else
+        io.IniFilename = luaL_checkstring(L, 2);
     return 0;
 }
 
