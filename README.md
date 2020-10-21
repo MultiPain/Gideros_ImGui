@@ -768,14 +768,6 @@ ImGui:resetMouseDragDelta(mouse_button)
 ImGuiMouseCursor = ImGui:getMouseCursor()
 ImGui:setMouseCursor(ImGuiMouseCursor)
 ImGui:CaptureMouseFromApp([want_capture_mouse_value = true])
-
-flag = ImGui:wantCaptureMouse()
-flag = ImGui:wantCaptureKeyboard()
-flag = ImGui:wantTextInput()
-flag = ImGui:wantSetMousePos()
-flag = ImGui:wantSaveIniSettings()
-flag = ImGui:isNavActive()
-flag = ImGui:isNavVisible()
 ```
 [To top](#api)
 ## Render
