@@ -1712,11 +1712,6 @@ namespace ImGui_impl
         int hex = luaL_checkinteger(L, 3);
         float alpha = luaL_optnumber(L, 4, 1.0f);
 
-        lua_getglobal(L, "print");
-        lua_pushnumber(L, idx);
-        lua_pushnumber(L, ImGuiCol_WindowBg);
-        lua_call(L, 2, 0);
-
         ImGui::PushStyleColor(idx, GColor::toU32(hex, alpha));
 
         return 0;
@@ -3635,7 +3630,7 @@ namespace ImGui_impl
     int BeginMenu(lua_State* L)
     {
         const char* label = luaL_checkstring(L, 2);
-        bool enabled = lua_toboolean(L, 3) > 0;
+        bool enabled = luaL_optboolean(L, 3, 1);
         lua_pushboolean(L, ImGui::BeginMenu(label, enabled));
         return 1;
     }
@@ -7158,100 +7153,288 @@ namespace ImGui_impl
         }
     }
 
-    int ShowLuaStyleEditor(lua_State* _UNUSED(L))
+    static void DrawLuaStyleEditor(const char* title, bool* p_open = NULL, ImGuiWindowFlags flags = ImGuiWindowFlags_None)
     {
+        if (!ImGui::Begin(title, p_open, flags))
+        {
+            ImGui::End();
+            return;
+        }
+        ImGuiStyle& style = ImGui::GetStyle();
+        static ImGuiStyle ref_saved_style;
+        static ImGuiStyle* ref;
 
-        ImGui::Begin("Style editor [CUSTOM]", NULL);
+        // Default to using internal storage as reference
+        static bool init = true;
+        if (init && ref == NULL)
+            ref_saved_style = style;
+        init = false;
+        if (ref == NULL)
+            ref = &ref_saved_style;
 
-            ImGuiStyle& style = ImGui::GetStyle();
-            static ImGuiStyle ref_saved_style;
-            static ImGuiStyle* ref;
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
-            // Default to using internal storage as reference
-            static bool init = true;
-            if (init && ref == NULL)
-                ref_saved_style = style;
-            init = false;
-            if (ref == NULL)
-                ref = &ref_saved_style;
+        if (ImGui::ShowStyleSelector("Colors##Selector"))
+            ref_saved_style = style;
 
-            ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+        static int output_dest = 0;
 
-            if (ImGui::ShowStyleSelector("Colors##Selector"))
-                ref_saved_style = style;
+        // Save/Revert button
+        if (ImGui::Button("Save Ref"))
+            * ref = ref_saved_style = style;
+        ImGui::SameLine();
+        if (ImGui::Button("Revert Ref"))
+            style =* ref;
 
-            static int output_dest = 0;
+        static bool output_only_modified = true;
 
-            // Save/Revert button
-            if (ImGui::Button("Save Ref"))
-               * ref = ref_saved_style = style;
-            ImGui::SameLine();
-            if (ImGui::Button("Revert Ref"))
-                style =* ref;
-
-            static bool output_only_modified = true;
-
-            if (ImGui::Button("Export"))
-            {
-                if (output_dest == 0)
-                    ImGui::LogToClipboard();
-                else
-                    ImGui::LogToTTY();
-                ImGui::LogText("%s", "local style = imgui:getStyle()\r\n");
-                for (int i = 0; i < ImGuiCol_COUNT; i++)
-                {
-                    const ImVec4& col = style.Colors[i];
-                    const char* name = ImGui::GetStyleColorName(i);
-                    GColor gcolor = GColor::toHex(col);
-                    if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
-                        ImGui::LogText("style:setColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
-                }
-                ImGui::LogFinish();
-            }
-
-
-            ImGui::SameLine(); ImGui::SetNextItemWidth(120); ImGui::Combo("##output_type", &output_dest, "To Clipboard\0To TTY\0");
-            ImGui::SameLine(); ImGui::Checkbox("Only Modified Colors", &output_only_modified);
-
-            static ImGuiTextFilter filter;
-            filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
-
-            static ImGuiColorEditFlags alpha_flags = 0;
-            if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_None))             { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
-            if (ImGui::RadioButton("Alpha",  alpha_flags == ImGuiColorEditFlags_AlphaPreview))     { alpha_flags = ImGuiColorEditFlags_AlphaPreview; } ImGui::SameLine();
-            if (ImGui::RadioButton("Both",   alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
-
-            HelpMarker(
-                        "In the color list:\n"
-                        "Left-click on colored square to open color picker,\n"
-                        "Right-click to open edit options menu.");
-
-            ImGui::BeginChild("##colors", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NavFlattened);
-            ImGui::PushItemWidth(-160);
+        if (ImGui::Button("Export"))
+        {
+            if (output_dest == 0)
+                ImGui::LogToClipboard();
+            else
+                ImGui::LogToTTY();
+            ImGui::LogText("%s", "local style = imgui:getStyle()\r\n");
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
+                const ImVec4& col = style.Colors[i];
                 const char* name = ImGui::GetStyleColorName(i);
-                if (!filter.PassFilter(name))
-                    continue;
-                ImGui::PushID(i);
-                ImGui::ColorEdit4("##color", (float*)&style.Colors[i], ImGuiColorEditFlags_AlphaBar | alpha_flags);
-                if (memcmp(&style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0)
-                {
-                    // Tips: in a real user application, you may want to merge and use an icon font into the main font,
-                    // so instead of "Save"/"Revert" you'd use icons!
-                    // Read the FAQ and docs/FONTS.md about using icon fonts. It's really easy and super convenient!
-                    ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Save")) { ref->Colors[i] = style.Colors[i]; }
-                    ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Revert")) { style.Colors[i] = ref->Colors[i]; }
-                }
-                ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
-                ImGui::TextUnformatted(name);
-                ImGui::PopID();
+                GColor gcolor = GColor::toHex(col);
+                if (!output_only_modified || memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
+                    ImGui::LogText("style:setColor(ImGui.Col_%s, 0x%06X, %.2f)\r\n", name, gcolor.hex, gcolor.alpha);
             }
-            ImGui::PopItemWidth();
-            ImGui::EndChild();
-        ImGui::End();
+            ImGui::LogFinish();
+        }
+
+
+        ImGui::SameLine(); ImGui::SetNextItemWidth(120); ImGui::Combo("##output_type", &output_dest, "To Clipboard\0To TTY\0");
+        ImGui::SameLine(); ImGui::Checkbox("Only Modified Colors", &output_only_modified);
+
+        static ImGuiTextFilter filter;
+        filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
+
+        static ImGuiColorEditFlags alpha_flags = 0;
+        if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_None))             { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
+        if (ImGui::RadioButton("Alpha",  alpha_flags == ImGuiColorEditFlags_AlphaPreview))     { alpha_flags = ImGuiColorEditFlags_AlphaPreview; } ImGui::SameLine();
+        if (ImGui::RadioButton("Both",   alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
+
+        HelpMarker(
+                    "In the color list:\n"
+                    "Left-click on colored square to open color picker,\n"
+                    "Right-click to open edit options menu.");
+
+        ImGui::BeginChild("##colors", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NavFlattened);
+        ImGui::PushItemWidth(-160);
+        for (int i = 0; i < ImGuiCol_COUNT; i++)
+        {
+            const char* name = ImGui::GetStyleColorName(i);
+            if (!filter.PassFilter(name))
+                continue;
+            ImGui::PushID(i);
+            ImGui::ColorEdit4("##color", (float*)&style.Colors[i], ImGuiColorEditFlags_AlphaBar | alpha_flags);
+            if (memcmp(&style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0)
+            {
+                // Tips: in a real user application, you may want to merge and use an icon font into the main font,
+                // so instead of "Save"/"Revert" you'd use icons!
+                // Read the FAQ and docs/FONTS.md about using icon fonts. It's really easy and super convenient!
+                ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Save")) { ref->Colors[i] = style.Colors[i]; }
+                ImGui::SameLine(0.0f, style.ItemInnerSpacing.x); if (ImGui::Button("Revert")) { style.Colors[i] = ref->Colors[i]; }
+            }
+            ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+            ImGui::TextUnformatted(name);
+            ImGui::PopID();
+        }
+        ImGui::PopItemWidth();
+        ImGui::EndChild();
+    }
+
+    int ShowLuaStyleEditor(lua_State* L)
+    {
+        const char *title = luaL_checkstring(L, 2);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+        if (lua_gettop(L) > 3)
+        {
+            window_flags = luaL_checkinteger(L, 4);
+        }
+
+        switch (lua_type(L, 3))
+        {
+            case LUA_TBOOLEAN:
+            {
+                bool p_open = lua_toboolean(L, 2);
+                DrawLuaStyleEditor(title, &p_open, window_flags);
+                lua_pushboolean(L, p_open);
+                return 1;
+            };
+            default:
+            {
+                DrawLuaStyleEditor(title, NULL, window_flags);
+                return 0;
+            }
+        }
 
         return 0;
+    }
+
+    struct ExampleAppLog
+    {
+        ImGuiTextBuffer     Buf;
+        ImGuiTextFilter     Filter;
+        ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+        bool                AutoScroll;  // Keep scrolling if already at the bottom.
+
+        ExampleAppLog()
+        {
+            AutoScroll = true;
+            Clear();
+        }
+
+        void    Clear()
+        {
+            Buf.clear();
+            LineOffsets.clear();
+            LineOffsets.push_back(0);
+        }
+
+        void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
+        {
+            int old_size = Buf.size();
+            va_list args;
+            va_start(args, fmt);
+            Buf.appendfv(fmt, args);
+            va_end(args);
+            for (int new_size = Buf.size(); old_size < new_size; old_size++)
+                if (Buf[old_size] == '\n')
+                    LineOffsets.push_back(old_size + 1);
+        }
+
+        void    Draw(const char* title, bool* p_open = NULL, ImGuiWindowFlags flags = ImGuiWindowFlags_None)
+        {
+            if (!ImGui::Begin(title, p_open, flags))
+            {
+                ImGui::End();
+                return;
+            }
+
+            // Options menu
+            if (ImGui::BeginPopup("Options"))
+            {
+                ImGui::Checkbox("Auto-scroll", &AutoScroll);
+                ImGui::EndPopup();
+            }
+
+            // Main window
+            if (ImGui::Button("Options"))
+                ImGui::OpenPopup("Options");
+            ImGui::SameLine();
+            bool clear = ImGui::Button("Clear");
+            ImGui::SameLine();
+            bool copy = ImGui::Button("Copy");
+            ImGui::SameLine();
+            Filter.Draw("Filter", -100.0f);
+            ImGui::SameLine();
+            if (ImGui::Button("X"))
+                Filter.Clear();
+
+            ImGui::Separator();
+            ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+            if (clear)
+                Clear();
+            if (copy)
+                ImGui::LogToClipboard();
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+            const char* buf = Buf.begin();
+            const char* buf_end = Buf.end();
+            if (Filter.IsActive())
+            {
+                // In this example we don't use the clipper when Filter is enabled.
+                // This is because we don't have a random access on the result on our filter.
+                // A real application processing logs with ten of thousands of entries may want to store the result of
+                // search/filter.. especially if the filtering function is not trivial (e.g. reg-exp).
+                for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
+                {
+                    const char* line_start = buf + LineOffsets[line_no];
+                    const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+                    if (Filter.PassFilter(line_start, line_end))
+                        ImGui::TextUnformatted(line_start, line_end);
+                }
+            }
+            else
+            {
+                // The simplest and easy way to display the entire buffer:
+                //   ImGui::TextUnformatted(buf_begin, buf_end);
+                // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
+                // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
+                // within the visible area.
+                // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
+                // on your side is recommended. Using ImGuiListClipper requires
+                // - A) random access into your data
+                // - B) items all being the  same height,
+                // both of which we can handle since we an array pointing to the beginning of each line of text.
+                // When using the filter (in the block of code above) we don't have random access into the data to display
+                // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
+                // it possible (and would be recommended if you want to search through tens of thousands of entries).
+                ImGuiListClipper clipper;
+                clipper.Begin(LineOffsets.Size);
+                while (clipper.Step())
+                {
+                    for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                    {
+                        const char* line_start = buf + LineOffsets[line_no];
+                        const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+                        ImGui::TextUnformatted(line_start, line_end);
+                    }
+                }
+                clipper.End();
+            }
+            ImGui::PopStyleVar();
+
+            if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+                ImGui::SetScrollHereY(1.0f);
+
+            ImGui::EndChild();
+            ImGui::End();
+        }
+    };
+
+    static ExampleAppLog logapp;
+
+    int ShowLog(lua_State* L)
+    {
+        const char *title = luaL_checkstring(L, 2);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+        if (lua_gettop(L) > 3)
+        {
+            window_flags = luaL_checkinteger(L, 4);
+        }
+
+        switch (lua_type(L, 3))
+        {
+            case LUA_TBOOLEAN:
+            {
+                bool flag = lua_toboolean(L, 2) > 0;
+                logapp.Draw(title, &flag, window_flags);
+                lua_pushboolean(L, flag);
+                return 1;
+            };
+            default:
+            {
+                logapp.Draw(title, NULL, window_flags);
+                return 0;
+            }
+        }
+    }
+
+    int WriteLog(lua_State* L)
+    {
+        const char *text = luaL_checkstring(L, 2);
+        logapp.AddLog("[%.1f] %s\n", ImGui::GetTime(), text);
     }
 }
 
@@ -7870,6 +8053,10 @@ int loader(lua_State* L)
         {"showMetricsWindow", ImGui_impl::ShowMetricsWindow},
         {"showStyleSelector", ImGui_impl::ShowStyleSelector},
         {"showLuaStyleEditor", ImGui_impl::ShowLuaStyleEditor},
+
+        // Logs
+        {"showLog", ImGui_impl::ShowLog},
+        {"writeLog", ImGui_impl::WriteLog},
 
         // Drag & Drop
         {"beginDragDropSource", ImGui_impl::BeginDragDropSource},
