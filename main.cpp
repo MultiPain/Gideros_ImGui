@@ -243,13 +243,13 @@ namespace ImGui_impl
 
     };
 
-    double getApplicationProperty(lua_State *L, const char* name)
+    lua_Number getApplicationProperty(lua_State *L, const char* name)
     {
         lua_getglobal(L, "application"); // application
         lua_getfield(L, -1, name);       // application[name]
         lua_getglobal(L, "application"); // application[name], application
-        lua_call(L,1,1);                 // application[name](application)
-        double value = luaL_checknumber(L, -1); // value, application.name
+        lua_call(L,1,1);                 // call application[name](application)
+        lua_Number value = luaL_checknumber(L, -1); // value, application[name]
         lua_pop(L, 2);
 
         return value;
@@ -290,18 +290,6 @@ namespace ImGui_impl
         return ImVec2(sx, sy);
     }
 
-    int getKeyboardModifiers(lua_State *L)
-    {
-        lua_getglobal(L, "application");
-        lua_getfield(L, -1, "getKeyboardModifiers");
-        lua_getglobal(L, "application");
-        lua_call(L,1,1);
-        int mod = luaL_checkinteger(L, -1);
-        lua_pop(L, 2);
-
-        return mod;
-    }
-
     MyTextureData getTexture(lua_State *L, int idx = 1)
     {
         Binder binder(L);
@@ -330,7 +318,7 @@ namespace ImGui_impl
         }
         else
         {
-            lua_pushfstring(L, "bad argument #1 ('TextureBase' or 'TextureRegion' expected, got %s)", lua_typename(L, 2));
+            lua_pushfstring(L, "bad argument #1 ('TextureBase' or 'TextureRegion' expected, got %s)", lua_typename(L, idx));
             lua_error(L);
         }
     }
@@ -732,9 +720,6 @@ namespace ImGui_impl
     {
         std::stack<const Sprite*> stack;
 
-        //x = x * r_app_scale.x + app_bounds.x;
-        //y = y * r_app_scale.y + app_bounds.y;
-
         x = x * r_app_scale.x + app_bounds.x;
         y = y * r_app_scale.y + app_bounds.y;
 
@@ -870,11 +855,24 @@ namespace ImGui_impl
             ImGuiIO& io = ImGui::GetIO();
             io.KeysDown[keyCode] = true;
 
-            int mod = getKeyboardModifiers(L);
-            io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
-            io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
-            io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
-            io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+            int mod = getApplicationProperty(L, "getKeyboardModifiers");
+
+            if (mod == 0)
+            {
+                if (keyCode == GINPUT_KEY_SHIFT)
+                    io.KeyShift = true;
+                if (keyCode == GINPUT_KEY_CTRL)
+                    io.KeyCtrl = true;
+                if (keyCode == GINPUT_KEY_ALT)
+                    io.KeyAlt = true;
+            }
+            else
+            {
+                io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
+                io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
+                io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
+                io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+            }
         }
 
         void keyUp(KeyboardEvent *event)
@@ -887,11 +885,24 @@ namespace ImGui_impl
             ImGuiIO& io = ImGui::GetIO();
             io.KeysDown[keyCode] = false;
 
-            int mod = getKeyboardModifiers(L);
-            io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
-            io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
-            io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
-            io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+            int mod = getApplicationProperty(L, "getKeyboardModifiers");
+
+            if (mod == 0)
+            {
+                if (keyCode == GINPUT_KEY_SHIFT)
+                    io.KeyShift = false;
+                if (keyCode == GINPUT_KEY_CTRL)
+                    io.KeyCtrl = false;
+                if (keyCode == GINPUT_KEY_ALT)
+                    io.KeyAlt = false;
+            }
+            else
+            {
+                io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
+                io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
+                io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
+                io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+            }
         }
 
         void keyChar(KeyboardEvent *event)
