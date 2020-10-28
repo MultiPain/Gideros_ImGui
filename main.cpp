@@ -6079,78 +6079,10 @@ namespace ImGui_impl
         }
     };
 
-    G_FILE* GFileOpen(const char* filename, const char* mode)
-    {
-        return g_fopen(filename, mode);
-    }
-
-    bool GFileClose(G_FILE* f)
-    {
-        return g_fclose(f) == 0;
-    }
-
-    size_t GFileGetSize(G_FILE* f)
-    {
-        long off = 0;
-        long sz = 0;
-        return ((off = g_ftell(f)) != -1 && !g_fseek(f, 0, SEEK_END) && (sz = g_ftell(f)) != -1 && !g_fseek(f, off, SEEK_SET)) ? (size_t)sz : (size_t)-1;
-    }
-
-    size_t GFileRead(void* data, ImU64 sz, ImU64 count, G_FILE* f)
-    {
-        return g_fread(data, (size_t)sz, (size_t)count, f);
-    }
-
-    size_t GFileWrite(const void* data, ImU64 sz, ImU64 count, G_FILE* f)
-    {
-        return g_fwrite(data, (size_t)sz, (size_t)count, f);
-    }
-
-    void* GFileLoadToMemory(const char* filename, const char* mode, size_t* out_file_size, int padding_bytes)
-    {
-        IM_ASSERT(filename && mode);
-        if (out_file_size)
-           * out_file_size = 0;
-
-        G_FILE* f;
-        if ((f = GFileOpen(filename, mode)) == NULL)
-        {
-            return NULL;
-        }
-
-        size_t file_size = (size_t)GFileGetSize(f);
-        if (file_size == (size_t)-1)
-        {
-            GFileClose(f);
-            return NULL;
-        }
-
-        void* file_data = IM_ALLOC(file_size + padding_bytes);
-        if (file_data == NULL)
-        {
-            GFileClose(f);
-            return NULL;
-        }
-        if (GFileRead(file_data, 1, file_size, f) != file_size)
-        {
-            GFileClose(f);
-            IM_FREE(file_data);
-            return NULL;
-        }
-        if (padding_bytes > 0)
-            memset((void*)(((char*)file_data) + file_size), 0, (size_t)padding_bytes);
-
-        GFileClose(f);
-        if (out_file_size)
-           * out_file_size = file_size;
-
-        return file_data;
-    }
-
     FontData getFontData(lua_State* L, const char* filename)
     {
         size_t data_size = 0;
-        void* data = GFileLoadToMemory(filename, "rb", &data_size, 0);
+        void* data = ImFileLoadToMemory(filename, "rb", &data_size, 0);
         if (!data)
         {
             std::string str = "Cant load '";

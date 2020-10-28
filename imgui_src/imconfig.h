@@ -39,7 +39,7 @@
 //#define IMGUI_ENABLE_OSX_DEFAULT_CLIPBOARD_FUNCTIONS      // [OSX] Implement default OSX clipboard handler (need to link with '-framework ApplicationServices', this is why this is not the default).
 //#define IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS            // Don't implement ImFormatString/ImFormatStringV so you can implement them yourself (e.g. if you don't want to link with vsnprintf)
 //#define IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS              // Don't implement ImFabs/ImSqrt/ImPow/ImFmod/ImCos/ImSin/ImAcos/ImAtan2 so you can implement them yourself.
-//#define IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS              // Don't implement ImFileOpen/ImFileClose/ImFileRead/ImFileWrite so you can implement them yourself if you don't want to link with fopen/fclose/fread/fwrite. This will also disable the LogToTTY() function.
+#define IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS              // Don't implement ImFileOpen/ImFileClose/ImFileRead/ImFileWrite so you can implement them yourself if you don't want to link with fopen/fclose/fread/fwrite. This will also disable the LogToTTY() function.
 //#define IMGUI_DISABLE_DEFAULT_ALLOCATORS                  // Don't implement default allocators calling malloc()/free() to avoid linking with them. You will need to call ImGui::SetAllocatorFunctions().
 
 //---- Include imgui_user.h at the end of imgui.h as a convenience
@@ -100,9 +100,25 @@
 //#define IMGUI_DEBUG_PARANOID
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
+#include "gstdio.h"
+
+typedef G_FILE* ImFileHandle;
+
+//static void* ImFileLoadToMemory(const char* filename, const char* mode, size_t* out_file_size, int padding_bytes = 0);
 /*
+
 namespace ImGui
 {
-    void MyFunction(const char* name, const MyMatrix44& v);
+
+static ImFileHandle ImFileFileOpen(const char* filename, const char* mode);
+
+static bool ImFileClose(ImFileHandle f);
+
+static size_t ImFileGetSize(ImFileHandle f);
+
+static size_t ImFileRead(void* data, size_t sz, size_t count, ImFileHandle f);
+
+static size_t ImFileWrite(const void* data, size_t sz, size_t count, ImFileHandle f);
+
 }
 */

@@ -1541,6 +1541,16 @@ bool    ImFileClose(ImFileHandle f)     { return fclose(f) == 0; }
 ImU64   ImFileGetSize(ImFileHandle f)   { long off = 0, sz = 0; return ((off = ftell(f)) != -1 && !fseek(f, 0, SEEK_END) && (sz = ftell(f)) != -1 && !fseek(f, off, SEEK_SET)) ? (ImU64)sz : (ImU64)-1; }
 ImU64   ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f)           { return fread(data, (size_t)sz, (size_t)count, f); }
 ImU64   ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f)    { return fwrite(data, (size_t)sz, (size_t)count, f); }
+#else
+//#include "imgui_file_system.h"
+#include "gstdio.h"
+
+ImFileHandle ImFileOpen(const char* filename, const char* mode) { return g_fopen(filename, mode); }
+bool ImFileClose(ImFileHandle f) { return g_fclose(f) == 0; }
+ImU64 ImFileGetSize(ImFileHandle f) { long off = 0; long sz = 0; return ((off = g_ftell(f)) != -1 && !g_fseek(f, 0, SEEK_END) && (sz = g_ftell(f)) != -1 && !g_fseek(f, off, SEEK_SET)) ? (size_t)sz : (size_t)-1; }
+ImU64 ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f) { return g_fread(data, (size_t)sz, (size_t)count, f); }
+ImU64 ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f) { return g_fwrite(data, (size_t)sz, (size_t)count, f); }
+
 #endif // #ifndef IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS
 
 // Helper: Load file content into memory
