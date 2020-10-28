@@ -337,6 +337,35 @@ namespace ImGui_impl
         return result;
     }
 
+    void lua_print(lua_State* L, const char* str)
+    {
+        lua_getglobal(L, "print");
+        lua_pushstring(L, str);
+        lua_call(L, 1, 0);
+    }
+
+    void lua_printf(lua_State* L, const char* fmt, ...)
+    {
+        lua_getglobal(L, "print");
+        va_list args;
+        va_start(args, fmt);
+        lua_pushstring(L, va_arg(args, const char*));
+        va_end(args);
+        lua_call(L, 1, 0);
+    }
+
+    void lua_assert2(lua_State* L, bool exp, const char* fmt, ...)
+    {
+        if (not exp)
+        {
+            va_list args;
+            va_start(args, fmt);
+            lua_pushstring(L, va_arg(args, const char*));
+            va_end(args);
+            lua_error(L);
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////
     ///
     /// ENUMS
@@ -970,9 +999,6 @@ namespace ImGui_impl
 
     GidImGui::~GidImGui()
     {
-        ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->TexID = 0;
-        ImGui::DestroyContext();
         proxy->removeEventListeners();
         delete eventListener;
         delete proxy;
@@ -1117,10 +1143,37 @@ namespace ImGui_impl
 
         return 1;
     }
+    GidImGui* getImgui(lua_State* L)
+    {
+        Binder binder(L);
+        SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+        return (GidImGui*)sprite->getContext();
+    }
+
 
     int destroyImGui(lua_State* L)
     {
+        lua_print(L, "DESTROING");
+
         ImGuiIO& io = ImGui::GetIO();
+
+        GidImGui* imgui = getImgui(L);
+        io.Fonts->Clear();
+        io.Fonts->ClearFonts();
+        io.Fonts->ClearTexData();
+
+
+        unsigned char* pixels;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        io.Fonts->Build();
+        io.Fonts->TexID = 0;
+        gtexture_cleanup();
+
+        ImGui::DestroyContext();
+        delete imgui;
+
+        //ImGuiIO& io = ImGui::GetIO();
         if (io.MouseDrawCursor)
             setApplicationCursor(L, "arrow");
         return 0;
@@ -1131,13 +1184,6 @@ namespace ImGui_impl
     /// BINDINGS.
     ///
     ////////////////////////////////////////////////////////////////////////////////
-
-    GidImGui* getImgui(lua_State* L)
-    {
-        Binder binder(L);
-        SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-        return (GidImGui*)sprite->getContext();
-    }
 
     /// MOUSE INPUTS
 
