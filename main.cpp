@@ -36,7 +36,6 @@ static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
 
-#define LUA_ASSERT(L, EXP, MSG) if (!(EXP)) { lua_pushfstring(L, MSG); lua_error(L); }
 //#define LUA_ASSERT(L, EXP, MSG)  ((void)(_EXPR))
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -54,10 +53,32 @@ namespace ImGui_impl
     ///
     ////////////////////////////////////////////////////////////////////////////////
 
+    static void LUA_ASSERT(lua_State* L, bool EXP, const char* MSG)
+    {
+        if (!(EXP))
+        {
+            lua_pushstring(L, MSG);
+            lua_error(L);
+        }
+    }
+
+    static void LUA_FASSERT(lua_State* L, bool EXP, const char* FMT, ...)
+    {
+        if (!(EXP))
+        {
+            va_list args;
+            va_start(args, FMT);
+            lua_pushstring(L, va_arg(args, const char*));
+            va_end(args);
+            lua_error(L);
+        }
+    }
+
     static int dump_index = 0;
 
     static void stackDump(lua_State* L)
     {
+
         int i = lua_gettop(L);
         lua_getglobal(L, "print");
         lua_pushfstring(L, "----------------      %d      ----------------\n----------------  Stack Dump ----------------", dump_index);
@@ -109,7 +130,7 @@ namespace ImGui_impl
     ///
     ////////////////////////////////////////////////////////////////////////////////
 
-    static std::map<int, const char *> giderosCursorsMap = {
+    static std::map<int, const char *> GIDEROS_CURSORS_MAP = {
         {ImGuiMouseCursor_Hand, "openHand"},
         {ImGuiMouseCursor_None, "blank"},
         {ImGuiMouseCursor_Arrow, "arrow"},
@@ -141,12 +162,7 @@ namespace ImGui_impl
 
     static int convertGiderosMouseButton(lua_State *L, int button)
     {
-        if (button <= 0)
-        {
-            lua_pushstring(L, "Button index must be > 0");
-            lua_error(L);
-        }
-
+        LUA_ASSERT(L, button > 0, "Button index must be > 0");
         return log2(button);
     }
 
@@ -352,18 +368,6 @@ namespace ImGui_impl
         lua_pushstring(L, va_arg(args, const char*));
         va_end(args);
         lua_call(L, 1, 0);
-    }
-
-    void lua_assert2(lua_State* L, bool exp, const char* fmt, ...)
-    {
-        if (not exp)
-        {
-            va_list args;
-            va_start(args, fmt);
-            lua_pushstring(L, va_arg(args, const char*));
-            va_end(args);
-            lua_error(L);
-        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1085,6 +1089,13 @@ namespace ImGui_impl
     /////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////
 
+    GidImGui* getImgui(lua_State* L)
+    {
+        Binder binder(L);
+        SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
+        return (GidImGui*)sprite->getContext();
+    }
+
     int initImGui(lua_State* L)
     {
         LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
@@ -1143,37 +1154,11 @@ namespace ImGui_impl
 
         return 1;
     }
-    GidImGui* getImgui(lua_State* L)
-    {
-        Binder binder(L);
-        SpriteProxy* sprite = static_cast<SpriteProxy*>(binder.getInstance(CLASS_NAME, 1));
-        return (GidImGui*)sprite->getContext();
-    }
-
 
     int destroyImGui(lua_State* L)
     {
-        lua_print(L, "DESTROING");
-
         ImGuiIO& io = ImGui::GetIO();
-
-        GidImGui* imgui = getImgui(L);
-        io.Fonts->Clear();
-        io.Fonts->ClearFonts();
-        io.Fonts->ClearTexData();
-
-
-        unsigned char* pixels;
-        int width, height;
-        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        io.Fonts->Build();
-        io.Fonts->TexID = 0;
-        gtexture_cleanup();
-
         ImGui::DestroyContext();
-        delete imgui;
-
-        //ImGuiIO& io = ImGui::GetIO();
         if (io.MouseDrawCursor)
             setApplicationCursor(L, "arrow");
         return 0;
@@ -3096,6 +3081,7 @@ namespace ImGui_impl
     }
 
     // TODO: callbacks?
+    /*
     static int TextInputCallback(ImGuiInputTextCallbackData* data)
     {
         //lua_State* L = (lua_State *)data->UserData;
@@ -3103,6 +3089,7 @@ namespace ImGui_impl
         //lua_error(L);
         return 0;
     }
+    */
 
     // Widgets: Input with Keyboard
     int InputText(lua_State* L)
@@ -4663,7 +4650,7 @@ namespace ImGui_impl
     int UpdateGiderosMouseCursor(lua_State* L)
     {
         ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
-        const char *cursorName = giderosCursorsMap[cursor];
+        const char *cursorName = GIDEROS_CURSORS_MAP[cursor];
         setApplicationCursor(L, cursorName);
         return 0;
     }
@@ -4849,11 +4836,7 @@ namespace ImGui_impl
     int Style_old_SetColor(lua_State* L)
     {
         int idx = luaL_checkinteger(L, 2);
-        if (idx < 0 || idx > ImGuiCol_COUNT - 1)
-        {
-            lua_pushstring(L, "Color index is out of bounds.");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, idx >= 0 && idx <= ImGuiCol_COUNT, "Color index is out of bounds.");
 
         ImGuiStyle &style = ImGui::GetStyle();
         style.Colors[idx] = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
@@ -4863,11 +4846,7 @@ namespace ImGui_impl
     int Style_SetColor(lua_State* L)
     {
         int idx = luaL_checkinteger(L, 2);
-        if (idx < 0 || idx > ImGuiCol_COUNT - 1)
-        {
-            lua_pushstring(L, "Color index is out of bounds.");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, idx >= 0 && idx <= ImGuiCol_COUNT, "Color index is out of bounds.");
 
         ImGuiStyle &style = getStyle(L);
         style.Colors[idx] = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
@@ -4877,11 +4856,7 @@ namespace ImGui_impl
     int Style_GetColor(lua_State* L)
     {
         int idx = luaL_checkinteger(L, 2);
-        if (idx < 0 || idx > ImGuiCol_COUNT - 1)
-        {
-            lua_pushstring(L, "Color index is out of bounds.");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, idx >= 0 && idx <= ImGuiCol_COUNT, "Color index is out of bounds.");
 
         ImGuiStyle &style = getStyle(L);
         GColor color = GColor::toHex(style.Colors[idx]);
@@ -5452,6 +5427,7 @@ namespace ImGui_impl
     ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////
+
     ImFontAtlas* getFontAtlas(lua_State* L, int index = 1)
     {
         Binder binder(L);
@@ -5616,11 +5592,7 @@ namespace ImGui_impl
     int IO_GetKeysDown(lua_State* L)
     {
         int index = luaL_checkinteger(L, 2);
-        if (index < 0 || index > 512)
-        {
-            lua_pushstring(L, "KeyDown index is out of bounds!");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, index >= 0 && index <= 512, "KeyDown index is out of bounds!");
         ImGuiIO& io = getIO(L);
         lua_pushboolean(L, io.KeysDown[index]);
         return 1;
@@ -5920,11 +5892,7 @@ namespace ImGui_impl
     {
         ImGuiIO& io = getIO(L);
         int index = luaL_checkinteger(L, 2);
-        if (index < 0 || index > ImGuiKey_COUNT)
-        {
-            lua_pushstring(L, "KeyMap index is out of bounds!");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, index >= 0 && index <= ImGuiKey_COUNT, "KeyMap index is out of bounds!");
         lua_pushinteger(L, io.KeyMap[index]);
         return 1;
     }
@@ -5933,11 +5901,7 @@ namespace ImGui_impl
     {
         ImGuiIO& io = getIO(L);
         int index = luaL_checkinteger(L, 2);
-        if (index < 0 || index > ImGuiKey_COUNT)
-        {
-            lua_pushstring(L, "KeyMap index is out of bounds!");
-            lua_error(L);
-        }
+        LUA_ASSERT(L, index >= 0 && index <= ImGuiKey_COUNT, "KeyMap index is out of bounds!");
 
         io.KeyMap[index] = luaL_checkinteger(L, 3);
         return 0;
@@ -6129,54 +6093,10 @@ namespace ImGui_impl
     {
         size_t data_size = 0;
         void* data = ImFileLoadToMemory(filename, "rb", &data_size, 0);
-        if (!data)
-        {
-            std::string str = "Cant load '";
-            str.append(filename);
-            str.append("' font! File not found.");
-            lua_pushstring(L, str.c_str());
-            lua_error(L);
-        }
+        LUA_FASSERT(L, data, "Cant load '%s' font! File not found.", filename);
 
         return FontData(data, data_size);
     }
-    /*
-    void _addFonts(lua_State* L, int idx)
-    {
-        int len = luaL_getn(L, idx);
-        lua_pushvalue(L, idx);
-        for (int i = 1; i <= len; i++)
-        {
-            lua_rawgeti(L, 4, i); // { fontPath, fontSize, OversampleH, OversampleV, GlyphExtraSpacingX, GlyphExtraSpacingY }
-            lua_rawgeti(L, -1, 1);
-            const char* filename = luaL_checkstring(L, -1);
-            lua_pop(L, 1);
-            lua_rawgeti(L, -1, 2); // font size
-            double size_pixel = luaL_checknumber(L, -1);
-            lua_pop(L, 1);
-            int oversampleH = 1;
-            lua_rawgeti(L, -1, 3); // optional OversampleH
-            if (!lua_isnil(L, -1)) oversampleH = luaL_checkinteger(L, -1);
-            lua_pop(L, 1);
-            int oversampleV = 1;
-            lua_rawgeti(L, -1, 4); // optional OversampleV
-            if (!lua_isnil(L, -1)) oversampleV = luaL_checkinteger(L, -1);
-            lua_pop(L, 1);
-            double spacingX = 0.0f;
-            lua_rawgeti(L, -1, 5); // optional GlyphExtraSpacingX
-            if (!lua_isnil(L, -1)) spacingX = luaL_checknumber(L, -1);
-            lua_pop(L, 1);
-            double spacingY = 0.0f;
-            lua_rawgeti(L, -1, 6); // optional GlyphExtraSpacingY
-            if (!lua_isnil(L, -1)) spacingY = luaL_checknumber(L, -1);
-            lua_pop(L, 1);
-            GAddFontFromFileTTF(L, filename, size_pixel, oversampleH, oversampleV, spacingX, spacingY);
-            lua_pop(L, 1);
-        }
-        lua_pop(L, 1);
-    }
-    */
-
 
     /// FONTS API
 
@@ -6249,11 +6169,12 @@ namespace ImGui_impl
     }
 
     // TODO
+    /*
     void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
     {
 
     }
-
+    */
     static void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
     {
         float GlyphExtraSpacingX = 0.0f;
@@ -6342,7 +6263,7 @@ namespace ImGui_impl
 
             readConfTable(L, "chars", builder, atlas, addConfChars);
             readConfTable(L, "ranges", builder, atlas, addConfRanges);
-            readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
+            //readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
 
             //builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
 
@@ -6465,6 +6386,10 @@ namespace ImGui_impl
 
     int FontAtlas_Bake(lua_State* L)
     {
+        ImGuiIO& io = ImGui::GetIO();
+
+        io.Fonts->ClearTexData();
+
         ImFontAtlas* atlas = getFontAtlas(L);
 
         unsigned char* pixels;
