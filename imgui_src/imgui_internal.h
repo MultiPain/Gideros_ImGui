@@ -344,6 +344,11 @@ IMGUI_API ImU64             ImFileRead(void* data, ImU64 size, ImU64 count, ImFi
 IMGUI_API ImU64             ImFileWrite(const void* data, ImU64 size, ImU64 count, ImFileHandle file);
 #else
 #define IMGUI_DISABLE_TTY_FUNCTIONS // Can't use stdout, fflush if we are not using default file functions
+IMGUI_API ImFileHandle      ImFileOpen(const char* filename, const char* mode);
+IMGUI_API bool              ImFileClose(ImFileHandle file);
+IMGUI_API ImU64             ImFileGetSize(ImFileHandle file);
+IMGUI_API ImU64             ImFileRead(void* data, ImU64 size, ImU64 count, ImFileHandle file);
+IMGUI_API ImU64             ImFileWrite(const void* data, ImU64 size, ImU64 count, ImFileHandle file);
 #endif
 IMGUI_API void*             ImFileLoadToMemory(const char* filename, const char* mode, size_t* out_file_size = NULL, int padding_bytes = 0);
 

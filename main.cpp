@@ -1,7 +1,7 @@
 // regex: (\s\*)+\b
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui_beta_docking"
+#define PLUGIN_NAME "ImGui_beta_nodes"
 #define CLASS_NAME "ImGui"
 #define IO_CLASS_NAME "ImGuiIO"
 #define FONT_ATLAS_CLASS_NAME "ImFontAtlas"
@@ -44,6 +44,7 @@ static char keyWeak = ' ';
 
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
+#include "imnodes/imnodes.h"
 
 namespace ImGui_impl
 {
@@ -1108,6 +1109,9 @@ int initImGui(lua_State* L)
 
     // init ImGui itself
     ImGui::CreateContext();
+#ifdef IMGUI_NODES
+    imnodes::Initialize();
+#endif
 
     // Setup style theme
     ImGui::StyleColorsDark();
@@ -1163,6 +1167,9 @@ int initImGui(lua_State* L)
 int destroyImGui(lua_State* L)
 {
     ImGuiIO& io = ImGui::GetIO();
+#ifdef IMGUI_NODES
+    imnodes::Shutdown();
+#endif
     ImGui::DestroyContext();
     if (io.MouseDrawCursor)
         setApplicationCursor(L, "arrow");
@@ -7094,6 +7101,388 @@ int DrawList_PathRect(lua_State* L)
     return 0;
 }
 
+#ifdef IMGUI_NODES
+
+int imnodes_GetStyle(lua_State* L)
+{
+    imnodes::Style& style = imnodes::GetStyle();
+    Binder binder(L);
+    binder.pushInstance("ImNodesStyle", &style);
+    return 1;
+}
+
+int imnodes_StyleColorsDark(lua_State* L)
+{
+    imnodes::StyleColorsDark();
+    return 0;
+}
+
+int imnodes_StyleColorsClassic(lua_State* L)
+{
+    imnodes::StyleColorsClassic();
+    return 0;
+}
+
+int imnodes_StyleColorsLight(lua_State* L)
+{
+    imnodes::StyleColorsLight();
+    return 0;
+}
+
+int imnodes_BeginNodeEditor(lua_State* L)
+{
+    imnodes::BeginNodeEditor();
+    return 0;
+}
+
+int imnodes_EndNodeEditor(lua_State* L)
+{
+    imnodes::EndNodeEditor();
+    return 0;
+}
+
+int imnodes_PushColorStyle(lua_State* L)
+{
+    imnodes::ColorStyle item = (imnodes::ColorStyle)luaL_checkinteger(L, 2);
+    int hex = luaL_checkinteger(L, 3);
+    lua_Number alpha = luaL_optnumber(L, 4, 1.0);
+    ImU32 color = GColor::toU32(hex, alpha);
+    imnodes::PushColorStyle(item, color);
+    return 0;
+}
+
+int imnodes_PopColorStyle(lua_State* L)
+{
+    imnodes::PopColorStyle();
+    return 0;
+}
+
+int imnodes_PushStyleVar(lua_State* L)
+{
+    imnodes::StyleVar item = (imnodes::StyleVar)luaL_checkinteger(L, 2);
+    lua_Number value = luaL_checknumber(L, 3);
+    imnodes::PushStyleVar(item, value);
+    return 0;
+}
+
+int imnodes_PopStyleVar(lua_State* L)
+{
+    imnodes::PopStyleVar();
+    return 0;
+}
+
+int imnodes_BeginNode(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    imnodes::BeginNode(id);
+    return 0;
+}
+
+int imnodes_EndNode(lua_State* L)
+{
+    imnodes::EndNode();
+    return 0;
+}
+
+int imnodes_GetNodeDimensions(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    ImVec2 dim = imnodes::GetNodeDimensions(id);
+    lua_pushnumber(L, dim.x);
+    lua_pushnumber(L, dim.y);
+    return 2;
+}
+
+int imnodes_BeginNodeTitleBar(lua_State* L)
+{
+    imnodes::BeginNodeTitleBar();
+    return 0;
+}
+
+int imnodes_EndNodeTitleBar(lua_State* L)
+{
+    imnodes::EndNodeTitleBar();
+    return 0;
+}
+
+int imnodes_BeginInputAttribute(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    imnodes::PinShape shape = (imnodes::PinShape)luaL_optinteger(L, 3, 0);
+    imnodes::BeginInputAttribute(id, shape);
+    return 0;
+}
+
+int imnodes_EndInputAttribute(lua_State* L)
+{
+    imnodes::EndInputAttribute();
+    return 0;
+}
+
+int imnodes_BeginOutputAttribute(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    imnodes::PinShape shape = (imnodes::PinShape)luaL_optinteger(L, 3, 0);
+    imnodes::BeginOutputAttribute(id, shape);
+    return 0;
+}
+
+int imnodes_EndOutputAttribute(lua_State* L)
+{
+    imnodes::EndOutputAttribute();
+    return 0;
+}
+
+int imnodes_BeginStaticAttribute(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    imnodes::BeginStaticAttribute(id);
+    return 0;
+}
+
+int imnodes_EndStaticAttribute(lua_State* L)
+{
+    imnodes::EndStaticAttribute();
+    return 0;
+}
+
+int imnodes_PushAttributeFlag(lua_State* L)
+{
+    imnodes::AttributeFlags flags = (imnodes::AttributeFlags)luaL_checkinteger(L, 2);
+    imnodes::PushAttributeFlag(flags);
+    return 0;
+}
+
+int imnodes_PopAttributeFlag(lua_State* L)
+{
+    imnodes::PopAttributeFlag();
+    return 0;
+}
+
+int imnodes_Link(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    int start_attribute_id = luaL_checkinteger(L, 3);
+    int end_attribute_id = luaL_checkinteger(L, 4);
+    imnodes::Link(id, start_attribute_id, end_attribute_id);
+    return 0;
+}
+
+int imnodes_SetNodeDraggable(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    bool draggable = lua_toboolean(L, 3);
+    imnodes::SetNodeDraggable(id, draggable);
+    return 0;
+}
+
+int imnodes_SetNodeScreenSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_Number x = luaL_checknumber(L, 3);
+    lua_Number y = luaL_checknumber(L, 4);
+    imnodes::SetNodeScreenSpacePos(id, ImVec2(x, y));
+    return 0;
+}
+
+int imnodes_SetNodeEditorSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_Number x = luaL_checknumber(L, 3);
+    lua_Number y = luaL_checknumber(L, 4);
+    imnodes::SetNodeEditorSpacePos(id, ImVec2(x, y));
+    return 0;
+}
+
+int imnodes_SetNodeGridSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_Number x = luaL_checknumber(L, 3);
+    lua_Number y = luaL_checknumber(L, 4);
+    imnodes::SetNodeGridSpacePos(id, ImVec2(x, y));
+    return 0;
+}
+
+int imnodes_GetNodeScreenSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    ImVec2 pos = imnodes::GetNodeScreenSpacePos(id);
+    lua_pushnumber(L, pos.x);
+    lua_pushnumber(L, pos.y);
+    return 2;
+}
+
+int imnodes_GetNodeEditorSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    ImVec2 pos = imnodes::GetNodeEditorSpacePos(id);
+    lua_pushnumber(L, pos.x);
+    lua_pushnumber(L, pos.y);
+    return 2;
+}
+
+int imnodes_GetNodeGridSpacePos(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    ImVec2 pos = imnodes::GetNodeGridSpacePos(id);
+    lua_pushnumber(L, pos.x);
+    lua_pushnumber(L, pos.y);
+    return 2;
+}
+
+int imnodes_IsEditorHovered(lua_State* L)
+{
+    lua_pushboolean(L, imnodes::IsEditorHovered());
+    return 1;
+}
+
+int imnodes_IsNodeHovered(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsNodeHovered(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+
+int imnodes_IsLinkHovered(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsLinkHovered(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+
+int imnodes_IsPinHovered(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsPinHovered(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+
+int imnodes_NumSelectedNodes(lua_State* L)
+{
+    lua_pushinteger(L, imnodes::NumSelectedNodes());
+    return 1;
+}
+
+int imnodes_NumSelectedLinks(lua_State* L)
+{
+    lua_pushinteger(L, imnodes::NumSelectedLinks());
+    return 1;
+}
+
+// WIP return table with id's
+int imnodes_GetSelectedNodes(lua_State* L)
+{
+    int* list;
+    imnodes::GetSelectedNodes(list);
+
+    return 0;
+}
+// WIP return table with id's
+int imnodes_GetSelectedLinks(lua_State* L)
+{
+    int* list;
+    imnodes::GetSelectedLinks(list);
+
+    return 0;
+}
+
+int imnodes_ClearNodeSelection(lua_State* L)
+{
+    imnodes::ClearNodeSelection();
+    return 0;
+}
+
+int imnodes_ClearLinkSelection(lua_State* L)
+{
+    imnodes::ClearLinkSelection();
+    return 0;
+}
+
+int imnodes_IsAttributeActive(lua_State* L)
+{
+    lua_pushboolean(L, imnodes::IsAttributeActive());
+    return 1;
+}
+// WIP add nil check
+int imnodes_IsAnyAttributeActive(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsAnyAttributeActive(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+
+int imnodes_IsLinkStarted(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsLinkStarted(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+// WIP
+int imnodes_IsLinkDropped(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_IsLinkCreated(lua_State* L)
+{
+    return 0;
+}
+
+int imnodes_IsLinkDestroyed(lua_State* L)
+{
+    int id = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, imnodes::IsLinkDestroyed(&id));
+    lua_pushinteger(L, id);
+    return 2;
+}
+// WIP
+int imnodes_SaveCurrentEditorStateToIniString(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_SaveEditorStateToIniString(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_LoadCurrentEditorStateFromIniString(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_LoadEditorStateFromIniString(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_SaveCurrentEditorStateToIniFile(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_SaveEditorStateToIniFile(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_LoadCurrentEditorStateFromIniFile(lua_State* L)
+{
+    return 0;
+}
+// WIP
+int imnodes_LoadEditorStateFromIniFile(lua_State* L)
+{
+    return 0;
+}
+
+
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -7698,6 +8087,63 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFunctionList[] =
     {
+#ifdef IMGUI_NODES
+        {"getStyle", ImGui_impl::imnodes_GetStyle},
+        {"styleColorsDark", ImGui_impl::imnodes_StyleColorsDark},
+        {"styleColorsClassic", ImGui_impl::imnodes_StyleColorsClassic},
+        {"styleColorsLight", ImGui_impl::imnodes_StyleColorsLight},
+        {"beginNodeEditor", ImGui_impl::imnodes_BeginNodeEditor},
+        {"endNodeEditor", ImGui_impl::imnodes_EndNodeEditor},
+        {"pushColorStyle", ImGui_impl::imnodes_PushColorStyle},
+        {"popColorStyle", ImGui_impl::imnodes_PopColorStyle},
+        {"pushStyleVar", ImGui_impl::imnodes_PushStyleVar},
+        {"popStyleVar", ImGui_impl::imnodes_PopStyleVar},
+        {"beginNode", ImGui_impl::imnodes_BeginNode},
+        {"endNode", ImGui_impl::imnodes_EndNode},
+        {"getNodeDimensions", ImGui_impl::imnodes_GetNodeDimensions},
+        {"beginNodeTitleBar", ImGui_impl::imnodes_BeginNodeTitleBar},
+        {"endNodeTitleBar", ImGui_impl::imnodes_EndNodeTitleBar},
+        {"beginInputAttribute", ImGui_impl::imnodes_BeginInputAttribute},
+        {"endInputAttribute", ImGui_impl::imnodes_EndInputAttribute},
+        {"beginOutputAttribute", ImGui_impl::imnodes_BeginOutputAttribute},
+        {"endOutputAttribute", ImGui_impl::imnodes_EndOutputAttribute},
+        {"beginStaticAttribute", ImGui_impl::imnodes_BeginStaticAttribute},
+        {"endStaticAttribute", ImGui_impl::imnodes_EndStaticAttribute},
+        {"pushAttributeFlag", ImGui_impl::imnodes_PushAttributeFlag},
+        {"popAttributeFlag", ImGui_impl::imnodes_PopAttributeFlag},
+        {"link", ImGui_impl::imnodes_Link},
+        {"setNodeDraggable", ImGui_impl::imnodes_SetNodeDraggable},
+        {"setNodeScreenSpacePos", ImGui_impl::imnodes_SetNodeScreenSpacePos},
+        {"setNodeEditorSpacePos", ImGui_impl::imnodes_SetNodeEditorSpacePos},
+        {"setNodeGridSpacePos", ImGui_impl::imnodes_SetNodeGridSpacePos},
+        {"getNodeScreenSpacePos", ImGui_impl::imnodes_GetNodeScreenSpacePos},
+        {"getNodeEditorSpacePos", ImGui_impl::imnodes_GetNodeEditorSpacePos},
+        {"getNodeGridSpacePos", ImGui_impl::imnodes_GetNodeGridSpacePos},
+        {"isEditorHovered", ImGui_impl::imnodes_IsEditorHovered},
+        {"isNodeHovered", ImGui_impl::imnodes_IsNodeHovered},
+        {"isLinkHovered", ImGui_impl::imnodes_IsLinkHovered},
+        {"isPinHovered", ImGui_impl::imnodes_IsPinHovered},
+        {"numSelectedNodes", ImGui_impl::imnodes_NumSelectedNodes},
+        {"numSelectedLinks", ImGui_impl::imnodes_NumSelectedLinks},
+        {"getSelectedNodes", ImGui_impl::imnodes_GetSelectedNodes},
+        {"getSelectedLinks", ImGui_impl::imnodes_GetSelectedLinks},
+        {"clearNodeSelection", ImGui_impl::imnodes_ClearNodeSelection},
+        {"clearLinkSelection", ImGui_impl::imnodes_ClearLinkSelection},
+        {"isAttributeActive", ImGui_impl::imnodes_IsAttributeActive},
+        {"isAnyAttributeActive", ImGui_impl::imnodes_IsAnyAttributeActive},
+        {"isLinkStarted", ImGui_impl::imnodes_IsLinkStarted},
+        {"isLinkDropped", ImGui_impl::imnodes_IsLinkDropped},
+        {"isLinkCreated", ImGui_impl::imnodes_IsLinkCreated},
+        {"isLinkDestroyed", ImGui_impl::imnodes_IsLinkDestroyed},
+        {"saveCurrentEditorStateToIniString", ImGui_impl::imnodes_SaveCurrentEditorStateToIniString},
+        {"saveEditorStateToIniString", ImGui_impl::imnodes_SaveEditorStateToIniString},
+        {"loadCurrentEditorStateFromIniString", ImGui_impl::imnodes_LoadCurrentEditorStateFromIniString},
+        {"loadEditorStateFromIniString", ImGui_impl::imnodes_LoadEditorStateFromIniString},
+        {"saveCurrentEditorStateToIniFile", ImGui_impl::imnodes_SaveCurrentEditorStateToIniFile},
+        {"saveEditorStateToIniFile", ImGui_impl::imnodes_SaveEditorStateToIniFile},
+        {"loadCurrentEditorStateFromIniFile", ImGui_impl::imnodes_LoadCurrentEditorStateFromIniFile},
+        {"loadEditorStateFromIniFile", ImGui_impl::imnodes_LoadEditorStateFromIniFile},
+#endif
         // Fonts API
         {"pushFont", ImGui_impl::Fonts_PushFont},
         {"popFont", ImGui_impl::Fonts_PopFont},
