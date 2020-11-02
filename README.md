@@ -33,6 +33,8 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
+* [Dock builder (BETA) ***NEW***](#dock-builder-beta)
+* [Docking (BETA)](#docking-beta)
 * [Logging/Capture](#loggingcapture)
 * [Drag and drop (Beta API)](#drag-and-drop)
 * [Clipping](#clipping)
@@ -65,6 +67,7 @@
     - [ConfigFlags](#configflags)
     - [BackendFlags](#backendflags)
     - [SliderFlags](#sliderflags)
+	- [DockNodeFlags](#docknodeflags)
     - [GlyphRanges](#glyphranges)
 * [Custom drawing](#draw-lists)
 
@@ -76,11 +79,9 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
-ImGui.new([width, height])
--- width (number, default = application:getContentWidth()): screen width
--- height (number, default = application:getContentHeight()): screen height
+ImGui.new()
 ```
-## FONTS (W.I.P)
+## FONTS 
 ```lua
 IO = imgui:getIO()
 FontAtlas = IO:getFonts()
@@ -108,11 +109,11 @@ Font = FontAtlas:addFont(ttf_font_path, font_size, [options])
 --		    chars(table): list of specific char code (example: {0x7262, ...})
 --		    ranges(table): predefined glyph ranges (example: {ImGui.GlyphRanges_Default, ImGui.GlyphRanges_Japanese, ...})
 FontAtlas:addFonts(fontsDescription)
--- fontsDescriptions (table):
---      description (table):
---          ttf_font_path (string): path to a font
---          font_size (number): font size
---          options (table): see description above
+-- fontsDescriptions(talbe):
+--      description(table):
+--          ttf_font_path(string): path to a font
+--          font_size(number): font size
+--          options(table): see description above
 -- example:
 -- FontAtlas:addFonts{ {"fonts/DroidSans.ttf", 16}, {"fonts/ProggyTiny.ttf", 16} }
 
@@ -192,8 +193,8 @@ Style:setTabBorderSize(value)
 value = Style:getlTabBorderSize()
 Style:setTabMinWidthForUnselectedCloseButton(value)     -- renamed in 1.79 (can be still used until 1.80)
 value = Style:getlTabMinWidthForUnselectedCloseButton() -- renamed in 1.79 (can be still used until 1.80)
-Style:setTabMinWidthForCloseButton(value)               -- "setTabMinWidthForUnselectedCloseButton"
-value = Style:getTabMinWidthForCloseButton()            -- "getlTabMinWidthForUnselectedCloseButton"
+Style:setTabMinWidthForCloseButton(value)               -- same as "ImGui:setTabMinWidthForUnselectedCloseButton(value)"
+value = Style:getTabMinWidthForCloseButton()            -- same as "ImGui:getlTabMinWidthForUnselectedCloseButton()"
 Style:setMouseCursorScale(value)
 value = Style:getlMouseCursorScale()
 Style:setCurveTessellationTol(value)
@@ -508,10 +509,11 @@ value1, value2, isDragingFlag = ImGui:sliderFloat2(label, value1, value2, [incSt
 value1, value2, value3, isDragingFlag = ImGui:sliderFloat3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isDragingFlag = ImGui:sliderFloat4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 valueInRad, isDragingFlag = ImGui:sliderAngle(label, valueInRad, [min_degrees = -360, max_degrees = 360, formatString = "%.0f deg", ImGuiSliderFlags = 0])
-value, isDragingFlag = ImGui:sliderInt(label, value, [incStep = 1, min = 0, max = 0, formatString = "%d, ImGuiSliderFlags = 0"])
-value1, value2, isDragingFlag = ImGui:sliderInt2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
-value1, value2, value3, isDragingFlag = ImGui:sliderInt3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
-value1, value2, value3, value4, isDragingFlag = ImGui:sliderInt4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value, isDragingFlag = ImGui:sliderInt(label, value, [min = 0, max = 0, formatString = "%d, ImGuiSliderFlags = 0"])
+value1, value2, isDragingFlag = ImGui:sliderInt2(label, value1, value2, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value1, value2, value3, isDragingFlag = ImGui:sliderInt3(label, value1, value2, value3, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+value1, value2, value3, value4, isDragingFlag = ImGui:sliderInt4(label, value1, value2, value3, value4, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
+
 value, isDragingFlag = ImGui:sliderScalar(label, ImGuiDataType, value, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
 value, isDragingFlag = ImGui:vSliderFloat(label, w, h, value, min, max, [formatString = "%.3f", ImGuiSliderFlags = 0])
 value, isDragingFlag = ImGui:vSliderInt(label, w, h, value, min, max, [formatString = "%d", ImGuiSliderFlags = 0])
@@ -648,6 +650,31 @@ ImGui:endTabItem()
 ImGui:setTabItemClosed(tab_or_docked_window_label)
 ImGui:tabItemButton(label, [ImGuiTabItemFlags = 0])
 ```
+## Docking (BETA)
+```lua
+ImGui:dockSpace(ImGuiID, w, h, [ImGuiDockNodeFlags = 0])
+ImGuiID = ImGui:dockSpaceOverViewport([ImGuiDockNodeFlags = 0])
+ImGui:setNextWindowDockID(ImGuiID, [ImGuiCond = 0])
+ImGuiID = ImGui:getWindowDockID()
+flag = ImGui:isWindowDocked()
+```
+[To top](#api)
+## Dock builder (BETA)
+```lua
+ImGui:dockBuilderDockWindow(window_name, node_id)
+--ImGuiDockNode = ImGui:dockBuilderGetNode(ImGuiID) -- WIP
+ImGui:dockBuilderSetNodePos(node_id, x, y)
+ImGui:dockBuilderSetNodeSize(node_id, w, h)
+node_id = ImGui:dockBuilderAddNode([node_id = 0, ImGuiDockNodeFlags = 0])
+ImGui:dockBuilderRemoveNode(node_id)
+ImGui:dockBuilderRemoveNodeChildNodes(node_id)
+ImGui:dockBuilderRemoveNodeDockedWindows(node_id, clear_settings_refs_flag)
+node_id, out_id_at_dir, out_id_at_opposite_dir = ImGui:dockBuilderSplitNode(node_id, ImGuiDir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir)
+ImGui:dockBuilderCopyNode(src_node_id, dst_node_id)
+ImGui:dockBuilderCopyWindowSettings(src_name, dst_name)
+ImGui:dockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id)
+ImGui:dockBuilderFinish(node_id)
+```
 [To top](#api)
 ## Logging/Capture
 ```lua
@@ -742,14 +769,6 @@ ImGui:resetMouseDragDelta(mouse_button)
 ImGuiMouseCursor = ImGui:getMouseCursor()
 ImGui:setMouseCursor(ImGuiMouseCursor)
 ImGui:CaptureMouseFromApp([want_capture_mouse_value = true])
-
-flag = ImGui:wantCaptureMouse()
-flag = ImGui:wantCaptureKeyboard()
-flag = ImGui:wantTextInput()
-flag = ImGui:wantSetMousePos()
-flag = ImGui:wantSaveIniSettings()
-flag = ImGui:isNavActive()
-flag = ImGui:isNavVisible()
 ```
 [To top](#api)
 ## Render
@@ -1019,6 +1038,7 @@ ImGui.WindowFlags_AlwaysVerticalScrollbar
 ImGui.WindowFlags_MenuBar
 ImGui.WindowFlags_NoBackground
 ImGui.WindowFlags_AlwaysAutoResize
+ImGui.WindowFlags_NoDocking
 ```
 [To top](#api)
 ### TabItemFlags
@@ -1156,6 +1176,7 @@ ImGui.ConfigFlags_NoMouse
 ImGui.ConfigFlags_NoMouseCursorChange
 ImGui.ConfigFlags_IsSRGB                 
 ImGui.ConfigFlags_IsTouchScreen
+ImGui.ConfigFlags_DockingEnable
 ```
 [To top](#api)
 ### BackendFlags
@@ -1169,12 +1190,23 @@ ImGui.BackendFlags_RendererHasVtxOffset
 [To top](#api)
 ### SliderFlags
 ```lua
-ImGui.SliderFlags_None        
-ImGui.SliderFlags_ClampOnInput -- renamed in 1.79 to "SliderFlags_AlwaysClamp" (can be still used unyil 1.80)
+ImGui.SliderFlags_None          
+ImGui.SliderFlags_ClampOnInput -- renamed in 1.79 to "SliderFlags_AlwaysClamp" (can be still used until 1.80)
 ImGui.SliderFlags_AlwaysClamp
 ImGui.SliderFlags_Logarithmic  
 ImGui.SliderFlags_NoRoundToFormat
 ImGui.SliderFlags_NoInput
+```
+[To top](#api)
+### DockNodeFlags
+```lua
+ImGui.DockNodeFlags_None
+ImGui.DockNodeFlags_KeepAliveOnly
+ImGui.DockNodeFlags_NoDockingInCentralNode
+ImGui.DockNodeFlags_PassthruCentralNode
+ImGui.DockNodeFlags_NoSplit
+ImGui.DockNodeFlags_NoResize
+ImGui.DockNodeFlags_AutoHideTabBar
 ```
 [To top](#api)
 ### GlyphRanges
