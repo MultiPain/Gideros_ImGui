@@ -35,8 +35,7 @@
 static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
-
-//#define LUA_ASSERT(L, EXP, MSG)  ((void)(_EXPR))
+static bool autoUpdateCursor;
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -168,11 +167,10 @@ static int convertGiderosMouseButton(lua_State* L, int button)
     return log2(button);
 }
 
-struct MyTextureData
+struct GTextureData
 {
     void* texture;
     ImVec2 uv;
-
 };
 
 struct VColor {
@@ -263,11 +261,11 @@ struct GColor {
 
 lua_Number getApplicationProperty(lua_State* L, const char* name)
 {
-    lua_getglobal(L, "application"); // application
-    lua_getfield(L, -1, name);       // application[name]
-    lua_getglobal(L, "application"); // application[name], application
-    lua_call(L,1,1);                 // call application[name](application)
-    lua_Number value = luaL_checknumber(L, -1); // value, application[name]
+    lua_getglobal(L, "application");
+    lua_getfield(L, -1, name);
+    lua_getglobal(L, "application");
+    lua_call(L,1,1);
+    lua_Number value = luaL_checknumber(L, -1);
     lua_pop(L, 2);
 
     return value;
@@ -302,19 +300,19 @@ ImVec2 getApplicationBounds(lua_State* L)
 
 ImVec2 getApplicationScale(lua_State* L)
 {
-    double sx = getApplicationProperty(L, "getLogicalScaleX");
-    double sy = getApplicationProperty(L, "getLogicalScaleY");
+    lua_Number sx = getApplicationProperty(L, "getLogicalScaleX");
+    lua_Number sy = getApplicationProperty(L, "getLogicalScaleY");
 
     return ImVec2(sx, sy);
 }
 
-MyTextureData getTexture(lua_State* L, int idx = 1)
+GTextureData getTexture(lua_State* L, int idx = 1)
 {
     Binder binder(L);
 
     if (binder.isInstanceOf("TextureBase", idx))
     {
-        MyTextureData data;
+        GTextureData data;
         TextureBase* textureBase = static_cast<TextureBase*>(binder.getInstance("TextureBase", idx));
 
         TextureData* gdata = textureBase->data;
@@ -325,7 +323,7 @@ MyTextureData getTexture(lua_State* L, int idx = 1)
     }
     else if (binder.isInstanceOf("TextureRegion", idx))
     {
-        MyTextureData data;
+        GTextureData data;
         BitmapData* bitmapData = static_cast<BitmapData*>(binder.getInstance("TextureRegion", idx));
 
         TextureData* gdata = bitmapData->texture()->data;
@@ -353,6 +351,13 @@ lua_Number getfield(lua_State* L, const char* key)
     lua_Number result = lua_tonumber(L, -1);
     lua_pop(L, 1);
     return result;
+}
+
+ImGuiID checkID(lua_State* L, int idx = 2)
+{
+    int id = luaL_checkinteger(L, idx);
+    LUA_ASSERT(L, id >= 0, "ID must be >= 0!");
+    return (ImGuiID)id;
 }
 
 void lua_print(lua_State* L, const char* str)
@@ -788,7 +793,7 @@ class EventListener;
 class GidImGui
 {
 public:
-    GidImGui(LuaApplication* application, lua_State* L);
+    GidImGui(LuaApplication* application, lua_State* L, bool add_listeners, bool add_resize_listener);
     ~GidImGui();
 
     SpriteProxy* proxy;
@@ -981,29 +986,32 @@ static void _Destroy(void* c)
     delete ((GidImGui* ) c);
 }
 
-GidImGui::GidImGui(LuaApplication* application, lua_State* L)
+GidImGui::GidImGui(LuaApplication* application, lua_State* L, bool add_listeners = true, bool add_resize_listener = true)
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
 
     eventListener = new EventListener(L, proxy);
+    if (add_listeners)
+    {
+        proxy->addEventListener(MouseEvent::MOUSE_DOWN,     eventListener, &EventListener::mouseDown);
+        proxy->addEventListener(MouseEvent::MOUSE_UP,       eventListener, &EventListener::mouseUp);
+        proxy->addEventListener(MouseEvent::MOUSE_MOVE,     eventListener, &EventListener::mouseDown);
+        proxy->addEventListener(MouseEvent::MOUSE_HOVER,    eventListener, &EventListener::mouseHover);
+        proxy->addEventListener(MouseEvent::MOUSE_WHEEL,    eventListener, &EventListener::mouseWheel);
 
-    proxy->addEventListener(MouseEvent::MOUSE_DOWN,     eventListener, &EventListener::mouseDown);
-    proxy->addEventListener(MouseEvent::MOUSE_UP,       eventListener, &EventListener::mouseUp);
-    proxy->addEventListener(MouseEvent::MOUSE_MOVE,     eventListener, &EventListener::mouseDown);
-    proxy->addEventListener(MouseEvent::MOUSE_HOVER,    eventListener, &EventListener::mouseHover);
-    proxy->addEventListener(MouseEvent::MOUSE_WHEEL,    eventListener, &EventListener::mouseWheel);
+        //proxy->addEventListener(TouchEvent::TOUCHES_BEGIN,  eventListener, &EventListener::touchesBegin);
+        //proxy->addEventListener(TouchEvent::TOUCHES_END,    eventListener, &EventListener::touchesEnd);
+        //proxy->addEventListener(TouchEvent::TOUCHES_MOVE,   eventListener, &EventListener::touchesMove);
+        //proxy->addEventListener(TouchEvent::TOUCHES_CANCEL, eventListener, &EventListener::touchesCancel);
 
-    //proxy->addEventListener(TouchEvent::TOUCHES_BEGIN,  eventListener, &EventListener::touchesBegin);
-    //proxy->addEventListener(TouchEvent::TOUCHES_END,    eventListener, &EventListener::touchesEnd);
-    //proxy->addEventListener(TouchEvent::TOUCHES_MOVE,   eventListener, &EventListener::touchesMove);
-    //proxy->addEventListener(TouchEvent::TOUCHES_CANCEL, eventListener, &EventListener::touchesCancel);
+        proxy->addEventListener(KeyboardEvent::KEY_DOWN,    eventListener, &EventListener::keyDown);
+        proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
+        proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
 
-    proxy->addEventListener(KeyboardEvent::KEY_DOWN,    eventListener, &EventListener::keyDown);
-    proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
-    proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
-
-    //proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
+        if (add_resize_listener)
+            proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
+    }
 }
 
 GidImGui::~GidImGui()
@@ -1106,6 +1114,8 @@ int initImGui(lua_State* L)
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
     ::application = application->getApplication();
 
+    autoUpdateCursor = false;
+
     // init ImGui itself
     ImGui::CreateContext();
 
@@ -1149,8 +1159,10 @@ int initImGui(lua_State* L)
     io.Fonts->TexID = (void* )texture;
 
     Binder binder(L);
-    GidImGui* imgui = new GidImGui(application, L);
+    GidImGui* imgui = new GidImGui(application, L, luaL_optboolean(L, 1, 1), luaL_optboolean(L, 2, 1));
     binder.pushInstance(CLASS_NAME, imgui->proxy);
+
+    imgui->eventListener->applicationResize(nullptr);
 
     luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
     lua_pushvalue(L, -2);
@@ -1302,8 +1314,14 @@ int NewFrame(lua_State* L)
     return 0;
 }
 
-int Render(lua_State* _UNUSED(L))
+int Render(lua_State* L)
 {
+    if (autoUpdateCursor)
+    {
+        ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+        const char* cursorName = GIDEROS_CURSORS_MAP[cursor];
+        setApplicationCursor(L, cursorName);
+    }
     ImGui::Render();
     return 0;
 }
@@ -1348,46 +1366,12 @@ int Begin(lua_State* L)
 
     if (p_open != NULL)
     {
-        lua_pushboolean(L, p_open ? true : false);
+        lua_pushboolean(L, *p_open);
         lua_pushboolean(L, draw_flag);
         return 2;
     }
     lua_pushboolean(L, draw_flag);
     return 1;
-}
-
-int Begin_(lua_State* L)
-{
-    const char* name = luaL_checkstring(L, 2);
-
-    switch(lua_type(L, 3))
-    {
-    case LUA_TBOOLEAN:
-    {
-        bool p_open = lua_toboolean(L, 3) > 0;
-        ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-        bool draw_flag = ImGui::Begin(name, &p_open, flags);
-
-        lua_pushboolean(L, p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
-    }
-        break;
-    case LUA_TNIL:
-    {
-        ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-        lua_pushboolean(L, ImGui::Begin(name, NULL, flags));
-        return 1;
-    }
-        break;
-    default:
-    {
-        lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
-        lua_error(L);
-        return 0;
-    }
-        break;
-    }
 }
 
 int End(lua_State* _UNUSED(L))
@@ -1403,12 +1387,15 @@ int BeginFullScreenWindow(lua_State* L)
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
     flags |= ImGuiWindowFlags_FullScreen;
 
-    bool p_open;
+    bool* p_open;
 
     switch(lua_type(L, 3))
     {
         case LUA_TBOOLEAN:
-            p_open = lua_toboolean(L, 3);
+            {
+                bool t = lua_toboolean(L, 3);
+                p_open = &t;
+            }
             break;
         case LUA_TNIL:
             p_open = NULL;
@@ -1422,7 +1409,6 @@ int BeginFullScreenWindow(lua_State* L)
             break;
     }
 
-
     ImGuiIO& IO = ImGui::GetIO();
 
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
@@ -1432,13 +1418,13 @@ int BeginFullScreenWindow(lua_State* L)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-    bool draw_flag = ImGui::Begin(name, &p_open, flags);
+    bool draw_flag = ImGui::Begin(name, p_open, flags);
 
     ImGui::PopStyleVar(3);
 
     if (p_open != NULL)
     {
-        lua_pushboolean(L, p_open);
+        lua_pushboolean(L, *p_open);
         lua_pushboolean(L, draw_flag);
         return 2;
     }
@@ -1461,7 +1447,7 @@ int BeginChild(lua_State* L)
     }
     else
     {
-        ImGuiID id = luaL_checkinteger(L, 2);
+        ImGuiID id = checkID(L);
         result = ImGui::BeginChild(id, size, border, flags);
     }
 
@@ -2164,14 +2150,6 @@ int GetID(lua_State* L)
 
 // Widgets: Text
 
-int TextUnformatted(lua_State* L)
-{
-    const char* text = luaL_checkstring(L, 2);
-    const char* text_end = luaL_optstring(L, 3, NULL);
-    ImGui::TextUnformatted(text, text_end);
-    return 0;
-}
-
 int Text(lua_State* L)
 {
     const char* text = luaL_checkstring(L, 2);
@@ -2253,7 +2231,7 @@ int ArrowButton(lua_State* L)
 
 int Image(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
     ImVec4 border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
@@ -2266,7 +2244,7 @@ int Image(lua_State* L)
 
 int ImageFilled(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
     ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
@@ -2280,7 +2258,7 @@ int ImageFilled(lua_State* L)
 
 int ImageButton(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     int frame_padding = luaL_optinteger(L, 5, -1);
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
@@ -2297,7 +2275,7 @@ int ImageButton(lua_State* L)
 
 int ImageButtonWithText(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     const char* label = luaL_checkstring(L, 3);
     ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     int frame_padding = luaL_optinteger(L, 6, -1);
@@ -4039,7 +4017,7 @@ int SetTabItemClosed(lua_State* L)
 
 int DockSpace(lua_State* L)
 {
-    ImGuiID id = luaL_checkinteger(L, 2);
+    ImGuiID id = checkID(L);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImGuiDockNodeFlags flags = luaL_optinteger(L, 5, 0);
     ImGui::DockSpace(id, size, flags);
@@ -4055,7 +4033,8 @@ int DockSpaceOverViewport(lua_State* L)
 
 int SetNextWindowDockID(lua_State* L)
 {
-    ImGuiID dock_id = luaL_checkinteger(L, 2);
+    ImGuiID dock_id = checkID(L);
+
     ImGuiCond cond = luaL_optinteger(L, 3, 0);
     ImGui::SetNextWindowDockID(dock_id, cond);
     return 0;
@@ -4110,32 +4089,22 @@ void lua_setintfield(lua_State* L, int idx, int index)
 int DockBuilderDockWindow(lua_State* L)
 {
     const char* window_name = luaL_checkstring(L, 2);
-    lua_Number node_id = luaL_checknumber(L, 3);
-    ImGui::DockBuilderDockWindow(window_name, (ImGuiID)node_id);
+    ImGuiID node_id = checkID(L, 3);
+    ImGui::DockBuilderDockWindow(window_name, node_id);
     return 0;
 }
 
 int DockBuilderCheckNode(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
-    ImGuiDockNode* node = ImGui::DockBuilderGetNode((ImGuiID)node_id);
+    ImGuiID node_id = checkID(L);
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
     lua_pushboolean(L, node != nullptr);
     return 1;
 }
 
-/*
-    int DockBuilderGetNode(lua_State* L)
-    {
-        ImGuiID node_id = luaL_checkinteger(L, 2);
-        ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
-        createDockNodeTable(L, node);
-        return 1;
-    }
-    */
-
 int DockBuilderSetNodePos(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGuiID node_id = checkID(L);
     ImVec2 pos = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImGui::DockBuilderSetNodePos((ImGuiID)node_id, pos);
     return 0;
@@ -4143,7 +4112,7 @@ int DockBuilderSetNodePos(lua_State* L)
 
 int DockBuilderSetNodeSize(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGuiID node_id = checkID(L);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImGui::DockBuilderSetNodeSize((ImGuiID)node_id, size);
     return 0;
@@ -4151,37 +4120,37 @@ int DockBuilderSetNodeSize(lua_State* L)
 
 int DockBuilderAddNode(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
+    ImGuiID node_id = checkID(L);
     ImGuiDockNodeFlags flags = luaL_optinteger(L, 3, 0);
-    lua_pushnumber(L, ImGui::DockBuilderAddNode((ImGuiID)node_id, flags));
+    lua_pushnumber(L, ImGui::DockBuilderAddNode(node_id, flags));
     return 1;
 }
 
 int DockBuilderRemoveNode(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
-    ImGui::DockBuilderRemoveNode((ImGuiID)node_id);
+    ImGuiID node_id = checkID(L);
+    ImGui::DockBuilderRemoveNode(node_id);
     return 0;
 }
 
 int DockBuilderRemoveNodeChildNodes(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
-    ImGui::DockBuilderRemoveNodeChildNodes((ImGuiID)node_id);
+    ImGuiID node_id = checkID(L, 2);
+    ImGui::DockBuilderRemoveNodeChildNodes(node_id);
     return 0;
 }
 
 int DockBuilderRemoveNodeDockedWindows(lua_State* L)
 {
-    lua_Number node_id = luaL_checknumber(L, 2);
+    lua_Number node_id = checkID(L);
     bool clear_settings_refs = lua_toboolean(L, 3);
-    ImGui::DockBuilderRemoveNodeDockedWindows((ImGuiID)node_id, clear_settings_refs);
+    ImGui::DockBuilderRemoveNodeDockedWindows(node_id, clear_settings_refs);
     return 0;
 }
 
 int DockBuilderSplitNode(lua_State* L)
 {
-    lua_Number id = luaL_checknumber(L, 2);
+    ImGuiID id = checkID(L);
     ImGuiDir split_dir = luaL_checkinteger(L, 3);
     float size_ratio_for_node_at_dir = luaL_checknumber(L, 4);
     ImGuiID* out_id_at_dir;
@@ -4191,7 +4160,7 @@ int DockBuilderSplitNode(lua_State* L)
         out_id_at_dir = NULL;
     else
     {
-        ImGuiID id = luaL_checkinteger(L, 5);
+        ImGuiID id = checkID(L, 5);
         out_id_at_dir = &id;
     }
 
@@ -4199,11 +4168,11 @@ int DockBuilderSplitNode(lua_State* L)
         out_id_at_opposite_dir = NULL;
     else
     {
-        ImGuiID id = luaL_checkinteger(L, 6);
+        ImGuiID id = checkID(L, 6);
         out_id_at_opposite_dir = &id;
     }
 
-    lua_pushinteger(L, ImGui::DockBuilderSplitNode((ImGuiID)id, split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir));
+    lua_pushinteger(L, ImGui::DockBuilderSplitNode(id, split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir));
     if (out_id_at_dir == nullptr)
         lua_pushnil(L);
     else
@@ -4219,8 +4188,8 @@ int DockBuilderSplitNode(lua_State* L)
 // TODO
 int DockBuilderCopyNode(lua_State* L)
 {
-    ImGuiID src_node_id = luaL_checkinteger(L, 2);
-    ImGuiID dst_node_id = luaL_checkinteger(L, 3);
+    ImGuiID src_node_id = checkID(L);
+    ImGuiID dst_node_id = checkID(L, 3);
     ImVector<ImGuiID>* out_node_remap_pairs;
 
     ImGui::DockBuilderCopyNode(src_node_id, dst_node_id, out_node_remap_pairs);
@@ -4237,8 +4206,8 @@ int DockBuilderCopyWindowSettings(lua_State* L)
 
 int DockBuilderCopyDockSpace(lua_State* L)
 {
-    ImGuiID src_dockspace_id = luaL_checkinteger(L, 2);
-    ImGuiID dst_dockspace_id = luaL_checkinteger(L, 3);
+    ImGuiID src_dockspace_id = checkID(L);
+    ImGuiID dst_dockspace_id = checkID(L, 3);
     ImVector<const char*>* in_window_remap_pairs;
     ImGui::DockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id, in_window_remap_pairs);
     return 0;
@@ -4246,9 +4215,395 @@ int DockBuilderCopyDockSpace(lua_State* L)
 
 int DockBuilderFinish(lua_State* L)
 {
-    ImGuiID node_id = luaL_checkinteger(L, 2);
+    ImGuiID node_id = checkID(L);
     ImGui::DockBuilderFinish(node_id);
     return 0;
+}
+
+// TODO
+ImGuiDockNode* getDockNode(lua_State* L, int index = 1)
+{
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", index));
+    return node;
+}
+
+int DockBuilderGetNode(lua_State* L)
+{
+    ImGuiID node_id = checkID(L, 2);
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
+    if (!node)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+    Binder binder(L);
+    binder.pushInstance("ImGuiDockNode", node);
+    return 1;
+}
+
+int DockBuilder_Node_GetID(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->ID);
+    return 1;
+}
+
+int DockBuilder_Node_GetSharedFlags(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->SharedFlags);
+    return 1;
+}
+
+int DockBuilder_Node_GetLocalFlags(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->LocalFlags);
+    return 1;
+}
+
+int DockBuilder_Node_GetParentNode(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+    binder.pushInstance("ImGuiDockNode", node->ParentNode);
+    return 1;
+}
+
+int DockBuilder_Node_GetChildNodes(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+    binder.pushInstance("ImGuiDockNode", node->ChildNodes[0]);
+    binder.pushInstance("ImGuiDockNode", node->ChildNodes[1]);
+    return 2;
+}
+
+/*
+int DockBuilder_Node_GetWindows(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->Windows);
+    return 1;
+}
+
+int DockBuilder_Node_GetTabBar(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->TabBar);
+    return 1;
+}
+*/
+
+int DockBuilder_Node_GetPos(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->Pos.x);
+    lua_pushnumber(L, node->Pos.y);
+    return 2;
+}
+
+int DockBuilder_Node_GetSize(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->Size.x);
+    lua_pushnumber(L, node->Size.y);
+    return 2;
+}
+
+int DockBuilder_Node_GetSizeRef(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->SizeRef.x);
+    lua_pushnumber(L, node->SizeRef.y);
+    return 2;
+}
+
+int DockBuilder_Node_GetSplitAxis(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->SplitAxis);
+    return 1;
+}
+
+/*
+int DockBuilder_Node_GetWindowClass(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->WindowClass);
+    return 1;
+}
+*/
+
+int DockBuilder_Node_GetState(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->State);
+    return 1;
+}
+
+/*
+int DockBuilder_Node_GetHostWindow(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->HostWindow);
+    return 1;
+}
+
+int DockBuilder_Node_GetVisibleWindow(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->VisibleWindow);
+    return 1;
+}
+*/
+
+int DockBuilder_Node_GetCentralNode(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+    if (!node)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+    binder.pushInstance("ImGuiDockNode", node->CentralNode);
+    return 1;
+}
+
+int DockBuilder_Node_GetOnlyNodeWithWindows(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+    if (!node)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+    binder.pushInstance("ImGuiDockNode", node->OnlyNodeWithWindows);
+    return 1;
+}
+
+int DockBuilder_Node_GetLastFrameAlive(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->LastFrameAlive);
+    return 1;
+}
+
+int DockBuilder_Node_GetLastFrameActive(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->LastFrameActive);
+    return 1;
+}
+
+int DockBuilder_Node_GetLastFrameFocused(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->LastFrameFocused);
+    return 1;
+}
+
+int DockBuilder_Node_GetLastFocusedNodeId(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->LastFocusedNodeId);
+    return 1;
+}
+
+int DockBuilder_Node_GetSelectedTabId(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->SelectedTabId);
+    return 1;
+}
+
+int DockBuilder_Node_WantCloseTabId(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->WantCloseTabId);
+    return 1;
+}
+
+int DockBuilder_Node_GetAuthorityForPos(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->AuthorityForPos);
+    return 1;
+}
+
+int DockBuilder_Node_GetAuthorityForSize(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->AuthorityForSize);
+    return 1;
+}
+
+int DockBuilder_Node_GetAuthorityForViewport(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushnumber(L, node->AuthorityForViewport);
+    return 1;
+}
+
+int DockBuilder_Node_IsVisible(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsVisible);
+    return 1;
+}
+
+int DockBuilder_Node_IsFocused(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsFocused);
+    return 1;
+}
+
+int DockBuilder_Node_HasCloseButton(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->HasCloseButton);
+    return 1;
+}
+
+int DockBuilder_Node_HasWindowMenuButton(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->HasWindowMenuButton);
+    return 1;
+}
+
+int DockBuilder_Node_EnableCloseButton(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->EnableCloseButton);
+    return 1;
+}
+
+int DockBuilder_Node_WantCloseAll(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->WantCloseAll);
+    return 1;
+}
+
+int DockBuilder_Node_WantLockSizeOnce(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->WantLockSizeOnce);
+    return 1;
+}
+
+int DockBuilder_Node_WantMouseMove(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->WantMouseMove);
+    return 1;
+}
+
+int DockBuilder_Node_WantHiddenTabBarUpdate(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->WantHiddenTabBarUpdate);
+    return 1;
+}
+
+int DockBuilder_Node_WantHiddenTabBarToggle(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->WantHiddenTabBarToggle);
+    return 1;
+}
+
+int DockBuilder_Node_MarkedForPosSizeWrite(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->MarkedForPosSizeWrite);
+    return 1;
+}
+
+int DockBuilder_Node_IsRootNode(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsRootNode());
+    return 1;
+}
+
+int DockBuilder_Node_IsDockSpace(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsDockSpace());
+    return 1;
+}
+
+int DockBuilder_Node_IsFloatingNode(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsFloatingNode());
+    return 1;
+}
+
+int DockBuilder_Node_IsCentralNode(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsCentralNode());
+    return 1;
+}
+
+int DockBuilder_Node_IsHiddenTabBar(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsHiddenTabBar());
+    return 1;
+}
+
+int DockBuilder_Node_IsNoTabBar(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsNoTabBar());
+    return 1;
+}
+
+int DockBuilder_Node_IsSplitNode(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsSplitNode());
+    return 1;
+}
+
+int DockBuilder_Node_IsLeafNode(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsLeafNode());
+    return 1;
+}
+
+int DockBuilder_Node_IsEmpty(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->IsEmpty());
+    return 1;
+}
+
+int DockBuilder_Node_GetMergedFlags(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    lua_pushboolean(L, node->GetMergedFlags());
+    return 1;
+}
+
+int DockBuilder_Node_Rect(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    ImRect rect = node->Rect();
+    lua_pushnumber(L, rect.Min.x);
+    lua_pushnumber(L, rect.Min.y);
+    lua_pushnumber(L, rect.Max.x);
+    lua_pushnumber(L, rect.Max.y);
+    return 4;
 }
 
 #endif // IMGUI_HAS_DOCK
@@ -4264,6 +4619,9 @@ int LogToTTY(lua_State* L)
 int LogToFile(lua_State* L)
 {
     int auto_open_depth = luaL_optinteger(L, 2, -1);
+
+    ImGuiIO& io = ImGui::GetIO();
+    LUA_ASSERT(L, io.LogFilename != NULL, "Log to file is disabled! Use ImGui:setLogFilename(filename) first.");
 
     if (lua_gettop(L) < 2 || lua_isnil(L, 3))
         ImGui::LogToFile(auto_open_depth, NULL);
@@ -4554,7 +4912,8 @@ int CalcListClipping(lua_State* L)
 
 int BeginChildFrame(lua_State* L)
 {
-    ImGuiID id = luaL_checkinteger(L, 2);
+
+    ImGuiID id = checkID(L);
     ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImGuiWindowFlags flags = luaL_optinteger(L, 5, 0);
 
@@ -4737,15 +5096,6 @@ int SetMouseCursor(lua_State* L)
 {
     ImGuiMouseCursor cursor_type = luaL_checkinteger(L, 2);
     ImGui::SetMouseCursor(cursor_type);
-    return 0;
-}
-
-// @MultiPain
-int UpdateGiderosMouseCursor(lua_State* L)
-{
-    ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
-    const char* cursorName = GIDEROS_CURSORS_MAP[cursor];
-    setApplicationCursor(L, cursorName);
     return 0;
 }
 
@@ -5914,7 +6264,10 @@ int IO_GetLogFilename(lua_State* L)
 int IO_SetLogFilename(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-    io.LogFilename = luaL_optstring(L, 2, "imgui_log.txt");
+    if (lua_gettop(L) == 2 && lua_isnil(L, 2))
+        io.LogFilename = NULL;
+    else
+        io.LogFilename = luaL_checkstring(L, 2);
     return 0;
 }
 
@@ -6954,7 +7307,7 @@ int DrawList_AddBezierCurve(lua_State* L)
 
 int DrawList_AddImage(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
     ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
@@ -6968,7 +7321,7 @@ int DrawList_AddImage(lua_State* L)
 
 int DrawList_AddImageQuad(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     ImVec2 p1 = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 7), luaL_checknumber(L, 8));
@@ -6991,7 +7344,7 @@ int DrawList_AddImageQuad(lua_State* L)
 
 int DrawList_AddImageRounded(lua_State* L)
 {
-    MyTextureData data = getTexture(L, 2);
+    GTextureData data = getTexture(L, 2);
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, 1.0f));
@@ -7097,6 +7450,19 @@ int DrawList_PathRect(lua_State* L)
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
+
+int SetAutoUpdateCursor(lua_State* L)
+{
+    autoUpdateCursor = lua_toboolean(L, 2);
+    return 0;
+}
+
+int GetAutoUpdateCursor(lua_State* L)
+{
+
+    lua_pushboolean(L, autoUpdateCursor);
+    return 1;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -7269,18 +7635,18 @@ int ShowLuaStyleEditor(lua_State* L)
 
     switch (lua_type(L, 3))
     {
-    case LUA_TBOOLEAN:
-    {
-        bool p_open = lua_toboolean(L, 2);
-        DrawLuaStyleEditor(title, &p_open, window_flags);
-        lua_pushboolean(L, p_open);
-        return 1;
-    };
-    default:
-    {
-        DrawLuaStyleEditor(title, NULL, window_flags);
-        return 0;
-    }
+        case LUA_TBOOLEAN:
+        {
+            bool p_open = lua_toboolean(L, 2);
+            DrawLuaStyleEditor(title, &p_open, window_flags);
+            lua_pushboolean(L, p_open);
+            return 1;
+        };
+        default:
+        {
+            DrawLuaStyleEditor(title, NULL, window_flags);
+            return 0;
+        }
     }
 
     return 0;
@@ -7696,13 +8062,73 @@ int loader(lua_State* L)
     };
     binder.createClass(FONT_CLASS_NAME, 0, NULL, NULL, imguiFontFunctionList);
 
+#ifdef IMGUI_HAS_DOCK
+    const luaL_Reg imguiDockNodeFunctionList[] = {
+        {"getID", ImGui_impl::DockBuilder_Node_GetID},
+        {"getSharedFlags", ImGui_impl::DockBuilder_Node_GetSharedFlags},
+        {"getLocalFlags", ImGui_impl::DockBuilder_Node_GetLocalFlags},
+        {"getParentNode", ImGui_impl::DockBuilder_Node_GetParentNode},
+        {"getChildNodes", ImGui_impl::DockBuilder_Node_GetChildNodes},
+        //{"getWindows", ImGui_impl::DockBuilder_Node_GetWindows},
+        {"getTabBar", ImGui_impl::DockBuilder_Node_GetTabBar},
+        {"getPos", ImGui_impl::DockBuilder_Node_GetPos},
+        {"getSize", ImGui_impl::DockBuilder_Node_GetSize},
+        {"getSizeRef", ImGui_impl::DockBuilder_Node_GetSizeRef},
+        {"getSplitAxis", ImGui_impl::DockBuilder_Node_GetSplitAxis},
+        //{"getWindowClass", ImGui_impl::DockBuilder_Node_GetWindowClass},
+        {"getState", ImGui_impl::DockBuilder_Node_GetState},
+        //{"getHostWindow", ImGui_impl::DockBuilder_Node_GetHostWindow},
+        //{"getVisibleWindow", ImGui_impl::DockBuilder_Node_GetVisibleWindow},
+        {"getCentralNode", ImGui_impl::DockBuilder_Node_GetCentralNode},
+        {"getOnlyNodeWithWindows", ImGui_impl::DockBuilder_Node_GetOnlyNodeWithWindows},
+        {"getLastFrameAlive", ImGui_impl::DockBuilder_Node_GetLastFrameAlive},
+        {"getLastFrameActive", ImGui_impl::DockBuilder_Node_GetLastFrameActive},
+        {"getLastFrameFocused", ImGui_impl::DockBuilder_Node_GetLastFrameFocused},
+        {"getLastFocusedNodeId", ImGui_impl::DockBuilder_Node_GetLastFocusedNodeId},
+        {"getSelectedTabId", ImGui_impl::DockBuilder_Node_GetSelectedTabId},
+        {"getWantCloseTabId", ImGui_impl::DockBuilder_Node_WantCloseTabId},
+        {"getAuthorityForPos", ImGui_impl::DockBuilder_Node_GetAuthorityForPos},
+        {"getAuthorityForSize", ImGui_impl::DockBuilder_Node_GetAuthorityForSize},
+        {"getAuthorityForViewport", ImGui_impl::DockBuilder_Node_GetAuthorityForViewport},
+        {"getIsVisible", ImGui_impl::DockBuilder_Node_IsVisible},
+        {"getIsFocused", ImGui_impl::DockBuilder_Node_IsFocused},
+        {"getHasCloseButton", ImGui_impl::DockBuilder_Node_HasCloseButton},
+        {"getHasWindowMenuButton", ImGui_impl::DockBuilder_Node_HasWindowMenuButton},
+        {"getEnableCloseButton", ImGui_impl::DockBuilder_Node_EnableCloseButton},
+        {"getWantCloseAll", ImGui_impl::DockBuilder_Node_WantCloseAll},
+        {"getWantLockSizeOnce", ImGui_impl::DockBuilder_Node_WantLockSizeOnce},
+        {"getWantMouseMove", ImGui_impl::DockBuilder_Node_WantMouseMove},
+        {"getWantHiddenTabBarUpdate", ImGui_impl::DockBuilder_Node_WantHiddenTabBarUpdate},
+        {"getWantHiddenTabBarToggle", ImGui_impl::DockBuilder_Node_WantHiddenTabBarToggle},
+        {"getMarkedForPosSizeWrite", ImGui_impl::DockBuilder_Node_MarkedForPosSizeWrite},
+
+        {"isRootNode", ImGui_impl::DockBuilder_Node_IsRootNode},
+        {"isDockSpace", ImGui_impl::DockBuilder_Node_IsDockSpace},
+        {"isFloatingNode", ImGui_impl::DockBuilder_Node_IsFloatingNode},
+        {"isCentralNode", ImGui_impl::DockBuilder_Node_IsCentralNode},
+        {"isHiddenTabBar", ImGui_impl::DockBuilder_Node_IsHiddenTabBar},
+        {"isNoTabBar", ImGui_impl::DockBuilder_Node_IsNoTabBar},
+        {"isSplitNode", ImGui_impl::DockBuilder_Node_IsSplitNode},
+        {"isLeafNode", ImGui_impl::DockBuilder_Node_IsLeafNode},
+        {"isEmpty", ImGui_impl::DockBuilder_Node_IsEmpty},
+        {"getMergedFlags", ImGui_impl::DockBuilder_Node_GetMergedFlags},
+        {"rect", ImGui_impl::DockBuilder_Node_Rect},
+        {NULL, NULL}
+    };
+    binder.createClass("ImGuiDockNode", 0, NULL, NULL, imguiDockNodeFunctionList);
+#endif
+
     const luaL_Reg imguiFunctionList[] =
     {
+        {"setAutoUpdateCursor", ImGui_impl::SetAutoUpdateCursor},
+        {"getAutoUpdateCursor", ImGui_impl::GetAutoUpdateCursor},
+
         // Fonts API
         {"pushFont", ImGui_impl::Fonts_PushFont},
         {"popFont", ImGui_impl::Fonts_PopFont},
 
         {"setStyleColor", ImGui_impl::Style_old_SetColor}, // Backward capability
+
         // Draw list
         {"getStyle", ImGui_impl::GetStyle},
         {"getWindowDrawList", ImGui_impl::GetWindowDrawList},
@@ -7831,7 +8257,6 @@ int loader(lua_State* L)
         {"popID", ImGui_impl::PopID},
         {"getID", ImGui_impl::GetID},
 
-        {"textUnformatted", ImGui_impl::TextUnformatted},
         {"text", ImGui_impl::Text},
         {"textColored", ImGui_impl::TextColored},
         {"textDisabled", ImGui_impl::TextDisabled},
@@ -8040,7 +8465,6 @@ int loader(lua_State* L)
         {"resetMouseDragDelta", ImGui_impl::ResetMouseDragDelta},
         {"getMouseCursor", ImGui_impl::GetMouseCursor},
         {"setMouseCursor", ImGui_impl::SetMouseCursor},
-        {"updateMouseCursor", ImGui_impl::UpdateGiderosMouseCursor},
         {"captureMouseFromApp", ImGui_impl::CaptureMouseFromApp},
 
         // Windows
