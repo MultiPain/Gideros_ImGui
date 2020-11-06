@@ -3,12 +3,6 @@
 #define _UNUSED(n)
 #define PLUGIN_NAME "ImGui_beta_docking"
 #define CLASS_NAME "ImGui"
-#define IO_CLASS_NAME "ImGuiIO"
-#define FONT_ATLAS_CLASS_NAME "ImFontAtlas"
-#define FONT_CLASS_NAME "ImFont"
-#define DRAW_LIST_CLASS_NAME "ImDrawList"
-#define STYLES_CLASS_NAME "ImGuiStyle"
-#define DOCK_NODE_CLASS_NAME "ImGuiDockNode"
 
 #include "gplugin.h"
 #include "gfile.h"
@@ -71,10 +65,12 @@ static void LUA_FASSERT(lua_State* L, bool EXP, const char* FMT, ...)
 {
     if (!(EXP))
     {
+        static char result[256];
         va_list args;
         va_start(args, FMT);
-        lua_pushstring(L, va_arg(args, const char*));
+        vsnprintf(result, sizeof result, FMT, args);
         va_end(args);
+        lua_pushstring(L, result);
         lua_error(L);
     }
 }
@@ -1181,6 +1177,7 @@ int initImGui(lua_State* L)
 int destroyImGui(lua_State* L)
 {
     ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->ClearTexData();
     ImGui::DestroyContext();
     if (io.MouseDrawCursor)
         setApplicationCursor(L, "arrow");
@@ -4446,7 +4443,7 @@ int TabBar_GetTabs(lua_State* L)
     for (int i = 0; i < count; i++)
     {
         binder.pushInstance("ImGuiTabItem", &tabBar->Tabs[i]);
-        lua_setintfield(L, -2, i + 1);
+        lua_rawseti(L, -2, i + 1);
     }
     return 1;
 }
@@ -5678,14 +5675,14 @@ int GetStyle(lua_State* L)
     Binder binder(L);
 
     ImGuiStyle* style = &ImGui::GetStyle();
-    binder.pushInstance(STYLES_CLASS_NAME, style);
+    binder.pushInstance("ImGuiStyle", style);
     return 1;
 }
 
 ImGuiStyle& getStyle(lua_State* L)
 {
     Binder binder(L);
-    ImGuiStyle &style = *(static_cast<ImGuiStyle*>(binder.getInstance(STYLES_CLASS_NAME, 1)));
+    ImGuiStyle &style = *(static_cast<ImGuiStyle*>(binder.getInstance("ImGuiStyle", 1)));
     return style;
 }
 
@@ -6291,13 +6288,13 @@ int Style_GetAntiAliasedFill(lua_State* L)
 ImFontAtlas* getFontAtlas(lua_State* L, int index = 1)
 {
     Binder binder(L);
-    return static_cast<ImFontAtlas*>(binder.getInstance(FONT_ATLAS_CLASS_NAME, index));
+    return static_cast<ImFontAtlas*>(binder.getInstance("ImFontAtlas", index));
 }
 
 ImFont* getFont(lua_State* L, int index = 1)
 {
     Binder binder(L);
-    ImFont* font = static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, index));
+    ImFont* font = static_cast<ImFont*>(binder.getInstance("ImFont", index));
     LUA_ASSERT(L, font, "Font is nil!");
     return font;
 }
@@ -6305,14 +6302,14 @@ ImFont* getFont(lua_State* L, int index = 1)
 ImGuiIO& getIO(lua_State* L, int index = 1)
 {
     Binder binder(L);
-    ImGuiIO &io = *(static_cast<ImGuiIO*>(binder.getInstance(IO_CLASS_NAME, index)));
+    ImGuiIO &io = *(static_cast<ImGuiIO*>(binder.getInstance("ImGuiIO", index)));
     return io;
 }
 
 int GetIO(lua_State* L)
 {
     Binder binder(L);
-    binder.pushInstance(IO_CLASS_NAME, &ImGui::GetIO());
+    binder.pushInstance("ImGuiIO", &ImGui::GetIO());
     return 1;
 }
 
@@ -6388,7 +6385,7 @@ int IO_GetFonts(lua_State* L)
     ImGuiIO& io = getIO(L);
 
     Binder binder(L);
-    binder.pushInstance(FONT_ATLAS_CLASS_NAME, io.Fonts);
+    binder.pushInstance("ImFontAtlas", io.Fonts);
     return 1;
 }
 
@@ -6966,7 +6963,7 @@ FontData getFontData(lua_State* L, const char* filename)
 int Fonts_PushFont(lua_State* L)
 {
     Binder binder(L);
-    ImFont* font = static_cast<ImFont*>(binder.getInstance(FONT_CLASS_NAME, 2));
+    ImFont* font = static_cast<ImFont*>(binder.getInstance("ImFont", 2));
     LUA_ASSERT(L, font, "Font is nil");
     ImGui::PushFont(font);
     return 0;
@@ -7165,7 +7162,7 @@ int FontAtlas_AddFont(lua_State* L)
 
     ImFont* font = addFont(atlas, file_name, size_pixels, font_cfg);
     Binder binder(L);
-    binder.pushInstance(FONT_CLASS_NAME, font);
+    binder.pushInstance("ImFont", font);
     return 1;
 }
 
@@ -7222,14 +7219,14 @@ int FontAtlas_GetFontByIndex(lua_State* L)
     ImFont* font = atlas->Fonts[index];
     LUA_ASSERT(L, font, "Font is nil");
     Binder binder(L);
-    binder.pushInstance(FONT_CLASS_NAME, font);
+    binder.pushInstance("ImFont", font);
     return 1;
 }
 
 int FontAtlas_GetCurrentFont(lua_State* L)
 {
     Binder binder(L);
-    binder.pushInstance(FONT_CLASS_NAME, ImGui::GetFont());
+    binder.pushInstance("ImFont", ImGui::GetFont());
     return 1;
 }
 
@@ -7337,7 +7334,7 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
     lua_pushnumber(L, rect->GlyphOffset.x);
     lua_pushnumber(L, rect->GlyphOffset.y);
     Binder binder(L);
-    binder.pushInstance(FONT_CLASS_NAME, rect->Font);
+    binder.pushInstance("ImFont", rect->Font);
     lua_pushboolean(L, rect->IsPacked());
     return 10;
 }
@@ -7354,7 +7351,7 @@ int GetWindowDrawList(lua_State* L)
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    binder.pushInstance(DRAW_LIST_CLASS_NAME, draw_list);
+    binder.pushInstance("ImDrawList", draw_list);
     return 1;
 }
 
@@ -7364,7 +7361,7 @@ int GetBackgroundDrawList(lua_State* L)
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
-    binder.pushInstance(DRAW_LIST_CLASS_NAME, draw_list);
+    binder.pushInstance("ImDrawList", draw_list);
     return 1;
 }
 
@@ -7374,14 +7371,14 @@ int GetForegroundDrawList(lua_State* L)
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    binder.pushInstance(DRAW_LIST_CLASS_NAME, draw_list);
+    binder.pushInstance("ImDrawList", draw_list);
     return 1;
 }
 
 ImDrawList* getDrawList(lua_State* L)
 {
     Binder binder(L);
-    return static_cast<ImDrawList*>(binder.getInstance(DRAW_LIST_CLASS_NAME, 1));
+    return static_cast<ImDrawList*>(binder.getInstance("ImDrawList", 1));
 }
 
 int DrawList_PushClipRect(lua_State* L)
@@ -8316,7 +8313,7 @@ int loader(lua_State* L)
 
         {NULL, NULL},
     };
-    binder.createClass(STYLES_CLASS_NAME, 0, NULL, NULL, imguiStylesFunctionList);
+    binder.createClass("ImGuiStyle", 0, NULL, NULL, imguiStylesFunctionList);
 
     const luaL_Reg imguiDrawListFunctionList[] =
     {
@@ -8359,7 +8356,7 @@ int loader(lua_State* L)
         {"pathRect", DrawList_PathRect},
         {NULL, NULL}
     };
-    binder.createClass(DRAW_LIST_CLASS_NAME, 0, NULL, NULL, imguiDrawListFunctionList);
+    binder.createClass("ImDrawList", 0, NULL, NULL, imguiDrawListFunctionList);
 
     const luaL_Reg imguiIoFunctionList[] =
     {
@@ -8449,7 +8446,7 @@ int loader(lua_State* L)
 
         {NULL, NULL}
     };
-    binder.createClass(IO_CLASS_NAME, 0, NULL, NULL, imguiIoFunctionList);
+    binder.createClass("ImGuiIO", 0, NULL, NULL, imguiIoFunctionList);
 
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
@@ -8470,12 +8467,12 @@ int loader(lua_State* L)
         {"getCustomRectByIndex", FontAtlas_GetCustomRectByIndex},
         {NULL, NULL}
     };
-    binder.createClass(FONT_ATLAS_CLASS_NAME, 0, NULL, NULL, imguiFontAtlasFunctionList);
+    binder.createClass("ImFontAtlas", 0, NULL, NULL, imguiFontAtlasFunctionList);
 
     const luaL_Reg imguiFontFunctionList[] = {
         {NULL, NULL}
     };
-    binder.createClass(FONT_CLASS_NAME, 0, NULL, NULL, imguiFontFunctionList);
+    binder.createClass("ImFont", 0, NULL, NULL, imguiFontFunctionList);
 
 #ifdef IMGUI_HAS_DOCK
     const luaL_Reg imguiDockNodeFunctionList[] = {
@@ -8569,7 +8566,6 @@ int loader(lua_State* L)
         {"getTabName", TabBar_GetTabName},
         {NULL, NULL}
     };
-
     binder.createClass("ImGuiTabBar", 0, NULL, NULL, imguiTabBarFunctionList);
 
     const luaL_Reg imguiTabItemFunctionList[] = {
@@ -8586,7 +8582,6 @@ int loader(lua_State* L)
         {"wantClose", TabItem_WantClose},
         {NULL, NULL}
     };
-
     binder.createClass("ImGuiTabItem", 0, NULL, NULL, imguiTabItemFunctionList);
 #endif
 
