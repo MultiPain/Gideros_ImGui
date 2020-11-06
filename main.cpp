@@ -4287,14 +4287,360 @@ int DockBuilder_Node_GetWindows(lua_State* L)
     lua_pushnumber(L, node->Windows);
     return 1;
 }
+*/
+ImGuiTabBar* getTabBar(lua_State* L, int idx = 1)
+{
+    Binder binder(L);
+    return static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", idx));
+}
 
 int DockBuilder_Node_GetTabBar(lua_State* L)
 {
-    ImGuiDockNode* node = getDockNode(L);
-    lua_pushnumber(L, node->TabBar);
+    Binder binder(L);
+    ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+
+    binder.pushInstance("ImGuiTabBar", node->TabBar);
     return 1;
 }
-*/
+
+/// TabItem +
+
+ImGuiTabItem* getTabItem(lua_State* L, int idx = 1)
+{
+    Binder binder(L);
+    return static_cast<ImGuiTabItem*>(binder.getInstance("ImGuiTabItem", idx));
+}
+
+int TabItem_GetID(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->ID);
+    return 1;
+}
+
+int TabItem_GetFlags(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->Flags);
+    return 1;
+}
+
+int TabItem_GetLastFrameVisible(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->LastFrameVisible);
+    return 1;
+}
+
+int TabItem_GetLastFrameSelected(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->LastFrameSelected);
+    return 1;
+}
+
+int TabItem_GetOffset(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->Offset);
+    return 1;
+}
+
+int TabItem_GetWidth(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->Width);
+    return 1;
+}
+
+int TabItem_GetContentWidth(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->ContentWidth);
+    return 1;
+}
+
+int TabItem_GetNameOffset(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->NameOffset);
+    return 1;
+}
+
+int TabItem_GetBeginOrder(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->BeginOrder);
+    return 1;
+}
+
+int TabItem_GetIndexDuringLayout(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushnumber(L, tabItem->IndexDuringLayout);
+    return 1;
+}
+
+int TabItem_WantClose(lua_State* L)
+{
+    ImGuiTabItem* tabItem = getTabItem(L);
+    lua_pushboolean(L, tabItem->WantClose);
+    return 1;
+}
+
+/// TabItem -
+
+/// TabBar +
+int TabBar_GetTabs(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
+    int count = tabBar->Tabs.Size;
+
+    lua_newtable(L);
+    int top = lua_gettop(L);
+    for (int i = 0; i < count; i++)
+    {
+        ImGuiTabItem item = tabBar->Tabs[i];
+        lua_pushinteger(L, i);
+        binder.pushInstance("ImGuiTabItem", &item);
+        lua_settable(L, top);
+    }
+    return 1;
+}
+
+int TabBar_GetFlags(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushinteger(L, tabBar->Flags);
+    return 1;
+}
+
+int TabBar_GetID(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ID);
+    return 1;
+}
+
+int TabBar_GetSelectedTabId(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->SelectedTabId);
+    return 1;
+}
+
+int TabBar_GetNextSelectedTabId(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->NextSelectedTabId);
+    return 0;
+}
+
+int TabBar_GetVisibleTabId(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->VisibleTabId);
+    return 0;
+}
+
+int TabBar_GetCurrFrameVisible(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->CurrFrameVisible);
+    return 0;
+}
+
+int TabBar_GetPrevFrameVisible(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->PrevFrameVisible);
+    return 0;
+}
+
+int TabBar_GetBarRect(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->BarRect.Min.x);
+    lua_pushnumber(L, tabBar->BarRect.Min.y);
+    lua_pushnumber(L, tabBar->BarRect.Max.x);
+    lua_pushnumber(L, tabBar->BarRect.Max.y);
+    return 4;
+}
+
+int TabBar_GetCurrTabsContentsHeight(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->CurrTabsContentsHeight);
+    return 1;
+}
+
+int TabBar_GetPrevTabsContentsHeight(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->PrevTabsContentsHeight);
+    return 1;
+}
+
+int TabBar_GetWidthAllTabs(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->WidthAllTabs);
+    return 1;
+}
+
+int TabBar_GetWidthAllTabsIdeal(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->WidthAllTabsIdeal);
+    return 1;
+}
+
+int TabBar_GetScrollingAnim(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingAnim);
+    return 1;
+}
+
+int TabBar_GetScrollingTarget(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingTarget);
+    return 1;
+}
+
+int TabBar_GetScrollingTargetDistToVisibility(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingTargetDistToVisibility);
+    return 1;
+}
+
+int TabBar_GetScrollingSpeed(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingSpeed);
+    return 1;
+}
+
+int TabBar_GetScrollingRectMinX(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingRectMinX);
+    return 1;
+}
+
+int TabBar_GetScrollingRectMaxX(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ScrollingRectMaxX);
+    return 1;
+}
+
+int TabBar_GetReorderRequestTabId(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ReorderRequestTabId);
+    return 1;
+}
+
+int TabBar_GetReorderRequestDir(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ReorderRequestDir);
+    return 1;
+}
+
+int TabBar_GetBeginCount(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->BeginCount);
+    return 1;
+}
+
+int TabBar_WantLayout(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushboolean(L, tabBar->WantLayout);
+    return 1;
+}
+
+int TabBar_VisibleTabWasSubmitted(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushboolean(L, tabBar->VisibleTabWasSubmitted);
+    return 1;
+}
+
+int TabBar_TabsAddedNew(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushboolean(L, tabBar->TabsAddedNew);
+    return 1;
+}
+
+int TabBar_GetTabsActiveCount(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->TabsActiveCount);
+    return 1;
+}
+
+int TabBar_GetLastTabItemIdx(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->LastTabItemIdx);
+    return 1;
+}
+
+int TabBar_GetItemSpacingY(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->ItemSpacingY);
+    return 1;
+}
+
+int TabBar_GetFramePadding(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->FramePadding.x);
+    lua_pushnumber(L, tabBar->FramePadding.y);
+    return 2;
+}
+
+int TabBar_GetBackupCursorPos(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushnumber(L, tabBar->BackupCursorPos.x);
+    lua_pushnumber(L, tabBar->BackupCursorPos.y);
+    return 2;
+}
+
+int TabBar_GetTabsNames(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    lua_pushstring(L, tabBar->TabsNames.c_str());
+    return 1;
+}
+
+int TabBar_GetTabOrder(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    ImGuiTabItem* tab; // TODO
+    lua_pushnumber(L, tabBar->GetTabOrder(tab));
+    return 1;
+}
+
+int TabBar_GetTabName(lua_State* L)
+{
+    ImGuiTabBar* tabBar = getTabBar(L);
+    ImGuiTabItem* tab; // TODO
+    lua_pushstring(L, tabBar->GetTabName(tab));
+    return 1;
+}
+
+/// TabBar -
 
 int DockBuilder_Node_GetPos(lua_State* L)
 {
@@ -8116,6 +8462,62 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     binder.createClass("ImGuiDockNode", 0, NULL, NULL, imguiDockNodeFunctionList);
+
+    const luaL_Reg imguiTabBarFunctionList[] = {
+        {"getTabs", ImGui_impl::TabBar_GetTabs},
+        {"getFlags", ImGui_impl::TabBar_GetFlags},
+        {"getID", ImGui_impl::TabBar_GetID},
+        {"getSelectedTabId", ImGui_impl::TabBar_GetSelectedTabId},
+        {"getNextSelectedTabId", ImGui_impl::TabBar_GetNextSelectedTabId},
+        {"getVisibleTabId", ImGui_impl::TabBar_GetVisibleTabId},
+        {"getCurrFrameVisible", ImGui_impl::TabBar_GetCurrFrameVisible},
+        {"getPrevFrameVisible", ImGui_impl::TabBar_GetPrevFrameVisible},
+        {"getBarRect", ImGui_impl::TabBar_GetBarRect},
+        {"getCurrTabsContentsHeight", ImGui_impl::TabBar_GetCurrTabsContentsHeight},
+        {"getPrevTabsContentsHeight", ImGui_impl::TabBar_GetPrevTabsContentsHeight},
+        {"getWidthAllTabs", ImGui_impl::TabBar_GetWidthAllTabs},
+        {"getWidthAllTabsIdeal", ImGui_impl::TabBar_GetWidthAllTabsIdeal},
+        {"getScrollingAnim", ImGui_impl::TabBar_GetScrollingAnim},
+        {"getScrollingTarget", ImGui_impl::TabBar_GetScrollingTarget},
+        {"getScrollingTargetDistToVisibility", ImGui_impl::TabBar_GetScrollingTargetDistToVisibility},
+        {"getScrollingSpeed", ImGui_impl::TabBar_GetScrollingSpeed},
+        {"getScrollingRectMinX", ImGui_impl::TabBar_GetScrollingRectMinX},
+        {"getScrollingRectMaxX", ImGui_impl::TabBar_GetScrollingRectMaxX},
+        {"getReorderRequestTabId", ImGui_impl::TabBar_GetReorderRequestTabId},
+        {"getReorderRequestDir", ImGui_impl::TabBar_GetReorderRequestDir},
+        {"getBeginCount", ImGui_impl::TabBar_GetBeginCount},
+        {"wantLayout", ImGui_impl::TabBar_WantLayout},
+        {"visibleTabWasSubmitted", ImGui_impl::TabBar_VisibleTabWasSubmitted},
+        {"getTabsAddedNew", ImGui_impl::TabBar_TabsAddedNew},
+        {"getTabsActiveCount", ImGui_impl::TabBar_GetTabsActiveCount},
+        {"getLastTabItemIdx", ImGui_impl::TabBar_GetLastTabItemIdx},
+        {"getItemSpacingY", ImGui_impl::TabBar_GetItemSpacingY},
+        {"getFramePadding", ImGui_impl::TabBar_GetFramePadding},
+        {"getBackupCursorPos", ImGui_impl::TabBar_GetBackupCursorPos},
+        {"getTabsNames", ImGui_impl::TabBar_GetTabsNames},
+        {"getTabOrder", ImGui_impl::TabBar_GetTabOrder},
+        {"getTabName", ImGui_impl::TabBar_GetTabName},
+        {NULL, NULL}
+    };
+
+    binder.createClass("ImGuiTabBar", 0, NULL, NULL, imguiTabBarFunctionList);
+
+    const luaL_Reg imguiTabItemFunctionList[] = {
+        {"getID", ImGui_impl::TabItem_GetID},
+        {"getFlags", ImGui_impl::TabItem_GetFlags},
+        {"getLastFrameVisible", ImGui_impl::TabItem_GetLastFrameVisible},
+        {"getLastFrameSelected", ImGui_impl::TabItem_GetLastFrameSelected},
+        {"getOffset", ImGui_impl::TabItem_GetOffset},
+        {"getWidth", ImGui_impl::TabItem_GetWidth},
+        {"getContentWidth", ImGui_impl::TabItem_GetContentWidth},
+        {"getNameOffset", ImGui_impl::TabItem_GetNameOffset},
+        {"getBeginOrder", ImGui_impl::TabItem_GetBeginOrder},
+        {"getIndexDuringLayout", ImGui_impl::TabItem_GetIndexDuringLayout},
+        {"wantClose", ImGui_impl::TabItem_WantClose},
+        {NULL, NULL}
+    };
+
+    binder.createClass("ImGuiTabItem", 0, NULL, NULL, imguiTabItemFunctionList);
 #endif
 
     const luaL_Reg imguiFunctionList[] =
