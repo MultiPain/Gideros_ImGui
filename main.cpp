@@ -52,6 +52,12 @@ namespace ImGui_impl
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
+static void LUA_THROW_ERROR(lua_State* L, const char* MSG)
+{
+    lua_pushstring(L, MSG);
+    lua_error(L);
+}
+
 static void LUA_ASSERT(lua_State* L, bool EXP, const char* MSG)
 {
     if (!(EXP))
@@ -90,7 +96,7 @@ static void stackDump(lua_State* L)
         case LUA_TSTRING:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d:`%s'", i, lua_tostring(L, i));
+            lua_pushfstring(L, "%d:'%s'", i, lua_tostring(L, i));
             lua_call(L, 1, 0);
         }
             break;
@@ -104,7 +110,7 @@ static void stackDump(lua_State* L)
         case LUA_TNUMBER:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d: %g", i, lua_tonumber(L, i));
+            lua_pushfstring(L, "%d: %d", i, lua_tonumber(L, i));
             lua_call(L, 1, 0);
         }
             break;
@@ -356,7 +362,7 @@ lua_Number getfield(lua_State* L, const char* key)
 ImGuiID checkID(lua_State* L, int idx = 2)
 {
     int id = luaL_checkinteger(L, idx);
-    LUA_ASSERT(L, id >= 0, "ID must be >= 0!");
+    //LUA_ASSERT(L, id >= 0, "ID must be >= 0!");
     return (ImGuiID)id;
 }
 
@@ -1341,26 +1347,28 @@ int Begin(lua_State* L)
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 
     bool* p_open;
-
-    switch(lua_type(L, 3))
-    {
-        case LUA_TBOOLEAN:
-            {
-                bool t = lua_toboolean(L, 3);
-                p_open = &t;
-            }
-            break;
-        case LUA_TNIL:
-            p_open = NULL;
-            break;
-        default:
-            {
-                lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
-                lua_error(L);
-                return 0;
-            }
-            break;
-    }
+    if (lua_gettop(L) > 2)
+        switch(lua_type(L, 3))
+        {
+            case LUA_TBOOLEAN:
+                {
+                    bool t = lua_toboolean(L, 3);
+                    p_open = &t;
+                }
+                break;
+            case LUA_TNIL:
+                p_open = NULL;
+                break;
+            default:
+                {
+                    lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
+                    lua_error(L);
+                    return 0;
+                }
+                break;
+        }
+    else
+        p_open = NULL;
 
     bool draw_flag = ImGui::Begin(name, p_open, flags);
 
@@ -3523,25 +3531,44 @@ int GetTreeNodeToLabelSpacing(lua_State* L)
     return 1;
 }
 
-// FIXME lua_type
 int CollapsingHeader(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
+    bool* p_open;
+    if (lua_gettop(L) > 2)
+        switch(lua_type(L, 3))
+        {
+            case LUA_TBOOLEAN:
+                {
+                    bool t = lua_toboolean(L, 3);
+                    p_open = &t;
+                }
+                break;
+            case LUA_TNIL:
+                p_open = NULL;
+                break;
+            default:
+                {
+                    lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
+                    lua_error(L);
+                    return 0;
+                }
+                break;
+        }
+    else
+        p_open = NULL;
+    ImGuiTreeNodeFlags flags = luaL_optinteger(L, 4, 0);
 
-    if (lua_type(L, 3) == LUA_TBOOLEAN)
+    bool flag = ImGui::CollapsingHeader(label, p_open, flags);
+
+    if (p_open != NULL)
     {
-        bool p_open = lua_toboolean(L, 3) > 0;
-        ImGuiTreeNodeFlags flags = luaL_optinteger(L, 4, 0);
-        lua_pushboolean(L, ImGui::CollapsingHeader(label, &p_open, flags));
-        lua_pushboolean(L, p_open);
+        lua_pushboolean(L, *p_open);
+        lua_pushboolean(L, flag);
         return 2;
     }
-    else
-    {
-        ImGuiTreeNodeFlags flags = luaL_optinteger(L, 3, 0);
-        lua_pushboolean(L, ImGui::CollapsingHeader(label, flags));
-        return 1;
-    }
+    lua_pushboolean(L, flag);
+    return 1;
 }
 
 int SetNextItemOpen(lua_State* L)
@@ -4015,6 +4042,11 @@ int SetTabItemClosed(lua_State* L)
 
 #ifdef IMGUI_HAS_DOCK
 
+/// TODO list:
+/// getTabs
+/// enums
+/// windows api?
+
 int DockSpace(lua_State* L)
 {
     ImGuiID id = checkID(L);
@@ -4185,7 +4217,7 @@ int DockBuilderSplitNode(lua_State* L)
     return 3;
 }
 
-// TODO
+// NOT TESTED
 int DockBuilderCopyNode(lua_State* L)
 {
     ImGuiID src_node_id = checkID(L);
@@ -4193,7 +4225,16 @@ int DockBuilderCopyNode(lua_State* L)
     ImVector<ImGuiID>* out_node_remap_pairs;
 
     ImGui::DockBuilderCopyNode(src_node_id, dst_node_id, out_node_remap_pairs);
-    return 0;
+
+    int count = out_node_remap_pairs->Size;
+
+    lua_createtable(L, count, 0);
+    for (int i = 0; i < count; i++)
+    {
+        lua_pushnumber(L, (*out_node_remap_pairs)[i]);
+        lua_setintfield(L, -2, i + 1);
+    }
+    return 1;
 }
 
 int DockBuilderCopyWindowSettings(lua_State* L)
@@ -4220,7 +4261,6 @@ int DockBuilderFinish(lua_State* L)
     return 0;
 }
 
-// TODO
 ImGuiDockNode* getDockNode(lua_State* L, int index = 1)
 {
     Binder binder(L);
@@ -4298,6 +4338,12 @@ int DockBuilder_Node_GetTabBar(lua_State* L)
 {
     Binder binder(L);
     ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+
+    if (node->TabBar == nullptr)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
 
     binder.pushInstance("ImGuiTabBar", node->TabBar);
     return 1;
@@ -4396,16 +4442,23 @@ int TabBar_GetTabs(lua_State* L)
     Binder binder(L);
     ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
     int count = tabBar->Tabs.Size;
-
-    lua_newtable(L);
-    int top = lua_gettop(L);
+    lua_createtable(L, count, 0);
     for (int i = 0; i < count; i++)
     {
-        ImGuiTabItem item = tabBar->Tabs[i];
-        lua_pushinteger(L, i);
-        binder.pushInstance("ImGuiTabItem", &item);
-        lua_settable(L, top);
+        binder.pushInstance("ImGuiTabItem", &tabBar->Tabs[i]);
+        lua_setintfield(L, -2, i + 1);
     }
+    return 1;
+}
+
+int TabBar_GetTab(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
+    int count = tabBar->Tabs.Size;
+    int index = luaL_checkinteger(L, 2) - 1;
+    LUA_ASSERT(L, index >= 0 && index <= count, "Tab index is out of bounds.");
+    binder.pushInstance("ImGuiTabItem", &tabBar->Tabs[index]);
     return 1;
 }
 
@@ -4626,16 +4679,33 @@ int TabBar_GetTabsNames(lua_State* L)
 
 int TabBar_GetTabOrder(lua_State* L)
 {
-    ImGuiTabBar* tabBar = getTabBar(L);
-    ImGuiTabItem* tab; // TODO
+    Binder binder(L);
+    LUA_ASSERT(L, binder.isInstanceOf("ImGuiTabBar", 1), "bad argument #1! ImGuiTabBar expected");
+    LUA_ASSERT(L, binder.isInstanceOf("ImGuiTabItem", 2), "bad argument #2! ImGuiTabItem expected");
+
+    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
+    LUA_ASSERT(L, tabBar != nullptr, "TabBar is nil!");
+
+    ImGuiTabItem* tab = static_cast<ImGuiTabItem*>(binder.getInstance("ImGuiTabItem", 2));
+    LUA_ASSERT(L, tab != nullptr, "TabItem is nil!");
+
     lua_pushnumber(L, tabBar->GetTabOrder(tab));
     return 1;
 }
 
 int TabBar_GetTabName(lua_State* L)
 {
-    ImGuiTabBar* tabBar = getTabBar(L);
-    ImGuiTabItem* tab; // TODO
+
+    Binder binder(L);
+    LUA_ASSERT(L, binder.isInstanceOf("ImGuiTabBar", 1), "bad argument #1! ImGuiTabBar expected");
+    LUA_ASSERT(L, binder.isInstanceOf("ImGuiTabItem", 2), "bad argument #2! ImGuiTabItem expected");
+
+    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
+    LUA_ASSERT(L, tabBar != nullptr && tabBar != NULL, "TabBar is nil!");
+
+    ImGuiTabItem* tab = static_cast<ImGuiTabItem*>(binder.getInstance("ImGuiTabItem", 2));
+    LUA_ASSERT(L, tab != nullptr && tab != NULL, "TabItem is nil!");
+
     lua_pushstring(L, tabBar->GetTabName(tab));
     return 1;
 }
@@ -8156,7 +8226,6 @@ int WriteLog(lua_State* L)
     const char* text = luaL_checkstring(L, 2);
     logapp.AddLog("[%.1f] %s\n", ImGui::GetTime(), text);
 }
-}
 
 int loader(lua_State* L)
 {
@@ -8164,86 +8233,86 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiStylesFunctionList[] =
     {
-        {"setColor", ImGui_impl::Style_SetColor},
-        {"getColor", ImGui_impl::Style_GetColor},
-        {"setAlpha", ImGui_impl::Style_SetAlpha},
-        {"getAlpha", ImGui_impl::Style_GetAlpha},
-        {"setWindowRounding", ImGui_impl::Style_SetWindowRounding},
-        {"getWindowRounding", ImGui_impl::Style_GetWindowRounding},
-        {"setWindowBorderSize", ImGui_impl::Style_SetWindowBorderSize},
-        {"getWindowBorderSize", ImGui_impl::Style_GetWindowBorderSize},
-        {"setChildRounding", ImGui_impl::Style_SetChildRounding},
-        {"getChildRounding", ImGui_impl::Style_GetChildRounding},
-        {"setChildBorderSize", ImGui_impl::Style_SetChildBorderSize},
-        {"getChildBorderSize", ImGui_impl::Style_GetChildBorderSize},
-        {"setPopupRounding", ImGui_impl::Style_SetPopupRounding},
-        {"getPopupRounding", ImGui_impl::Style_GetPopupRounding},
-        {"setPopupBorderSize", ImGui_impl::Style_SetPopupBorderSize},
-        {"getPopupBorderSize", ImGui_impl::Style_GetPopupBorderSize},
-        {"setFrameRounding", ImGui_impl::Style_SetFrameRounding},
-        {"getFrameRounding", ImGui_impl::Style_GetFrameRounding},
-        {"setFrameBorderSize", ImGui_impl::Style_SetFrameBorderSize},
-        {"getFrameBorderSize", ImGui_impl::Style_GetFrameBorderSize},
-        {"setIndentSpacing", ImGui_impl::Style_SetIndentSpacing},
-        {"getIndentSpacing", ImGui_impl::Style_GetIndentSpacing},
-        {"setColumnsMinSpacing", ImGui_impl::Style_SetColumnsMinSpacing},
-        {"getColumnsMinSpacing", ImGui_impl::Style_GetColumnsMinSpacing},
-        {"setScrollbarSize", ImGui_impl::Style_SetScrollbarSize},
-        {"getScrollbarSize", ImGui_impl::Style_GetScrollbarSize},
-        {"setScrollbarRounding", ImGui_impl::Style_SetScrollbarRounding},
-        {"getScrollbarRounding", ImGui_impl::Style_GetScrollbarRounding},
-        {"setGrabMinSize", ImGui_impl::Style_SetGrabMinSize},
-        {"getGrabMinSize", ImGui_impl::Style_GetGrabMinSize},
-        {"setGrabRounding", ImGui_impl::Style_SetGrabRounding},
-        {"getGrabRounding", ImGui_impl::Style_GetGrabRounding},
-        {"setLogSliderDeadzone", ImGui_impl::Style_SetLogSliderDeadzone},
-        {"getLogSliderDeadzone", ImGui_impl::Style_GetLogSliderDeadzone},
-        {"setTabRounding", ImGui_impl::Style_SetTabRounding},
-        {"getTabRounding", ImGui_impl::Style_GetTabRounding},
-        {"setTabBorderSize", ImGui_impl::Style_SetTabBorderSize},
-        {"getTabBorderSize", ImGui_impl::Style_GetTabBorderSize},
-        {"setTabMinWidthForUnselectedCloseButton", ImGui_impl::Style_SetTabMinWidthForUnselectedCloseButton},
-        {"getTabMinWidthForUnselectedCloseButton", ImGui_impl::Style_GetTabMinWidthForUnselectedCloseButton},
-        {"setTabMinWidthForCloseButton", ImGui_impl::Style_SetTabMinWidthForCloseButton},
-        {"getTabMinWidthForCloseButton", ImGui_impl::Style_GetTabMinWidthForCloseButton},
-        {"setMouseCursorScale", ImGui_impl::Style_SetMouseCursorScale},
-        {"getMouseCursorScale", ImGui_impl::Style_GetMouseCursorScale},
-        {"setCurveTessellationTol", ImGui_impl::Style_SetCurveTessellationTol},
-        {"getCurveTessellationTol", ImGui_impl::Style_GetCurveTessellationTol},
-        {"setCircleSegmentMaxError", ImGui_impl::Style_SetCircleSegmentMaxError},
-        {"getCircleSegmentMaxError", ImGui_impl::Style_GetCircleSegmentMaxError},
-        {"setWindowPadding", ImGui_impl::Style_SetWindowPadding},
-        {"getWindowPadding", ImGui_impl::Style_GetWindowPadding},
-        {"setWindowMinSize", ImGui_impl::Style_SetWindowMinSize},
-        {"getWindowMinSize", ImGui_impl::Style_GetWindowMinSize},
-        {"setWindowTitleAlign", ImGui_impl::Style_SetWindowTitleAlign},
-        {"getWindowTitleAlign", ImGui_impl::Style_GetWindowTitleAlign},
-        {"setFramePadding", ImGui_impl::Style_SetFramePadding},
-        {"getFramePadding", ImGui_impl::Style_GetFramePadding},
-        {"setItemSpacing", ImGui_impl::Style_SetItemSpacing},
-        {"getItemSpacing", ImGui_impl::Style_GetItemSpacing},
-        {"setItemInnerSpacing", ImGui_impl::Style_SetItemInnerSpacing},
-        {"getItemInnerSpacing", ImGui_impl::Style_GetItemInnerSpacing},
-        {"setTouchExtraPadding", ImGui_impl::Style_SetTouchExtraPadding},
-        {"getTouchExtraPadding", ImGui_impl::Style_GetTouchExtraPadding},
-        {"setButtonTextAlign", ImGui_impl::Style_SetButtonTextAlign},
-        {"getButtonTextAlign", ImGui_impl::Style_GetButtonTextAlign},
-        {"setSelectableTextAlign", ImGui_impl::Style_SetSelectableTextAlign},
-        {"getSelectableTextAlign", ImGui_impl::Style_GetSelectableTextAlign},
-        {"setDisplayWindowPadding", ImGui_impl::Style_SetDisplayWindowPadding},
-        {"getDisplayWindowPadding", ImGui_impl::Style_GetDisplayWindowPadding},
-        {"setDisplaySafeAreaPadding", ImGui_impl::Style_SetDisplaySafeAreaPadding},
-        {"getDisplaySafeAreaPadding", ImGui_impl::Style_GetDisplaySafeAreaPadding},
-        {"setWindowMenuButtonPosition", ImGui_impl::Style_SetWindowMenuButtonPosition},
-        {"getWindowMenuButtonPosition", ImGui_impl::Style_GetWindowMenuButtonPosition},
-        {"setColorButtonPosition", ImGui_impl::Style_SetColorButtonPosition},
-        {"getColorButtonPosition", ImGui_impl::Style_GetColorButtonPosition},
-        {"setAntiAliasedLines", ImGui_impl::Style_SetAntiAliasedLines},
-        {"getAntiAliasedLines", ImGui_impl::Style_GetAntiAliasedLines},
-        {"setAntiAliasedLinesUseTex", ImGui_impl::Style_SetAntiAliasedLinesUseTex},
-        {"getAntiAliasedLinesUseTex", ImGui_impl::Style_GetAntiAliasedLinesUseTex},
-        {"setAntiAliasedFill", ImGui_impl::Style_SetAntiAliasedFill},
-        {"getAntiAliasedFill", ImGui_impl::Style_GetAntiAliasedFill},
+        {"setColor", Style_SetColor},
+        {"getColor", Style_GetColor},
+        {"setAlpha", Style_SetAlpha},
+        {"getAlpha", Style_GetAlpha},
+        {"setWindowRounding", Style_SetWindowRounding},
+        {"getWindowRounding", Style_GetWindowRounding},
+        {"setWindowBorderSize", Style_SetWindowBorderSize},
+        {"getWindowBorderSize", Style_GetWindowBorderSize},
+        {"setChildRounding", Style_SetChildRounding},
+        {"getChildRounding", Style_GetChildRounding},
+        {"setChildBorderSize", Style_SetChildBorderSize},
+        {"getChildBorderSize", Style_GetChildBorderSize},
+        {"setPopupRounding", Style_SetPopupRounding},
+        {"getPopupRounding", Style_GetPopupRounding},
+        {"setPopupBorderSize", Style_SetPopupBorderSize},
+        {"getPopupBorderSize", Style_GetPopupBorderSize},
+        {"setFrameRounding", Style_SetFrameRounding},
+        {"getFrameRounding", Style_GetFrameRounding},
+        {"setFrameBorderSize", Style_SetFrameBorderSize},
+        {"getFrameBorderSize", Style_GetFrameBorderSize},
+        {"setIndentSpacing", Style_SetIndentSpacing},
+        {"getIndentSpacing", Style_GetIndentSpacing},
+        {"setColumnsMinSpacing", Style_SetColumnsMinSpacing},
+        {"getColumnsMinSpacing", Style_GetColumnsMinSpacing},
+        {"setScrollbarSize", Style_SetScrollbarSize},
+        {"getScrollbarSize", Style_GetScrollbarSize},
+        {"setScrollbarRounding", Style_SetScrollbarRounding},
+        {"getScrollbarRounding", Style_GetScrollbarRounding},
+        {"setGrabMinSize", Style_SetGrabMinSize},
+        {"getGrabMinSize", Style_GetGrabMinSize},
+        {"setGrabRounding", Style_SetGrabRounding},
+        {"getGrabRounding", Style_GetGrabRounding},
+        {"setLogSliderDeadzone", Style_SetLogSliderDeadzone},
+        {"getLogSliderDeadzone", Style_GetLogSliderDeadzone},
+        {"setTabRounding", Style_SetTabRounding},
+        {"getTabRounding", Style_GetTabRounding},
+        {"setTabBorderSize", Style_SetTabBorderSize},
+        {"getTabBorderSize", Style_GetTabBorderSize},
+        {"setTabMinWidthForUnselectedCloseButton", Style_SetTabMinWidthForUnselectedCloseButton},
+        {"getTabMinWidthForUnselectedCloseButton", Style_GetTabMinWidthForUnselectedCloseButton},
+        {"setTabMinWidthForCloseButton", Style_SetTabMinWidthForCloseButton},
+        {"getTabMinWidthForCloseButton", Style_GetTabMinWidthForCloseButton},
+        {"setMouseCursorScale", Style_SetMouseCursorScale},
+        {"getMouseCursorScale", Style_GetMouseCursorScale},
+        {"setCurveTessellationTol", Style_SetCurveTessellationTol},
+        {"getCurveTessellationTol", Style_GetCurveTessellationTol},
+        {"setCircleSegmentMaxError", Style_SetCircleSegmentMaxError},
+        {"getCircleSegmentMaxError", Style_GetCircleSegmentMaxError},
+        {"setWindowPadding", Style_SetWindowPadding},
+        {"getWindowPadding", Style_GetWindowPadding},
+        {"setWindowMinSize", Style_SetWindowMinSize},
+        {"getWindowMinSize", Style_GetWindowMinSize},
+        {"setWindowTitleAlign", Style_SetWindowTitleAlign},
+        {"getWindowTitleAlign", Style_GetWindowTitleAlign},
+        {"setFramePadding", Style_SetFramePadding},
+        {"getFramePadding", Style_GetFramePadding},
+        {"setItemSpacing", Style_SetItemSpacing},
+        {"getItemSpacing", Style_GetItemSpacing},
+        {"setItemInnerSpacing", Style_SetItemInnerSpacing},
+        {"getItemInnerSpacing", Style_GetItemInnerSpacing},
+        {"setTouchExtraPadding", Style_SetTouchExtraPadding},
+        {"getTouchExtraPadding", Style_GetTouchExtraPadding},
+        {"setButtonTextAlign", Style_SetButtonTextAlign},
+        {"getButtonTextAlign", Style_GetButtonTextAlign},
+        {"setSelectableTextAlign", Style_SetSelectableTextAlign},
+        {"getSelectableTextAlign", Style_GetSelectableTextAlign},
+        {"setDisplayWindowPadding", Style_SetDisplayWindowPadding},
+        {"getDisplayWindowPadding", Style_GetDisplayWindowPadding},
+        {"setDisplaySafeAreaPadding", Style_SetDisplaySafeAreaPadding},
+        {"getDisplaySafeAreaPadding", Style_GetDisplaySafeAreaPadding},
+        {"setWindowMenuButtonPosition", Style_SetWindowMenuButtonPosition},
+        {"getWindowMenuButtonPosition", Style_GetWindowMenuButtonPosition},
+        {"setColorButtonPosition", Style_SetColorButtonPosition},
+        {"getColorButtonPosition", Style_GetColorButtonPosition},
+        {"setAntiAliasedLines", Style_SetAntiAliasedLines},
+        {"getAntiAliasedLines", Style_GetAntiAliasedLines},
+        {"setAntiAliasedLinesUseTex", Style_SetAntiAliasedLinesUseTex},
+        {"getAntiAliasedLinesUseTex", Style_GetAntiAliasedLinesUseTex},
+        {"setAntiAliasedFill", Style_SetAntiAliasedFill},
+        {"getAntiAliasedFill", Style_GetAntiAliasedFill},
 
         {NULL, NULL},
     };
@@ -8251,132 +8320,132 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiDrawListFunctionList[] =
     {
-        {"pushClipRect", ImGui_impl::DrawList_PushClipRect},
-        {"pushClipRectFullScreen", ImGui_impl::DrawList_PushClipRectFullScreen},
-        {"popClipRect", ImGui_impl::DrawList_PopClipRect},
-        {"pushTextureID", ImGui_impl::DrawList_PushTextureID},
-        {"popTextureID", ImGui_impl::DrawList_PopTextureID},
-        {"getClipRectMin", ImGui_impl::DrawList_GetClipRectMin},
-        {"getClipRectMax", ImGui_impl::DrawList_GetClipRectMax},
-        {"addLine", ImGui_impl::DrawList_AddLine},
-        {"addRect", ImGui_impl::DrawList_AddRect},
-        {"addRectFilled", ImGui_impl::DrawList_AddRectFilled},
-        {"addRectFilledMultiColor", ImGui_impl::DrawList_AddRectFilledMultiColor},
-        {"addQuad", ImGui_impl::DrawList_AddQuad},
-        {"addQuadFilled", ImGui_impl::DrawList_AddQuadFilled},
-        {"addTriangle", ImGui_impl::DrawList_AddTriangle},
-        {"addTriangleFilled", ImGui_impl::DrawList_AddTriangleFilled},
-        {"addCircle", ImGui_impl::DrawList_AddCircle},
-        {"addCircleFilled", ImGui_impl::DrawList_AddCircleFilled},
-        {"addNgon", ImGui_impl::DrawList_AddNgon},
-        {"addNgonFilled", ImGui_impl::DrawList_AddNgonFilled},
-        {"addText", ImGui_impl::DrawList_AddText},
-        {"addFontText", ImGui_impl::DrawList_AddFontText},
-        {"addPolyline", ImGui_impl::DrawList_AddPolyline},
-        {"addConvexPolyFilled", ImGui_impl::DrawList_AddConvexPolyFilled},
-        {"addBezierCurve", ImGui_impl::DrawList_AddBezierCurve},
+        {"pushClipRect", DrawList_PushClipRect},
+        {"pushClipRectFullScreen", DrawList_PushClipRectFullScreen},
+        {"popClipRect", DrawList_PopClipRect},
+        {"pushTextureID", DrawList_PushTextureID},
+        {"popTextureID", DrawList_PopTextureID},
+        {"getClipRectMin", DrawList_GetClipRectMin},
+        {"getClipRectMax", DrawList_GetClipRectMax},
+        {"addLine", DrawList_AddLine},
+        {"addRect", DrawList_AddRect},
+        {"addRectFilled", DrawList_AddRectFilled},
+        {"addRectFilledMultiColor", DrawList_AddRectFilledMultiColor},
+        {"addQuad", DrawList_AddQuad},
+        {"addQuadFilled", DrawList_AddQuadFilled},
+        {"addTriangle", DrawList_AddTriangle},
+        {"addTriangleFilled", DrawList_AddTriangleFilled},
+        {"addCircle", DrawList_AddCircle},
+        {"addCircleFilled", DrawList_AddCircleFilled},
+        {"addNgon", DrawList_AddNgon},
+        {"addNgonFilled", DrawList_AddNgonFilled},
+        {"addText", DrawList_AddText},
+        {"addFontText", DrawList_AddFontText},
+        {"addPolyline", DrawList_AddPolyline},
+        {"addConvexPolyFilled", DrawList_AddConvexPolyFilled},
+        {"addBezierCurve", DrawList_AddBezierCurve},
 
-        {"addImage", ImGui_impl::DrawList_AddImage},
-        {"addImageQuad", ImGui_impl::DrawList_AddImageQuad},
-        {"addImageRounded", ImGui_impl::DrawList_AddImageRounded},
-        {"pathClear", ImGui_impl::DrawList_PathClear},
-        {"pathLineTo", ImGui_impl::DrawList_PathLineTo},
-        {"pathLineToMergeDuplicate", ImGui_impl::DrawList_PathLineToMergeDuplicate},
-        {"pathFillConvex", ImGui_impl::DrawList_PathFillConvex},
-        {"pathStroke", ImGui_impl::DrawList_PathStroke},
-        {"pathArcTo", ImGui_impl::DrawList_PathArcTo},
-        {"pathArcToFast", ImGui_impl::DrawList_PathArcToFast},
-        {"pathBezierCurveTo", ImGui_impl::DrawList_PathBezierCurveTo},
-        {"pathRect", ImGui_impl::DrawList_PathRect},
+        {"addImage", DrawList_AddImage},
+        {"addImageQuad", DrawList_AddImageQuad},
+        {"addImageRounded", DrawList_AddImageRounded},
+        {"pathClear", DrawList_PathClear},
+        {"pathLineTo", DrawList_PathLineTo},
+        {"pathLineToMergeDuplicate", DrawList_PathLineToMergeDuplicate},
+        {"pathFillConvex", DrawList_PathFillConvex},
+        {"pathStroke", DrawList_PathStroke},
+        {"pathArcTo", DrawList_PathArcTo},
+        {"pathArcToFast", DrawList_PathArcToFast},
+        {"pathBezierCurveTo", DrawList_PathBezierCurveTo},
+        {"pathRect", DrawList_PathRect},
         {NULL, NULL}
     };
     binder.createClass(DRAW_LIST_CLASS_NAME, 0, NULL, NULL, imguiDrawListFunctionList);
 
     const luaL_Reg imguiIoFunctionList[] =
     {
-        {"setFontDefault", ImGui_impl::IO_SetFontDefault},
-        {"getFonts", ImGui_impl::IO_GetFonts},
-        {"getDeltaTime", ImGui_impl::IO_GetDeltaTime},
-        {"isMouseDown", ImGui_impl::IO_isMouseDown},
-        {"getMouseWheel", ImGui_impl::IO_GetMouseWheel},
-        {"getMouseWheelH", ImGui_impl::IO_GetMouseWheelH},
-        {"isKeyCtrl", ImGui_impl::IO_isKeyCtrl},
-        {"isKeyShift", ImGui_impl::IO_isKeyShift},
-        {"isKeyAlt", ImGui_impl::IO_isKeyAlt},
-        {"isKeySuper", ImGui_impl::IO_isKeySuper},
-        {"getKeysDown", ImGui_impl::IO_GetKeysDown},
-        {"wantCaptureMouse", ImGui_impl::IO_WantCaptureMouse},
-        {"wantCaptureKeyboard", ImGui_impl::IO_WantCaptureKeyboard},
-        {"wantTextInput", ImGui_impl::IO_WantTextInput},
-        {"wantSetMousePos", ImGui_impl::IO_WantSetMousePos},
-        {"wantSaveIniSettings", ImGui_impl::IO_WantSaveIniSettings},
-        {"isNavActive", ImGui_impl::IO_IsNavActive},
-        {"isNavVisible", ImGui_impl::IO_IsNavVisible},
-        {"getFramerate", ImGui_impl::IO_GetFramerate},
-        {"getMetricsRenderVertices", ImGui_impl::IO_GetMetricsRenderVertices},
-        {"getMetricsRenderIndices", ImGui_impl::IO_GetMetricsRenderIndices},
-        {"getMetricsRenderWindows", ImGui_impl::IO_GetMetricsRenderWindows},
-        {"getMetricsActiveWindows", ImGui_impl::IO_GetMetricsActiveWindows},
-        {"getMetricsActiveAllocations", ImGui_impl::IO_GetMetricsActiveAllocations},
-        {"getMouseDelta", ImGui_impl::IO_GetMouseDelta},
-        {"getMouseDownSec", ImGui_impl::IO_GetMouseDownSec},
-        {"setDisplaySize", ImGui_impl::IO_SetDisplaySize},
-        {"getDisplaySize", ImGui_impl::IO_GetDisplaySize},
+        {"setFontDefault", IO_SetFontDefault},
+        {"getFonts", IO_GetFonts},
+        {"getDeltaTime", IO_GetDeltaTime},
+        {"isMouseDown", IO_isMouseDown},
+        {"getMouseWheel", IO_GetMouseWheel},
+        {"getMouseWheelH", IO_GetMouseWheelH},
+        {"isKeyCtrl", IO_isKeyCtrl},
+        {"isKeyShift", IO_isKeyShift},
+        {"isKeyAlt", IO_isKeyAlt},
+        {"isKeySuper", IO_isKeySuper},
+        {"getKeysDown", IO_GetKeysDown},
+        {"wantCaptureMouse", IO_WantCaptureMouse},
+        {"wantCaptureKeyboard", IO_WantCaptureKeyboard},
+        {"wantTextInput", IO_WantTextInput},
+        {"wantSetMousePos", IO_WantSetMousePos},
+        {"wantSaveIniSettings", IO_WantSaveIniSettings},
+        {"isNavActive", IO_IsNavActive},
+        {"isNavVisible", IO_IsNavVisible},
+        {"getFramerate", IO_GetFramerate},
+        {"getMetricsRenderVertices", IO_GetMetricsRenderVertices},
+        {"getMetricsRenderIndices", IO_GetMetricsRenderIndices},
+        {"getMetricsRenderWindows", IO_GetMetricsRenderWindows},
+        {"getMetricsActiveWindows", IO_GetMetricsActiveWindows},
+        {"getMetricsActiveAllocations", IO_GetMetricsActiveAllocations},
+        {"getMouseDelta", IO_GetMouseDelta},
+        {"getMouseDownSec", IO_GetMouseDownSec},
+        {"setDisplaySize", IO_SetDisplaySize},
+        {"getDisplaySize", IO_GetDisplaySize},
 
     #ifdef IMGUI_HAS_DOCK
-        {"setConfigDockingNoSplit", ImGui_impl::IO_GetConfigDockingNoSplit},
-        {"setConfigDockingNoSplit", ImGui_impl::IO_SetConfigDockingNoSplit},
-        {"setConfigDockingWithShift", ImGui_impl::IO_GetConfigDockingWithShift},
-        {"setConfigDockingWithShift", ImGui_impl::IO_SetConfigDockingWithShift},
-        {"setConfigDockingAlwaysTabBar", ImGui_impl::IO_GetConfigDockingAlwaysTabBar},
-        {"setConfigDockingAlwaysTabBar", ImGui_impl::IO_SetConfigDockingAlwaysTabBar},
-        {"setConfigDockingTransparentPayload", ImGui_impl::IO_GetConfigDockingTransparentPayload},
-        {"setConfigDockingTransparentPayload", ImGui_impl::IO_SetConfigDockingTransparentPayload},
+        {"setConfigDockingNoSplit", IO_GetConfigDockingNoSplit},
+        {"setConfigDockingNoSplit", IO_SetConfigDockingNoSplit},
+        {"setConfigDockingWithShift", IO_GetConfigDockingWithShift},
+        {"setConfigDockingWithShift", IO_SetConfigDockingWithShift},
+        {"setConfigDockingAlwaysTabBar", IO_GetConfigDockingAlwaysTabBar},
+        {"setConfigDockingAlwaysTabBar", IO_SetConfigDockingAlwaysTabBar},
+        {"setConfigDockingTransparentPayload", IO_GetConfigDockingTransparentPayload},
+        {"setConfigDockingTransparentPayload", IO_SetConfigDockingTransparentPayload},
     #endif
-        {"getConfigFlags", ImGui_impl::IO_GetConfigFlags},
-        {"setConfigFlags", ImGui_impl::IO_SetConfigFlags},
-        {"addConfigFlags", ImGui_impl::IO_AddConfigFlags},
-        {"getBackendFlags", ImGui_impl::IO_GetBackendFlags},
-        {"setBackendFlags", ImGui_impl::IO_SetBackendFlags},
-        {"getIniSavingRate", ImGui_impl::IO_GetIniSavingRate},
-        {"setIniSavingRate", ImGui_impl::IO_SetIniSavingRate},
-        {"getIniFilename", ImGui_impl::IO_GetIniFilename},
-        {"setIniFilename", ImGui_impl::IO_SetIniFilename},
-        {"getLogFilename", ImGui_impl::IO_GetLogFilename},
-        {"setLogFilename", ImGui_impl::IO_SetLogFilename},
-        {"getMouseDoubleClickTime", ImGui_impl::IO_GetMouseDoubleClickTime},
-        {"setMouseDoubleClickTime", ImGui_impl::IO_SetMouseDoubleClickTime},
-        {"getMouseDragThreshold", ImGui_impl::IO_GetMouseDragThreshold},
-        {"setMouseDragThreshold", ImGui_impl::IO_SetMouseDragThreshold},
-        {"getMouseDrawCursor", ImGui_impl::IO_GetMouseDrawCursor},
-        {"setMouseDrawCursor", ImGui_impl::IO_SetMouseDrawCursor},
-        {"getMouseDoubleClickMaxDist", ImGui_impl::IO_GetMouseDoubleClickMaxDist},
-        {"setMouseDoubleClickMaxDist", ImGui_impl::IO_SetMouseDoubleClickMaxDist},
-        {"getKeyMapValue", ImGui_impl::IO_GetKeyMapValue},
-        {"setKeyMapValue", ImGui_impl::IO_SetKeyMapValue},
-        {"getKeyRepeatDelay", ImGui_impl::IO_GetKeyRepeatDelay},
-        {"setKeyRepeatDelay", ImGui_impl::IO_SetKeyRepeatDelay},
-        {"getKeyRepeatRate", ImGui_impl::IO_GetKeyRepeatRate},
-        {"setKeyRepeatRate", ImGui_impl::IO_SetKeyRepeatRate},
-        {"getFontGlobalScale", ImGui_impl::IO_GetFontGlobalScale},
-        {"setFontGlobalScale", ImGui_impl::IO_SetFontGlobalScale},
-        {"getFontAllowUserScaling", ImGui_impl::IO_GetFontAllowUserScaling},
-        {"setFontAllowUserScaling", ImGui_impl::IO_SetFontAllowUserScaling},
-        {"getDisplayFramebufferScale", ImGui_impl::IO_GetDisplayFramebufferScale},
-        {"setDisplayFramebufferScale", ImGui_impl::IO_SetDisplayFramebufferScale},
-        {"getConfigMacOSXBehaviors", ImGui_impl::IO_GetConfigMacOSXBehaviors},
-        {"setConfigMacOSXBehaviors", ImGui_impl::IO_SetConfigMacOSXBehaviors},
-        {"getConfigInputTextCursorBlink", ImGui_impl::IO_GetConfigInputTextCursorBlink},
-        {"setConfigInputTextCursorBlink", ImGui_impl::IO_SetConfigInputTextCursorBlink},
-        {"getConfigWindowsResizeFromEdges", ImGui_impl::IO_GetConfigWindowsResizeFromEdges},
-        {"setConfigWindowsResizeFromEdges", ImGui_impl::IO_SetConfigWindowsResizeFromEdges},
-        {"getConfigWindowsMoveFromTitleBarOnly", ImGui_impl::IO_GetConfigWindowsMoveFromTitleBarOnly},
-        {"setConfigWindowsMoveFromTitleBarOnly", ImGui_impl::IO_SetConfigWindowsMoveFromTitleBarOnly},
-        {"getConfigWindowsMemoryCompactTimer", ImGui_impl::IO_GetConfigWindowsMemoryCompactTimer},
-        {"setConfigWindowsMemoryCompactTimer", ImGui_impl::IO_SetConfigWindowsMemoryCompactTimer},
+        {"getConfigFlags", IO_GetConfigFlags},
+        {"setConfigFlags", IO_SetConfigFlags},
+        {"addConfigFlags", IO_AddConfigFlags},
+        {"getBackendFlags", IO_GetBackendFlags},
+        {"setBackendFlags", IO_SetBackendFlags},
+        {"getIniSavingRate", IO_GetIniSavingRate},
+        {"setIniSavingRate", IO_SetIniSavingRate},
+        {"getIniFilename", IO_GetIniFilename},
+        {"setIniFilename", IO_SetIniFilename},
+        {"getLogFilename", IO_GetLogFilename},
+        {"setLogFilename", IO_SetLogFilename},
+        {"getMouseDoubleClickTime", IO_GetMouseDoubleClickTime},
+        {"setMouseDoubleClickTime", IO_SetMouseDoubleClickTime},
+        {"getMouseDragThreshold", IO_GetMouseDragThreshold},
+        {"setMouseDragThreshold", IO_SetMouseDragThreshold},
+        {"getMouseDrawCursor", IO_GetMouseDrawCursor},
+        {"setMouseDrawCursor", IO_SetMouseDrawCursor},
+        {"getMouseDoubleClickMaxDist", IO_GetMouseDoubleClickMaxDist},
+        {"setMouseDoubleClickMaxDist", IO_SetMouseDoubleClickMaxDist},
+        {"getKeyMapValue", IO_GetKeyMapValue},
+        {"setKeyMapValue", IO_SetKeyMapValue},
+        {"getKeyRepeatDelay", IO_GetKeyRepeatDelay},
+        {"setKeyRepeatDelay", IO_SetKeyRepeatDelay},
+        {"getKeyRepeatRate", IO_GetKeyRepeatRate},
+        {"setKeyRepeatRate", IO_SetKeyRepeatRate},
+        {"getFontGlobalScale", IO_GetFontGlobalScale},
+        {"setFontGlobalScale", IO_SetFontGlobalScale},
+        {"getFontAllowUserScaling", IO_GetFontAllowUserScaling},
+        {"setFontAllowUserScaling", IO_SetFontAllowUserScaling},
+        {"getDisplayFramebufferScale", IO_GetDisplayFramebufferScale},
+        {"setDisplayFramebufferScale", IO_SetDisplayFramebufferScale},
+        {"getConfigMacOSXBehaviors", IO_GetConfigMacOSXBehaviors},
+        {"setConfigMacOSXBehaviors", IO_SetConfigMacOSXBehaviors},
+        {"getConfigInputTextCursorBlink", IO_GetConfigInputTextCursorBlink},
+        {"setConfigInputTextCursorBlink", IO_SetConfigInputTextCursorBlink},
+        {"getConfigWindowsResizeFromEdges", IO_GetConfigWindowsResizeFromEdges},
+        {"setConfigWindowsResizeFromEdges", IO_SetConfigWindowsResizeFromEdges},
+        {"getConfigWindowsMoveFromTitleBarOnly", IO_GetConfigWindowsMoveFromTitleBarOnly},
+        {"setConfigWindowsMoveFromTitleBarOnly", IO_SetConfigWindowsMoveFromTitleBarOnly},
+        {"getConfigWindowsMemoryCompactTimer", IO_GetConfigWindowsMemoryCompactTimer},
+        {"setConfigWindowsMemoryCompactTimer", IO_SetConfigWindowsMemoryCompactTimer},
 
-        {"getBackendPlatformName", ImGui_impl::IO_GetBackendPlatformName},
-        {"getBackendRendererName", ImGui_impl::IO_GetBackendRendererName},
+        {"getBackendPlatformName", IO_GetBackendPlatformName},
+        {"getBackendRendererName", IO_GetBackendRendererName},
 
         {NULL, NULL}
     };
@@ -8384,21 +8453,21 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
-        {"addFont", ImGui_impl::FontAtlas_AddFont},
-        {"addFonts", ImGui_impl::FontAtlas_AddFonts},
-        {"getFont", ImGui_impl::FontAtlas_GetFontByIndex},
-        {"getCurrentFont", ImGui_impl::FontAtlas_GetCurrentFont},
-        {"addDefaultFont", ImGui_impl::FontAtlas_AddDefaultFont},
-        {"build", ImGui_impl::FontAtlas_BuildFont},
-        {"bake", ImGui_impl::FontAtlas_Bake},
-        {"clearInputData", ImGui_impl::FontAtlas_ClearInputData},
-        {"clearTexData", ImGui_impl::FontAtlas_ClearTexData},
-        {"clearFonts", ImGui_impl::FontAtlas_ClearFonts},
-        {"clear", ImGui_impl::FontAtlas_Clear},
-        {"isBuilt", ImGui_impl::FontAtlas_IsBuilt},
-        {"addCustomRectRegular", ImGui_impl::FontAtlas_AddCustomRectRegular},
-        {"addCustomRectFontGlyph", ImGui_impl::FontAtlas_AddCustomRectFontGlyph},
-        {"getCustomRectByIndex", ImGui_impl::FontAtlas_GetCustomRectByIndex},
+        {"addFont", FontAtlas_AddFont},
+        {"addFonts", FontAtlas_AddFonts},
+        {"getFont", FontAtlas_GetFontByIndex},
+        {"getCurrentFont", FontAtlas_GetCurrentFont},
+        {"addDefaultFont", FontAtlas_AddDefaultFont},
+        {"build", FontAtlas_BuildFont},
+        {"bake", FontAtlas_Bake},
+        {"clearInputData", FontAtlas_ClearInputData},
+        {"clearTexData", FontAtlas_ClearTexData},
+        {"clearFonts", FontAtlas_ClearFonts},
+        {"clear", FontAtlas_Clear},
+        {"isBuilt", FontAtlas_IsBuilt},
+        {"addCustomRectRegular", FontAtlas_AddCustomRectRegular},
+        {"addCustomRectFontGlyph", FontAtlas_AddCustomRectFontGlyph},
+        {"getCustomRectByIndex", FontAtlas_GetCustomRectByIndex},
         {NULL, NULL}
     };
     binder.createClass(FONT_ATLAS_CLASS_NAME, 0, NULL, NULL, imguiFontAtlasFunctionList);
@@ -8410,110 +8479,111 @@ int loader(lua_State* L)
 
 #ifdef IMGUI_HAS_DOCK
     const luaL_Reg imguiDockNodeFunctionList[] = {
-        {"getID", ImGui_impl::DockBuilder_Node_GetID},
-        {"getSharedFlags", ImGui_impl::DockBuilder_Node_GetSharedFlags},
-        {"getLocalFlags", ImGui_impl::DockBuilder_Node_GetLocalFlags},
-        {"getParentNode", ImGui_impl::DockBuilder_Node_GetParentNode},
-        {"getChildNodes", ImGui_impl::DockBuilder_Node_GetChildNodes},
-        //{"getWindows", ImGui_impl::DockBuilder_Node_GetWindows},
-        {"getTabBar", ImGui_impl::DockBuilder_Node_GetTabBar},
-        {"getPos", ImGui_impl::DockBuilder_Node_GetPos},
-        {"getSize", ImGui_impl::DockBuilder_Node_GetSize},
-        {"getSizeRef", ImGui_impl::DockBuilder_Node_GetSizeRef},
-        {"getSplitAxis", ImGui_impl::DockBuilder_Node_GetSplitAxis},
-        //{"getWindowClass", ImGui_impl::DockBuilder_Node_GetWindowClass},
-        {"getState", ImGui_impl::DockBuilder_Node_GetState},
-        //{"getHostWindow", ImGui_impl::DockBuilder_Node_GetHostWindow},
-        //{"getVisibleWindow", ImGui_impl::DockBuilder_Node_GetVisibleWindow},
-        {"getCentralNode", ImGui_impl::DockBuilder_Node_GetCentralNode},
-        {"getOnlyNodeWithWindows", ImGui_impl::DockBuilder_Node_GetOnlyNodeWithWindows},
-        {"getLastFrameAlive", ImGui_impl::DockBuilder_Node_GetLastFrameAlive},
-        {"getLastFrameActive", ImGui_impl::DockBuilder_Node_GetLastFrameActive},
-        {"getLastFrameFocused", ImGui_impl::DockBuilder_Node_GetLastFrameFocused},
-        {"getLastFocusedNodeId", ImGui_impl::DockBuilder_Node_GetLastFocusedNodeId},
-        {"getSelectedTabId", ImGui_impl::DockBuilder_Node_GetSelectedTabId},
-        {"getWantCloseTabId", ImGui_impl::DockBuilder_Node_WantCloseTabId},
-        {"getAuthorityForPos", ImGui_impl::DockBuilder_Node_GetAuthorityForPos},
-        {"getAuthorityForSize", ImGui_impl::DockBuilder_Node_GetAuthorityForSize},
-        {"getAuthorityForViewport", ImGui_impl::DockBuilder_Node_GetAuthorityForViewport},
-        {"getIsVisible", ImGui_impl::DockBuilder_Node_IsVisible},
-        {"getIsFocused", ImGui_impl::DockBuilder_Node_IsFocused},
-        {"getHasCloseButton", ImGui_impl::DockBuilder_Node_HasCloseButton},
-        {"getHasWindowMenuButton", ImGui_impl::DockBuilder_Node_HasWindowMenuButton},
-        {"getEnableCloseButton", ImGui_impl::DockBuilder_Node_EnableCloseButton},
-        {"getWantCloseAll", ImGui_impl::DockBuilder_Node_WantCloseAll},
-        {"getWantLockSizeOnce", ImGui_impl::DockBuilder_Node_WantLockSizeOnce},
-        {"getWantMouseMove", ImGui_impl::DockBuilder_Node_WantMouseMove},
-        {"getWantHiddenTabBarUpdate", ImGui_impl::DockBuilder_Node_WantHiddenTabBarUpdate},
-        {"getWantHiddenTabBarToggle", ImGui_impl::DockBuilder_Node_WantHiddenTabBarToggle},
-        {"getMarkedForPosSizeWrite", ImGui_impl::DockBuilder_Node_MarkedForPosSizeWrite},
+        {"getID", DockBuilder_Node_GetID},
+        {"getSharedFlags", DockBuilder_Node_GetSharedFlags},
+        {"getLocalFlags", DockBuilder_Node_GetLocalFlags},
+        {"getParentNode", DockBuilder_Node_GetParentNode},
+        {"getChildNodes", DockBuilder_Node_GetChildNodes},
+        //{"getWindows", DockBuilder_Node_GetWindows},
+        {"getTabBar", DockBuilder_Node_GetTabBar},
+        {"getPos", DockBuilder_Node_GetPos},
+        {"getSize", DockBuilder_Node_GetSize},
+        {"getSizeRef", DockBuilder_Node_GetSizeRef},
+        {"getSplitAxis", DockBuilder_Node_GetSplitAxis},
+        //{"getWindowClass", DockBuilder_Node_GetWindowClass},
+        {"getState", DockBuilder_Node_GetState},
+        //{"getHostWindow", DockBuilder_Node_GetHostWindow},
+        //{"getVisibleWindow", DockBuilder_Node_GetVisibleWindow},
+        {"getCentralNode", DockBuilder_Node_GetCentralNode},
+        {"getOnlyNodeWithWindows", DockBuilder_Node_GetOnlyNodeWithWindows},
+        {"getLastFrameAlive", DockBuilder_Node_GetLastFrameAlive},
+        {"getLastFrameActive", DockBuilder_Node_GetLastFrameActive},
+        {"getLastFrameFocused", DockBuilder_Node_GetLastFrameFocused},
+        {"getLastFocusedNodeId", DockBuilder_Node_GetLastFocusedNodeId},
+        {"getSelectedTabId", DockBuilder_Node_GetSelectedTabId},
+        {"getWantCloseTabId", DockBuilder_Node_WantCloseTabId},
+        {"getAuthorityForPos", DockBuilder_Node_GetAuthorityForPos},
+        {"getAuthorityForSize", DockBuilder_Node_GetAuthorityForSize},
+        {"getAuthorityForViewport", DockBuilder_Node_GetAuthorityForViewport},
+        {"getIsVisible", DockBuilder_Node_IsVisible},
+        {"getIsFocused", DockBuilder_Node_IsFocused},
+        {"getHasCloseButton", DockBuilder_Node_HasCloseButton},
+        {"getHasWindowMenuButton", DockBuilder_Node_HasWindowMenuButton},
+        {"getEnableCloseButton", DockBuilder_Node_EnableCloseButton},
+        {"getWantCloseAll", DockBuilder_Node_WantCloseAll},
+        {"getWantLockSizeOnce", DockBuilder_Node_WantLockSizeOnce},
+        {"getWantMouseMove", DockBuilder_Node_WantMouseMove},
+        {"getWantHiddenTabBarUpdate", DockBuilder_Node_WantHiddenTabBarUpdate},
+        {"getWantHiddenTabBarToggle", DockBuilder_Node_WantHiddenTabBarToggle},
+        {"getMarkedForPosSizeWrite", DockBuilder_Node_MarkedForPosSizeWrite},
 
-        {"isRootNode", ImGui_impl::DockBuilder_Node_IsRootNode},
-        {"isDockSpace", ImGui_impl::DockBuilder_Node_IsDockSpace},
-        {"isFloatingNode", ImGui_impl::DockBuilder_Node_IsFloatingNode},
-        {"isCentralNode", ImGui_impl::DockBuilder_Node_IsCentralNode},
-        {"isHiddenTabBar", ImGui_impl::DockBuilder_Node_IsHiddenTabBar},
-        {"isNoTabBar", ImGui_impl::DockBuilder_Node_IsNoTabBar},
-        {"isSplitNode", ImGui_impl::DockBuilder_Node_IsSplitNode},
-        {"isLeafNode", ImGui_impl::DockBuilder_Node_IsLeafNode},
-        {"isEmpty", ImGui_impl::DockBuilder_Node_IsEmpty},
-        {"getMergedFlags", ImGui_impl::DockBuilder_Node_GetMergedFlags},
-        {"rect", ImGui_impl::DockBuilder_Node_Rect},
+        {"isRootNode", DockBuilder_Node_IsRootNode},
+        {"isDockSpace", DockBuilder_Node_IsDockSpace},
+        {"isFloatingNode", DockBuilder_Node_IsFloatingNode},
+        {"isCentralNode", DockBuilder_Node_IsCentralNode},
+        {"isHiddenTabBar", DockBuilder_Node_IsHiddenTabBar},
+        {"isNoTabBar", DockBuilder_Node_IsNoTabBar},
+        {"isSplitNode", DockBuilder_Node_IsSplitNode},
+        {"isLeafNode", DockBuilder_Node_IsLeafNode},
+        {"isEmpty", DockBuilder_Node_IsEmpty},
+        {"getMergedFlags", DockBuilder_Node_GetMergedFlags},
+        {"rect", DockBuilder_Node_Rect},
         {NULL, NULL}
     };
     binder.createClass("ImGuiDockNode", 0, NULL, NULL, imguiDockNodeFunctionList);
 
     const luaL_Reg imguiTabBarFunctionList[] = {
-        {"getTabs", ImGui_impl::TabBar_GetTabs},
-        {"getFlags", ImGui_impl::TabBar_GetFlags},
-        {"getID", ImGui_impl::TabBar_GetID},
-        {"getSelectedTabId", ImGui_impl::TabBar_GetSelectedTabId},
-        {"getNextSelectedTabId", ImGui_impl::TabBar_GetNextSelectedTabId},
-        {"getVisibleTabId", ImGui_impl::TabBar_GetVisibleTabId},
-        {"getCurrFrameVisible", ImGui_impl::TabBar_GetCurrFrameVisible},
-        {"getPrevFrameVisible", ImGui_impl::TabBar_GetPrevFrameVisible},
-        {"getBarRect", ImGui_impl::TabBar_GetBarRect},
-        {"getCurrTabsContentsHeight", ImGui_impl::TabBar_GetCurrTabsContentsHeight},
-        {"getPrevTabsContentsHeight", ImGui_impl::TabBar_GetPrevTabsContentsHeight},
-        {"getWidthAllTabs", ImGui_impl::TabBar_GetWidthAllTabs},
-        {"getWidthAllTabsIdeal", ImGui_impl::TabBar_GetWidthAllTabsIdeal},
-        {"getScrollingAnim", ImGui_impl::TabBar_GetScrollingAnim},
-        {"getScrollingTarget", ImGui_impl::TabBar_GetScrollingTarget},
-        {"getScrollingTargetDistToVisibility", ImGui_impl::TabBar_GetScrollingTargetDistToVisibility},
-        {"getScrollingSpeed", ImGui_impl::TabBar_GetScrollingSpeed},
-        {"getScrollingRectMinX", ImGui_impl::TabBar_GetScrollingRectMinX},
-        {"getScrollingRectMaxX", ImGui_impl::TabBar_GetScrollingRectMaxX},
-        {"getReorderRequestTabId", ImGui_impl::TabBar_GetReorderRequestTabId},
-        {"getReorderRequestDir", ImGui_impl::TabBar_GetReorderRequestDir},
-        {"getBeginCount", ImGui_impl::TabBar_GetBeginCount},
-        {"wantLayout", ImGui_impl::TabBar_WantLayout},
-        {"visibleTabWasSubmitted", ImGui_impl::TabBar_VisibleTabWasSubmitted},
-        {"getTabsAddedNew", ImGui_impl::TabBar_TabsAddedNew},
-        {"getTabsActiveCount", ImGui_impl::TabBar_GetTabsActiveCount},
-        {"getLastTabItemIdx", ImGui_impl::TabBar_GetLastTabItemIdx},
-        {"getItemSpacingY", ImGui_impl::TabBar_GetItemSpacingY},
-        {"getFramePadding", ImGui_impl::TabBar_GetFramePadding},
-        {"getBackupCursorPos", ImGui_impl::TabBar_GetBackupCursorPos},
-        {"getTabsNames", ImGui_impl::TabBar_GetTabsNames},
-        {"getTabOrder", ImGui_impl::TabBar_GetTabOrder},
-        {"getTabName", ImGui_impl::TabBar_GetTabName},
+        {"getTabs", TabBar_GetTabs},
+        {"getTab", TabBar_GetTab},
+        {"getFlags", TabBar_GetFlags},
+        {"getID", TabBar_GetID},
+        {"getSelectedTabId", TabBar_GetSelectedTabId},
+        {"getNextSelectedTabId", TabBar_GetNextSelectedTabId},
+        {"getVisibleTabId", TabBar_GetVisibleTabId},
+        {"getCurrFrameVisible", TabBar_GetCurrFrameVisible},
+        {"getPrevFrameVisible", TabBar_GetPrevFrameVisible},
+        {"getBarRect", TabBar_GetBarRect},
+        {"getCurrTabsContentsHeight", TabBar_GetCurrTabsContentsHeight},
+        {"getPrevTabsContentsHeight", TabBar_GetPrevTabsContentsHeight},
+        {"getWidthAllTabs", TabBar_GetWidthAllTabs},
+        {"getWidthAllTabsIdeal", TabBar_GetWidthAllTabsIdeal},
+        {"getScrollingAnim", TabBar_GetScrollingAnim},
+        {"getScrollingTarget", TabBar_GetScrollingTarget},
+        {"getScrollingTargetDistToVisibility", TabBar_GetScrollingTargetDistToVisibility},
+        {"getScrollingSpeed", TabBar_GetScrollingSpeed},
+        {"getScrollingRectMinX", TabBar_GetScrollingRectMinX},
+        {"getScrollingRectMaxX", TabBar_GetScrollingRectMaxX},
+        {"getReorderRequestTabId", TabBar_GetReorderRequestTabId},
+        {"getReorderRequestDir", TabBar_GetReorderRequestDir},
+        {"getBeginCount", TabBar_GetBeginCount},
+        {"wantLayout", TabBar_WantLayout},
+        {"visibleTabWasSubmitted", TabBar_VisibleTabWasSubmitted},
+        {"getTabsAddedNew", TabBar_TabsAddedNew},
+        {"getTabsActiveCount", TabBar_GetTabsActiveCount},
+        {"getLastTabItemIdx", TabBar_GetLastTabItemIdx},
+        {"getItemSpacingY", TabBar_GetItemSpacingY},
+        {"getFramePadding", TabBar_GetFramePadding},
+        {"getBackupCursorPos", TabBar_GetBackupCursorPos},
+        {"getTabsNames", TabBar_GetTabsNames},
+        {"getTabOrder", TabBar_GetTabOrder},
+        {"getTabName", TabBar_GetTabName},
         {NULL, NULL}
     };
 
     binder.createClass("ImGuiTabBar", 0, NULL, NULL, imguiTabBarFunctionList);
 
     const luaL_Reg imguiTabItemFunctionList[] = {
-        {"getID", ImGui_impl::TabItem_GetID},
-        {"getFlags", ImGui_impl::TabItem_GetFlags},
-        {"getLastFrameVisible", ImGui_impl::TabItem_GetLastFrameVisible},
-        {"getLastFrameSelected", ImGui_impl::TabItem_GetLastFrameSelected},
-        {"getOffset", ImGui_impl::TabItem_GetOffset},
-        {"getWidth", ImGui_impl::TabItem_GetWidth},
-        {"getContentWidth", ImGui_impl::TabItem_GetContentWidth},
-        {"getNameOffset", ImGui_impl::TabItem_GetNameOffset},
-        {"getBeginOrder", ImGui_impl::TabItem_GetBeginOrder},
-        {"getIndexDuringLayout", ImGui_impl::TabItem_GetIndexDuringLayout},
-        {"wantClose", ImGui_impl::TabItem_WantClose},
+        {"getID", TabItem_GetID},
+        {"getFlags", TabItem_GetFlags},
+        {"getLastFrameVisible", TabItem_GetLastFrameVisible},
+        {"getLastFrameSelected", TabItem_GetLastFrameSelected},
+        {"getOffset", TabItem_GetOffset},
+        {"getWidth", TabItem_GetWidth},
+        {"getContentWidth", TabItem_GetContentWidth},
+        {"getNameOffset", TabItem_GetNameOffset},
+        {"getBeginOrder", TabItem_GetBeginOrder},
+        {"getIndexDuringLayout", TabItem_GetIndexDuringLayout},
+        {"wantClose", TabItem_WantClose},
         {NULL, NULL}
     };
 
@@ -8522,416 +8592,416 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFunctionList[] =
     {
-        {"setAutoUpdateCursor", ImGui_impl::SetAutoUpdateCursor},
-        {"getAutoUpdateCursor", ImGui_impl::GetAutoUpdateCursor},
+        {"setAutoUpdateCursor", SetAutoUpdateCursor},
+        {"getAutoUpdateCursor", GetAutoUpdateCursor},
 
         // Fonts API
-        {"pushFont", ImGui_impl::Fonts_PushFont},
-        {"popFont", ImGui_impl::Fonts_PopFont},
+        {"pushFont", Fonts_PushFont},
+        {"popFont", Fonts_PopFont},
 
-        {"setStyleColor", ImGui_impl::Style_old_SetColor}, // Backward capability
+        {"setStyleColor", Style_old_SetColor}, // Backward capability
 
         // Draw list
-        {"getStyle", ImGui_impl::GetStyle},
-        {"getWindowDrawList", ImGui_impl::GetWindowDrawList},
-        {"getBackgroundDrawList", ImGui_impl::GetBackgroundDrawList},
-        {"getForegroundDrawList", ImGui_impl::GetForegroundDrawList},
-        {"getIO", ImGui_impl::GetIO},
+        {"getStyle", GetStyle},
+        {"getWindowDrawList", GetWindowDrawList},
+        {"getBackgroundDrawList", GetBackgroundDrawList},
+        {"getForegroundDrawList", GetForegroundDrawList},
+        {"getIO", GetIO},
 
         /////////////////////////////////////////////////////////////////////////////// Inputs +
         /// Mouse
-        {"onMouseHover", ImGui_impl::MouseHover},
-        {"onMouseMove", ImGui_impl::MouseMove},
-        {"onMouseDown", ImGui_impl::MouseDown},
-        {"onMouseUp", ImGui_impl::MouseUp},
-        {"onMouseWheel", ImGui_impl::MouseWheel},
+        {"onMouseHover", MouseHover},
+        {"onMouseMove", MouseMove},
+        {"onMouseDown", MouseDown},
+        {"onMouseUp", MouseUp},
+        {"onMouseWheel", MouseWheel},
 
         /// Touch TODO
 
         /// Keyboard
-        {"onKeyUp", ImGui_impl::KeyUp},
-        {"onKeyDown", ImGui_impl::KeyDown},
-        {"onKeyChar", ImGui_impl::KeyChar},
+        {"onKeyUp", KeyUp},
+        {"onKeyDown", KeyDown},
+        {"onKeyChar", KeyChar},
 
         /// Resize callback
 
-        {"onAppResize", ImGui_impl::applicationResize},
+        {"onAppResize", applicationResize},
 
         /////////////////////////////////////////////////////////////////////////////// Inputs -
 
         // Colors TODO
-        {"colorConvertHEXtoRGB", ImGui_impl::ColorConvertHEXtoRGB},
-        {"colorConvertRGBtoHEX", ImGui_impl::ColorConvertRGBtoHEX},
-        {"colorConvertRGBtoHSV", ImGui_impl::ColorConvertRGBtoHSV},
-        {"colorConvertHSVtoRGB", ImGui_impl::ColorConvertHSVtoRGB},
+        {"colorConvertHEXtoRGB", ColorConvertHEXtoRGB},
+        {"colorConvertRGBtoHEX", ColorConvertRGBtoHEX},
+        {"colorConvertRGBtoHSV", ColorConvertRGBtoHSV},
+        {"colorConvertHSVtoRGB", ColorConvertHSVtoRGB},
 
         // Style themes
-        {"setDarkStyle", ImGui_impl::StyleDark},
-        {"setLightStyle", ImGui_impl::StyleLight},
-        {"setClassicStyle", ImGui_impl::StyleClassic},
+        {"setDarkStyle", StyleDark},
+        {"setLightStyle", StyleLight},
+        {"setClassicStyle", StyleClassic},
 
         // Childs
-        {"beginChild", ImGui_impl::BeginChild},
-        {"endChild", ImGui_impl::EndChild},
+        {"beginChild", BeginChild},
+        {"endChild", EndChild},
 
-        {"isWindowAppearing", ImGui_impl::IsWindowAppearing},
-        {"isWindowCollapsed", ImGui_impl::IsWindowCollapsed},
-        {"isWindowFocused", ImGui_impl::IsWindowFocused},
-        {"isWindowHovered", ImGui_impl::IsWindowHovered},
-        {"getWindowPos", ImGui_impl::GetWindowPos},
-        {"getWindowSize", ImGui_impl::GetWindowSize},
-        {"getWindowWidth", ImGui_impl::GetWindowWidth},
-        {"getWindowHeight", ImGui_impl::GetWindowHeight},
-        {"getWindowBounds", ImGui_impl::GetWindowBounds},
+        {"isWindowAppearing", IsWindowAppearing},
+        {"isWindowCollapsed", IsWindowCollapsed},
+        {"isWindowFocused", IsWindowFocused},
+        {"isWindowHovered", IsWindowHovered},
+        {"getWindowPos", GetWindowPos},
+        {"getWindowSize", GetWindowSize},
+        {"getWindowWidth", GetWindowWidth},
+        {"getWindowHeight", GetWindowHeight},
+        {"getWindowBounds", GetWindowBounds},
 
-        {"setNextWindowPos", ImGui_impl::SetNextWindowPos},
-        {"setNextWindowSize", ImGui_impl::SetNextWindowSize},
-        {"setNextWindowSizeConstraints", ImGui_impl::SetNextWindowSizeConstraints},
-        {"setNextWindowContentSize", ImGui_impl::SetNextWindowContentSize},
-        {"setNextWindowCollapsed", ImGui_impl::SetNextWindowCollapsed},
-        {"setNextWindowFocus", ImGui_impl::SetNextWindowFocus},
-        {"setNextWindowBgAlpha", ImGui_impl::SetNextWindowBgAlpha},
-        {"setWindowPos", ImGui_impl::SetWindowPos},
-        {"setWindowSize", ImGui_impl::SetWindowSize},
-        {"setWindowCollapsed", ImGui_impl::SetWindowCollapsed},
-        {"setWindowFocus", ImGui_impl::SetWindowFocus},
-        {"setWindowFontScale", ImGui_impl::SetWindowFontScale},
+        {"setNextWindowPos", SetNextWindowPos},
+        {"setNextWindowSize", SetNextWindowSize},
+        {"setNextWindowSizeConstraints", SetNextWindowSizeConstraints},
+        {"setNextWindowContentSize", SetNextWindowContentSize},
+        {"setNextWindowCollapsed", SetNextWindowCollapsed},
+        {"setNextWindowFocus", SetNextWindowFocus},
+        {"setNextWindowBgAlpha", SetNextWindowBgAlpha},
+        {"setWindowPos", SetWindowPos},
+        {"setWindowSize", SetWindowSize},
+        {"setWindowCollapsed", SetWindowCollapsed},
+        {"setWindowFocus", SetWindowFocus},
+        {"setWindowFontScale", SetWindowFontScale},
 
-        {"getContentRegionMax", ImGui_impl::GetContentRegionMax},
-        {"getContentRegionAvail", ImGui_impl::GetContentRegionAvail},
-        {"getWindowContentRegionMin", ImGui_impl::GetWindowContentRegionMin},
-        {"getWindowContentRegionMax", ImGui_impl::GetWindowContentRegionMax},
-        {"getWindowContentRegionWidth", ImGui_impl::GetWindowContentRegionWidth},
+        {"getContentRegionMax", GetContentRegionMax},
+        {"getContentRegionAvail", GetContentRegionAvail},
+        {"getWindowContentRegionMin", GetWindowContentRegionMin},
+        {"getWindowContentRegionMax", GetWindowContentRegionMax},
+        {"getWindowContentRegionWidth", GetWindowContentRegionWidth},
 
-        {"getScrollX", ImGui_impl::GetScrollX},
-        {"getScrollY", ImGui_impl::GetScrollY},
-        {"getScrollMaxX", ImGui_impl::GetScrollMaxX},
-        {"getScrollMaxY", ImGui_impl::GetScrollMaxY},
-        {"setScrollX", ImGui_impl::SetScrollX},
-        {"setScrollY", ImGui_impl::SetScrollY},
-        {"setScrollHereX", ImGui_impl::SetScrollHereX},
-        {"setScrollHereY", ImGui_impl::SetScrollHereY},
-        {"setScrollFromPosX", ImGui_impl::SetScrollFromPosX},
-        {"setScrollFromPosY", ImGui_impl::SetScrollFromPosY},
+        {"getScrollX", GetScrollX},
+        {"getScrollY", GetScrollY},
+        {"getScrollMaxX", GetScrollMaxX},
+        {"getScrollMaxY", GetScrollMaxY},
+        {"setScrollX", SetScrollX},
+        {"setScrollY", SetScrollY},
+        {"setScrollHereX", SetScrollHereX},
+        {"setScrollHereY", SetScrollHereY},
+        {"setScrollFromPosX", SetScrollFromPosX},
+        {"setScrollFromPosY", SetScrollFromPosY},
 
-        {"pushStyleColor", ImGui_impl::PushStyleColor},
-        {"popStyleColor", ImGui_impl::PopStyleColor},
-        {"pushStyleVar", ImGui_impl::PushStyleVar},
-        {"popStyleVar", ImGui_impl::PopStyleVar},
-        {"getFontSize", ImGui_impl::GetFontSize},
+        {"pushStyleColor", PushStyleColor},
+        {"popStyleColor", PopStyleColor},
+        {"pushStyleVar", PushStyleVar},
+        {"popStyleVar", PopStyleVar},
+        {"getFontSize", GetFontSize},
 
-        {"pushItemWidth", ImGui_impl::PushItemWidth},
-        {"popItemWidth", ImGui_impl::PopItemWidth},
-        {"setNextItemWidth", ImGui_impl::SetNextItemWidth},
-        {"calcItemWidth", ImGui_impl::CalcItemWidth},
-        {"pushTextWrapPos", ImGui_impl::PushTextWrapPos},
-        {"popTextWrapPos", ImGui_impl::PopTextWrapPos},
-        {"pushAllowKeyboardFocus", ImGui_impl::PushAllowKeyboardFocus},
-        {"popAllowKeyboardFocus", ImGui_impl::PopAllowKeyboardFocus},
-        {"pushButtonRepeat", ImGui_impl::PushButtonRepeat},
-        {"popButtonRepeat", ImGui_impl::PopButtonRepeat},
+        {"pushItemWidth", PushItemWidth},
+        {"popItemWidth", PopItemWidth},
+        {"setNextItemWidth", SetNextItemWidth},
+        {"calcItemWidth", CalcItemWidth},
+        {"pushTextWrapPos", PushTextWrapPos},
+        {"popTextWrapPos", PopTextWrapPos},
+        {"pushAllowKeyboardFocus", PushAllowKeyboardFocus},
+        {"popAllowKeyboardFocus", PopAllowKeyboardFocus},
+        {"pushButtonRepeat", PushButtonRepeat},
+        {"popButtonRepeat", PopButtonRepeat},
 
-        {"separator", ImGui_impl::Separator},
-        {"sameLine", ImGui_impl::SameLine},
-        {"newLine", ImGui_impl::NewLine},
-        {"spacing", ImGui_impl::Spacing},
-        {"dummy", ImGui_impl::Dummy},
-        {"indent", ImGui_impl::Indent},
-        {"unindent", ImGui_impl::Unindent},
-        {"beginGroup", ImGui_impl::BeginGroup},
-        {"endGroup", ImGui_impl::EndGroup},
+        {"separator", Separator},
+        {"sameLine", SameLine},
+        {"newLine", NewLine},
+        {"spacing", Spacing},
+        {"dummy", Dummy},
+        {"indent", Indent},
+        {"unindent", Unindent},
+        {"beginGroup", BeginGroup},
+        {"endGroup", EndGroup},
 
-        {"getCursorPos", ImGui_impl::GetCursorPos},
-        {"getCursorPosX", ImGui_impl::GetCursorPosX},
-        {"getCursorPosY", ImGui_impl::GetCursorPosY},
-        {"setCursorPos", ImGui_impl::SetCursorPos},
-        {"setCursorPosX", ImGui_impl::SetCursorPosX},
-        {"setCursorPosY", ImGui_impl::SetCursorPosY},
-        {"getCursorStartPos", ImGui_impl::GetCursorStartPos},
-        {"getCursorScreenPos", ImGui_impl::GetCursorScreenPos},
-        {"alignTextToFramePadding", ImGui_impl::AlignTextToFramePadding},
-        {"getTextLineHeight", ImGui_impl::GetTextLineHeight},
-        {"getTextLineHeightWithSpacing", ImGui_impl::GetTextLineHeightWithSpacing},
-        {"getFrameHeight", ImGui_impl::GetFrameHeight},
-        {"getFrameHeightWithSpacing", ImGui_impl::GetFrameHeightWithSpacing},
+        {"getCursorPos", GetCursorPos},
+        {"getCursorPosX", GetCursorPosX},
+        {"getCursorPosY", GetCursorPosY},
+        {"setCursorPos", SetCursorPos},
+        {"setCursorPosX", SetCursorPosX},
+        {"setCursorPosY", SetCursorPosY},
+        {"getCursorStartPos", GetCursorStartPos},
+        {"getCursorScreenPos", GetCursorScreenPos},
+        {"alignTextToFramePadding", AlignTextToFramePadding},
+        {"getTextLineHeight", GetTextLineHeight},
+        {"getTextLineHeightWithSpacing", GetTextLineHeightWithSpacing},
+        {"getFrameHeight", GetFrameHeight},
+        {"getFrameHeightWithSpacing", GetFrameHeightWithSpacing},
 
-        {"pushID", ImGui_impl::PushID},
-        {"popID", ImGui_impl::PopID},
-        {"getID", ImGui_impl::GetID},
+        {"pushID", PushID},
+        {"popID", PopID},
+        {"getID", GetID},
 
-        {"text", ImGui_impl::Text},
-        {"textColored", ImGui_impl::TextColored},
-        {"textDisabled", ImGui_impl::TextDisabled},
-        {"textWrapped", ImGui_impl::TextWrapped},
-        {"labelText", ImGui_impl::LabelText},
-        {"bulletText", ImGui_impl::BulletText},
+        {"text", Text},
+        {"textColored", TextColored},
+        {"textDisabled", TextDisabled},
+        {"textWrapped", TextWrapped},
+        {"labelText", LabelText},
+        {"bulletText", BulletText},
 
-        {"button", ImGui_impl::Button},
-        {"smallButton", ImGui_impl::SmallButton},
-        {"invisibleButton", ImGui_impl::InvisibleButton},
-        {"arrowButton", ImGui_impl::ArrowButton},
-        {"image", ImGui_impl::Image},
-        {"imageFilled", ImGui_impl::ImageFilled},
-        {"imageButton", ImGui_impl::ImageButton},
-        {"imageButtonWithText", ImGui_impl::ImageButtonWithText},
-        {"checkbox", ImGui_impl::Checkbox},
-        {"checkboxFlags", ImGui_impl::CheckboxFlags},
-        {"radioButton", ImGui_impl::RadioButton},
-        {"progressBar", ImGui_impl::ProgressBar},
-        {"bullet", ImGui_impl::Bullet},
-        {"beginCombo", ImGui_impl::BeginCombo},
-        {"endCombo", ImGui_impl::EndCombo},
-        {"combo", ImGui_impl::Combo},
+        {"button", Button},
+        {"smallButton", SmallButton},
+        {"invisibleButton", InvisibleButton},
+        {"arrowButton", ArrowButton},
+        {"image", Image},
+        {"imageFilled", ImageFilled},
+        {"imageButton", ImageButton},
+        {"imageButtonWithText", ImageButtonWithText},
+        {"checkbox", Checkbox},
+        {"checkboxFlags", CheckboxFlags},
+        {"radioButton", RadioButton},
+        {"progressBar", ProgressBar},
+        {"bullet", Bullet},
+        {"beginCombo", BeginCombo},
+        {"endCombo", EndCombo},
+        {"combo", Combo},
 
-        {"dragFloat", ImGui_impl::DragFloat},
-        {"dragFloat2", ImGui_impl::DragFloat2},
-        {"dragFloat3", ImGui_impl::DragFloat3},
-        {"dragFloat4", ImGui_impl::DragFloat4},
-        {"dragFloatRange2", ImGui_impl::DragFloatRange2},
+        {"dragFloat", DragFloat},
+        {"dragFloat2", DragFloat2},
+        {"dragFloat3", DragFloat3},
+        {"dragFloat4", DragFloat4},
+        {"dragFloatRange2", DragFloatRange2},
 
-        {"dragInt", ImGui_impl::DragInt},
-        {"dragInt2", ImGui_impl::DragInt2},
-        {"dragInt3", ImGui_impl::DragInt3},
-        {"dragInt4", ImGui_impl::DragInt4},
-        {"dragIntRange2", ImGui_impl::DragIntRange2},
-        {"dragScalar", ImGui_impl::DragScalar},
+        {"dragInt", DragInt},
+        {"dragInt2", DragInt2},
+        {"dragInt3", DragInt3},
+        {"dragInt4", DragInt4},
+        {"dragIntRange2", DragIntRange2},
+        {"dragScalar", DragScalar},
 
-        {"sliderFloat", ImGui_impl::SliderFloat},
-        {"sliderFloat2", ImGui_impl::SliderFloat2},
-        {"sliderFloat3", ImGui_impl::SliderFloat3},
-        {"sliderFloat4", ImGui_impl::SliderFloat4},
-        {"sliderAngle", ImGui_impl::SliderAngle},
-        {"sliderInt", ImGui_impl::SliderInt},
-        {"sliderInt2", ImGui_impl::SliderInt2},
-        {"sliderInt3", ImGui_impl::SliderInt3},
-        {"sliderInt4", ImGui_impl::SliderInt4},
-        {"sliderScalar", ImGui_impl::SliderScalar},
-        {"vSliderFloat", ImGui_impl::VSliderFloat},
-        {"vSliderInt", ImGui_impl::VSliderInt},
-        {"vSliderScalar", ImGui_impl::VSliderScalar},
+        {"sliderFloat", SliderFloat},
+        {"sliderFloat2", SliderFloat2},
+        {"sliderFloat3", SliderFloat3},
+        {"sliderFloat4", SliderFloat4},
+        {"sliderAngle", SliderAngle},
+        {"sliderInt", SliderInt},
+        {"sliderInt2", SliderInt2},
+        {"sliderInt3", SliderInt3},
+        {"sliderInt4", SliderInt4},
+        {"sliderScalar", SliderScalar},
+        {"vSliderFloat", VSliderFloat},
+        {"vSliderInt", VSliderInt},
+        {"vSliderScalar", VSliderScalar},
 
-        {"filledSliderFloat", ImGui_impl::FilledSliderFloat},
-        {"filledSliderFloat2", ImGui_impl::FilledSliderFloat2},
-        {"filledSliderFloat3", ImGui_impl::FilledSliderFloat3},
-        {"filledSliderFloat4", ImGui_impl::FilledSliderFloat4},
-        {"filledSliderAngle", ImGui_impl::FilledSliderAngle},
-        {"filledSliderInt", ImGui_impl::FilledSliderInt},
-        {"filledSliderInt2", ImGui_impl::FilledSliderInt2},
-        {"filledSliderInt3", ImGui_impl::FilledSliderInt3},
-        {"filledSliderInt4", ImGui_impl::FilledSliderInt4},
-        {"filledSliderScalar", ImGui_impl::FilledSliderScalar},
-        {"vFilledSliderFloat", ImGui_impl::VFilledSliderFloat},
-        {"vFilledSliderInt", ImGui_impl::VFilledSliderInt},
-        {"vFilledSliderScalar", ImGui_impl::VFilledSliderScalar},
+        {"filledSliderFloat", FilledSliderFloat},
+        {"filledSliderFloat2", FilledSliderFloat2},
+        {"filledSliderFloat3", FilledSliderFloat3},
+        {"filledSliderFloat4", FilledSliderFloat4},
+        {"filledSliderAngle", FilledSliderAngle},
+        {"filledSliderInt", FilledSliderInt},
+        {"filledSliderInt2", FilledSliderInt2},
+        {"filledSliderInt3", FilledSliderInt3},
+        {"filledSliderInt4", FilledSliderInt4},
+        {"filledSliderScalar", FilledSliderScalar},
+        {"vFilledSliderFloat", VFilledSliderFloat},
+        {"vFilledSliderInt", VFilledSliderInt},
+        {"vFilledSliderScalar", VFilledSliderScalar},
 
-        {"inputText", ImGui_impl::InputText},
-        {"inputTextMultiline", ImGui_impl::InputTextMultiline},
-        {"inputTextWithHint", ImGui_impl::InputTextWithHint},
-        {"inputFloat", ImGui_impl::InputFloat},
-        {"inputFloat2", ImGui_impl::InputFloat2},
-        {"inputFloat3", ImGui_impl::InputFloat3},
-        {"inputFloat4", ImGui_impl::InputFloat4},
-        {"inputInt", ImGui_impl::InputInt},
-        {"inputInt2", ImGui_impl::InputInt2},
-        {"inputInt3", ImGui_impl::InputInt3},
-        {"inputInt4", ImGui_impl::InputInt4},
-        {"inputDouble", ImGui_impl::InputDouble},
-        {"inputScalar", ImGui_impl::InputScalar},
+        {"inputText", InputText},
+        {"inputTextMultiline", InputTextMultiline},
+        {"inputTextWithHint", InputTextWithHint},
+        {"inputFloat", InputFloat},
+        {"inputFloat2", InputFloat2},
+        {"inputFloat3", InputFloat3},
+        {"inputFloat4", InputFloat4},
+        {"inputInt", InputInt},
+        {"inputInt2", InputInt2},
+        {"inputInt3", InputInt3},
+        {"inputInt4", InputInt4},
+        {"inputDouble", InputDouble},
+        {"inputScalar", InputScalar},
 
-        {"colorEdit3", ImGui_impl::ColorEdit3},
-        {"colorEdit4", ImGui_impl::ColorEdit4},
-        {"colorPicker3", ImGui_impl::ColorPicker3},
-        {"colorPicker4", ImGui_impl::ColorPicker4},
-        {"colorButton", ImGui_impl::ColorButton},
-        {"setColorEditOptions", ImGui_impl::SetColorEditOptions},
+        {"colorEdit3", ColorEdit3},
+        {"colorEdit4", ColorEdit4},
+        {"colorPicker3", ColorPicker3},
+        {"colorPicker4", ColorPicker4},
+        {"colorButton", ColorButton},
+        {"setColorEditOptions", SetColorEditOptions},
 
-        {"treeNode", ImGui_impl::TreeNode},
-        {"treeNodeEx", ImGui_impl::TreeNodeEx},
-        {"treePush", ImGui_impl::TreePush},
-        {"treePop", ImGui_impl::TreePop},
-        {"getTreeNodeToLabelSpacing", ImGui_impl::GetTreeNodeToLabelSpacing},
-        {"collapsingHeader", ImGui_impl::CollapsingHeader},
-        {"setNextItemOpen", ImGui_impl::SetNextItemOpen},
-        {"selectable", ImGui_impl::Selectable},
+        {"treeNode", TreeNode},
+        {"treeNodeEx", TreeNodeEx},
+        {"treePush", TreePush},
+        {"treePop", TreePop},
+        {"getTreeNodeToLabelSpacing", GetTreeNodeToLabelSpacing},
+        {"collapsingHeader", CollapsingHeader},
+        {"setNextItemOpen", SetNextItemOpen},
+        {"selectable", Selectable},
 
-        {"listBox", ImGui_impl::ListBox},
-        {"listBoxHeader", ImGui_impl::ListBoxHeader},
-        {"listBoxHeader2", ImGui_impl::ListBoxHeader2},
-        {"listBoxFooter", ImGui_impl::ListBoxFooter},
-        {"plotLines", ImGui_impl::PlotLines},
-        {"plotHistogram", ImGui_impl::PlotHistogram},
-        {"value", ImGui_impl::Value},
+        {"listBox", ListBox},
+        {"listBoxHeader", ListBoxHeader},
+        {"listBoxHeader2", ListBoxHeader2},
+        {"listBoxFooter", ListBoxFooter},
+        {"plotLines", PlotLines},
+        {"plotHistogram", PlotHistogram},
+        {"value", Value},
 
-        {"beginMenuBar", ImGui_impl::BeginMenuBar },
-        {"endMenuBar", ImGui_impl::EndMenuBar },
-        {"beginMainMenuBar", ImGui_impl::BeginMainMenuBar },
-        {"endMainMenuBar", ImGui_impl::EndMainMenuBar },
-        {"beginMenu", ImGui_impl::BeginMenu },
-        {"endMenu", ImGui_impl::EndMenu },
-        {"menuItem", ImGui_impl::MenuItem },
-        {"menuItemWithShortcut", ImGui_impl::MenuItemWithShortcut },
-        {"beginTooltip", ImGui_impl::BeginTooltip },
-        {"endTooltip", ImGui_impl::EndTooltip },
-        {"setTooltip", ImGui_impl::SetTooltip },
-        {"beginPopup", ImGui_impl::BeginPopup},
-        {"beginPopupModal", ImGui_impl::BeginPopupModal },
-        {"endPopup", ImGui_impl::EndPopup },
-        {"openPopup", ImGui_impl::OpenPopup },
-        {"openPopupContextItem", ImGui_impl::OpenPopupContextItem },
-        {"closeCurrentPopup", ImGui_impl::CloseCurrentPopup },
-        {"beginPopupContextItem", ImGui_impl::BeginPopupContextItem },
-        {"beginPopupContextWindow", ImGui_impl::BeginPopupContextWindow },
-        {"beginPopupContextVoid", ImGui_impl::BeginPopupContextVoid },
-        {"isPopupOpen", ImGui_impl::IsPopupOpen },
+        {"beginMenuBar", BeginMenuBar },
+        {"endMenuBar", EndMenuBar },
+        {"beginMainMenuBar", BeginMainMenuBar },
+        {"endMainMenuBar", EndMainMenuBar },
+        {"beginMenu", BeginMenu },
+        {"endMenu", EndMenu },
+        {"menuItem", MenuItem },
+        {"menuItemWithShortcut", MenuItemWithShortcut },
+        {"beginTooltip", BeginTooltip },
+        {"endTooltip", EndTooltip },
+        {"setTooltip", SetTooltip },
+        {"beginPopup", BeginPopup},
+        {"beginPopupModal", BeginPopupModal },
+        {"endPopup", EndPopup },
+        {"openPopup", OpenPopup },
+        {"openPopupContextItem", OpenPopupContextItem },
+        {"closeCurrentPopup", CloseCurrentPopup },
+        {"beginPopupContextItem", BeginPopupContextItem },
+        {"beginPopupContextWindow", BeginPopupContextWindow },
+        {"beginPopupContextVoid", BeginPopupContextVoid },
+        {"isPopupOpen", IsPopupOpen },
 
-        {"columns", ImGui_impl::Columns},
-        {"nextColumn", ImGui_impl::NextColumn},
-        {"getColumnIndex", ImGui_impl::GetColumnIndex},
-        {"getColumnWidth", ImGui_impl::GetColumnWidth},
-        {"setColumnWidth", ImGui_impl::SetColumnWidth},
-        {"getColumnOffset", ImGui_impl::GetColumnOffset},
-        {"setColumnOffset", ImGui_impl::SetColumnOffset},
-        {"getColumnsCount", ImGui_impl::GetColumnsCount},
+        {"columns", Columns},
+        {"nextColumn", NextColumn},
+        {"getColumnIndex", GetColumnIndex},
+        {"getColumnWidth", GetColumnWidth},
+        {"setColumnWidth", SetColumnWidth},
+        {"getColumnOffset", GetColumnOffset},
+        {"setColumnOffset", SetColumnOffset},
+        {"getColumnsCount", GetColumnsCount},
 
-        {"beginTabBar", ImGui_impl::BeginTabBar},
-        {"endTabBar", ImGui_impl::EndTabBar},
-        {"beginTabItem", ImGui_impl::BeginTabItem},
-        {"endTabItem", ImGui_impl::EndTabItem},
-        {"tabItemButton", ImGui_impl::TabItemButton},
-        {"setTabItemClosed", ImGui_impl::SetTabItemClosed},
+        {"beginTabBar", BeginTabBar},
+        {"endTabBar", EndTabBar},
+        {"beginTabItem", BeginTabItem},
+        {"endTabItem", EndTabItem},
+        {"tabItemButton", TabItemButton},
+        {"setTabItemClosed", SetTabItemClosed},
 
-        {"logToTTY", ImGui_impl::LogToTTY},
-        {"logToFile", ImGui_impl::LogToFile},
-        {"logToClipboard", ImGui_impl::LogToClipboard},
-        {"logFinish", ImGui_impl::LogFinish},
-        {"logButtons", ImGui_impl::LogButtons},
-        {"logText", ImGui_impl::LogText},
+        {"logToTTY", LogToTTY},
+        {"logToFile", LogToFile},
+        {"logToClipboard", LogToClipboard},
+        {"logFinish", LogFinish},
+        {"logButtons", LogButtons},
+        {"logText", LogText},
 
-        {"pushClipRect", ImGui_impl::PushClipRect},
-        {"popClipRect", ImGui_impl::PopClipRect},
+        {"pushClipRect", PushClipRect},
+        {"popClipRect", PopClipRect},
 
-        {"setItemDefaultFocus", ImGui_impl::SetItemDefaultFocus},
-        {"setKeyboardFocusHere", ImGui_impl::SetKeyboardFocusHere},
+        {"setItemDefaultFocus", SetItemDefaultFocus},
+        {"setKeyboardFocusHere", SetKeyboardFocusHere},
 
-        {"isItemHovered", ImGui_impl::IsItemHovered},
-        {"isItemActive", ImGui_impl::IsItemActive},
-        {"isItemFocused", ImGui_impl::IsItemFocused},
-        {"isItemClicked", ImGui_impl::IsItemClicked},
-        {"isItemVisible", ImGui_impl::IsItemVisible},
-        {"isItemEdited", ImGui_impl::IsItemEdited},
-        {"isItemActivated", ImGui_impl::IsItemActivated},
-        {"isItemDeactivated", ImGui_impl::IsItemDeactivated},
-        {"isItemDeactivatedAfterEdit", ImGui_impl::IsItemDeactivatedAfterEdit},
-        {"isItemToggledOpen", ImGui_impl::IsItemToggledOpen},
-        {"isAnyItemHovered", ImGui_impl::IsAnyItemHovered},
-        {"isAnyItemActive", ImGui_impl::IsAnyItemActive},
-        {"isAnyItemFocused", ImGui_impl::IsAnyItemFocused},
-        {"getItemRectMin", ImGui_impl::GetItemRectMin},
-        {"getItemRectMax", ImGui_impl::GetItemRectMax},
-        {"getItemRectSize", ImGui_impl::GetItemRectSize},
-        {"setItemAllowOverlap", ImGui_impl::SetItemAllowOverlap},
+        {"isItemHovered", IsItemHovered},
+        {"isItemActive", IsItemActive},
+        {"isItemFocused", IsItemFocused},
+        {"isItemClicked", IsItemClicked},
+        {"isItemVisible", IsItemVisible},
+        {"isItemEdited", IsItemEdited},
+        {"isItemActivated", IsItemActivated},
+        {"isItemDeactivated", IsItemDeactivated},
+        {"isItemDeactivatedAfterEdit", IsItemDeactivatedAfterEdit},
+        {"isItemToggledOpen", IsItemToggledOpen},
+        {"isAnyItemHovered", IsAnyItemHovered},
+        {"isAnyItemActive", IsAnyItemActive},
+        {"isAnyItemFocused", IsAnyItemFocused},
+        {"getItemRectMin", GetItemRectMin},
+        {"getItemRectMax", GetItemRectMax},
+        {"getItemRectSize", GetItemRectSize},
+        {"setItemAllowOverlap", SetItemAllowOverlap},
 
         // Miscellaneous Utilities
-        {"isRectVisible", ImGui_impl::IsRectVisible},
-        {"getTime", ImGui_impl::GetTime},
-        {"getFrameCount", ImGui_impl::GetFrameCount},
-        {"getStyleColorName", ImGui_impl::GetStyleColorName},
-        {"getStyleColor", ImGui_impl::GetStyleColor},
-        {"calcListClipping", ImGui_impl::CalcListClipping},
-        {"beginChildFrame", ImGui_impl::BeginChildFrame},
-        {"endChildFrame", ImGui_impl::EndChildFrame},
+        {"isRectVisible", IsRectVisible},
+        {"getTime", GetTime},
+        {"getFrameCount", GetFrameCount},
+        {"getStyleColorName", GetStyleColorName},
+        {"getStyleColor", GetStyleColor},
+        {"calcListClipping", CalcListClipping},
+        {"beginChildFrame", BeginChildFrame},
+        {"endChildFrame", EndChildFrame},
 
         // Text Utilities
-        {"calcTextSize", ImGui_impl::CalcTextSize},
+        {"calcTextSize", CalcTextSize},
 
         // Inputs Utilities: Keyboard
-        {"getKeyIndex", ImGui_impl::GetKeyIndex},
-        {"isKeyDown", ImGui_impl::IsKeyDown},
-        {"isKeyPressed", ImGui_impl::IsKeyPressed},
-        {"isKeyReleased", ImGui_impl::IsKeyReleased},
-        {"getKeyPressedAmount", ImGui_impl::GetKeyPressedAmount},
-        {"captureKeyboardFromApp", ImGui_impl::CaptureKeyboardFromApp},
+        {"getKeyIndex", GetKeyIndex},
+        {"isKeyDown", IsKeyDown},
+        {"isKeyPressed", IsKeyPressed},
+        {"isKeyReleased", IsKeyReleased},
+        {"getKeyPressedAmount", GetKeyPressedAmount},
+        {"captureKeyboardFromApp", CaptureKeyboardFromApp},
 
         // Inputs Utilities: Mouse
-        {"isMouseDown", ImGui_impl::IsMouseDown},
-        {"isMouseClicked", ImGui_impl::IsMouseClicked},
-        {"isMouseReleased", ImGui_impl::IsMouseReleased},
-        {"isMouseDoubleClicked", ImGui_impl::IsMouseDoubleClicked},
-        {"isMouseHoveringRect", ImGui_impl::IsMouseHoveringRect},
-        {"isMousePosValid", ImGui_impl::IsMousePosValid},
-        {"isAnyMouseDown", ImGui_impl::IsAnyMouseDown},
-        {"getMousePos", ImGui_impl::GetMousePos},
-        {"getMousePosOnOpeningCurrentPopup", ImGui_impl::GetMousePosOnOpeningCurrentPopup},
-        {"isMouseDragging", ImGui_impl::IsMouseDragging},
-        {"getMouseDragDelta", ImGui_impl::GetMouseDragDelta},
-        {"resetMouseDragDelta", ImGui_impl::ResetMouseDragDelta},
-        {"getMouseCursor", ImGui_impl::GetMouseCursor},
-        {"setMouseCursor", ImGui_impl::SetMouseCursor},
-        {"captureMouseFromApp", ImGui_impl::CaptureMouseFromApp},
+        {"isMouseDown", IsMouseDown},
+        {"isMouseClicked", IsMouseClicked},
+        {"isMouseReleased", IsMouseReleased},
+        {"isMouseDoubleClicked", IsMouseDoubleClicked},
+        {"isMouseHoveringRect", IsMouseHoveringRect},
+        {"isMousePosValid", IsMousePosValid},
+        {"isAnyMouseDown", IsAnyMouseDown},
+        {"getMousePos", GetMousePos},
+        {"getMousePosOnOpeningCurrentPopup", GetMousePosOnOpeningCurrentPopup},
+        {"isMouseDragging", IsMouseDragging},
+        {"getMouseDragDelta", GetMouseDragDelta},
+        {"resetMouseDragDelta", ResetMouseDragDelta},
+        {"getMouseCursor", GetMouseCursor},
+        {"setMouseCursor", SetMouseCursor},
+        {"captureMouseFromApp", CaptureMouseFromApp},
 
         // Windows
-        {"beginWindow", ImGui_impl::Begin},
-        {"endWindow", ImGui_impl::End},
-        {"beginFullScreenWindow", ImGui_impl::BeginFullScreenWindow},
+        {"beginWindow", Begin},
+        {"endWindow", End},
+        {"beginFullScreenWindow", BeginFullScreenWindow},
 
         // Render
-        {"newFrame", ImGui_impl::NewFrame},
-        {"render", ImGui_impl::Render},
-        {"endFrame", ImGui_impl::EndFrame},
+        {"newFrame", NewFrame},
+        {"render", Render},
+        {"endFrame", EndFrame},
 
         // Demos
-        {"showUserGuide", ImGui_impl::ShowUserGuide},
-        {"showDemoWindow", ImGui_impl::ShowDemoWindow},
-        {"showAboutWindow", ImGui_impl::ShowAboutWindow},
-        {"showStyleEditor", ImGui_impl::ShowStyleEditor},
-        {"showFontSelector", ImGui_impl::ShowFontSelector},
-        {"showMetricsWindow", ImGui_impl::ShowMetricsWindow},
-        {"showStyleSelector", ImGui_impl::ShowStyleSelector},
-        {"showLuaStyleEditor", ImGui_impl::ShowLuaStyleEditor},
+        {"showUserGuide", ShowUserGuide},
+        {"showDemoWindow", ShowDemoWindow},
+        {"showAboutWindow", ShowAboutWindow},
+        {"showStyleEditor", ShowStyleEditor},
+        {"showFontSelector", ShowFontSelector},
+        {"showMetricsWindow", ShowMetricsWindow},
+        {"showStyleSelector", ShowStyleSelector},
+        {"showLuaStyleEditor", ShowLuaStyleEditor},
 
         // Logs
-        {"showLog", ImGui_impl::ShowLog},
-        {"writeLog", ImGui_impl::WriteLog},
+        {"showLog", ShowLog},
+        {"writeLog", WriteLog},
 
         // Drag & Drop
-        {"beginDragDropSource", ImGui_impl::BeginDragDropSource},
-        {"setDragDropPayload", ImGui_impl::SetDragDropPayload},
-        {"endDragDropSource", ImGui_impl::EndDragDropSource},
-        {"beginDragDropTarget", ImGui_impl::BeginDragDropTarget},
-        {"acceptDragDropPayload", ImGui_impl::AcceptDragDropPayload},
-        {"endDragDropTarget", ImGui_impl::EndDragDropTarget},
-        {"getDragDropPayload", ImGui_impl::GetDragDropPayload},
+        {"beginDragDropSource", BeginDragDropSource},
+        {"setDragDropPayload", SetDragDropPayload},
+        {"endDragDropSource", EndDragDropSource},
+        {"beginDragDropTarget", BeginDragDropTarget},
+        {"acceptDragDropPayload", AcceptDragDropPayload},
+        {"endDragDropTarget", EndDragDropTarget},
+        {"getDragDropPayload", GetDragDropPayload},
 
     #ifdef IMGUI_HAS_DOCK
-        {"dockSpace", ImGui_impl::DockSpace},
-        {"dockSpaceOverViewport", ImGui_impl::DockSpaceOverViewport},
-        {"setNextWindowDockID", ImGui_impl::SetNextWindowDockID},
-        {"getWindowDockID", ImGui_impl::GetWindowDockID},
-        {"isWindowDocked", ImGui_impl::IsWindowDocked},
+        {"dockSpace", DockSpace},
+        {"dockSpaceOverViewport", DockSpaceOverViewport},
+        {"setNextWindowDockID", SetNextWindowDockID},
+        {"getWindowDockID", GetWindowDockID},
+        {"isWindowDocked", IsWindowDocked},
 
-        {"dockBuilderDockWindow", ImGui_impl::DockBuilderDockWindow},
-        //{"dockBuilderGetNode", ImGui_impl::DockBuilderGetNode},
-        {"dockBuilderCheckNode", ImGui_impl::DockBuilderCheckNode},
-        {"dockBuilderSetNodePos", ImGui_impl::DockBuilderSetNodePos},
-        {"dockBuilderSetNodeSize", ImGui_impl::DockBuilderSetNodeSize},
-        {"dockBuilderAddNode", ImGui_impl::DockBuilderAddNode},
-        {"dockBuilderRemoveNode", ImGui_impl::DockBuilderRemoveNode},
-        {"dockBuilderRemoveNodeChildNodes", ImGui_impl::DockBuilderRemoveNodeChildNodes},
-        {"dockBuilderRemoveNodeDockedWindows", ImGui_impl::DockBuilderRemoveNodeDockedWindows},
-        {"dockBuilderSplitNode", ImGui_impl::DockBuilderSplitNode},
-        {"dockBuilderCopyNode", ImGui_impl::DockBuilderCopyNode},
-        {"dockBuilderCopyWindowSettings", ImGui_impl::DockBuilderCopyWindowSettings},
-        {"dockBuilderCopyDockSpace", ImGui_impl::DockBuilderCopyDockSpace},
-        {"dockBuilderFinish", ImGui_impl::DockBuilderFinish},
+        {"dockBuilderDockWindow", DockBuilderDockWindow},
+        {"dockBuilderGetNode", DockBuilderGetNode},
+        {"dockBuilderCheckNode", DockBuilderCheckNode},
+        {"dockBuilderSetNodePos", DockBuilderSetNodePos},
+        {"dockBuilderSetNodeSize", DockBuilderSetNodeSize},
+        {"dockBuilderAddNode", DockBuilderAddNode},
+        {"dockBuilderRemoveNode", DockBuilderRemoveNode},
+        {"dockBuilderRemoveNodeChildNodes", DockBuilderRemoveNodeChildNodes},
+        {"dockBuilderRemoveNodeDockedWindows", DockBuilderRemoveNodeDockedWindows},
+        {"dockBuilderSplitNode", DockBuilderSplitNode},
+        {"dockBuilderCopyNode", DockBuilderCopyNode},
+        {"dockBuilderCopyWindowSettings", DockBuilderCopyWindowSettings},
+        {"dockBuilderCopyDockSpace", DockBuilderCopyDockSpace},
+        {"dockBuilderFinish", DockBuilderFinish},
     #endif
 
         {NULL, NULL}
     };
-    binder.createClass(CLASS_NAME, "Sprite", ImGui_impl::initImGui, ImGui_impl::destroyImGui, imguiFunctionList);
+    binder.createClass(CLASS_NAME, "Sprite", initImGui, destroyImGui, imguiFunctionList);
     luaL_newweaktable(L);
     luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 
-    ImGui_impl::bindEnums(L);
+    bindEnums(L);
 
     lua_getglobal(L, CLASS_NAME);
     lua_pushstring(L, ImGui::GetVersion());
@@ -8941,13 +9011,15 @@ int loader(lua_State* L)
     return 1;
 }
 
+}
+
 static void g_initializePlugin(lua_State* L)
 {
     ::L = L;
     lua_getglobal(L, "package");
     lua_getfield(L, -1, "preload");
 
-    lua_pushcfunction(L, loader);
+    lua_pushcfunction(L, ImGui_impl::loader);
     lua_setfield(L, -2, PLUGIN_NAME);
 
     lua_pop(L, 2);
