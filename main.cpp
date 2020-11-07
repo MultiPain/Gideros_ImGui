@@ -3,7 +3,7 @@
 #define ENABLE_ASSERTIONS
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui"
+#define PLUGIN_NAME "ImGui_beta"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -334,7 +334,7 @@ lua_Number getfield(lua_State* L, const char* key)
 
 ImGuiID checkID(lua_State* L, int idx = 2)
 {
-    int id = luaL_checkinteger(L, idx);
+    double id = luaL_checknumber(L, idx);
     LUA_ASSERT(id > 0, "ID must be > 0!");
     return (ImGuiID)id;
 }
@@ -2144,17 +2144,21 @@ int PopID(lua_State* _UNUSED(L))
 
 int GetID(lua_State* L)
 {
+    switch(lua_type(L, 2))
+    {
+        case LUA_TSTRING:
+        {
+            const char* str_id = luaL_checkstring(L, 2);
+            ImGuiID id = ImGui::GetID(str_id);
+            lua_pushnumber(L, (double)id);
+        }
+        default:
+        {
+            ImGuiID id = ImGui::GetID(lua_topointer(L, 2));
+            lua_pushnumber(L, (double)id);
+        }
+    }
 
-    if (lua_gettop(L) == 2)
-    {
-        lua_Number id = (lua_Number)ImGui::GetID(lua_topointer(L, 2));
-        lua_pushnumber(L, id);
-    }
-    else
-    {
-        lua_Number id = (lua_Number)ImGui::GetID(luaL_checkstring(L, 2), luaL_checkstring(L, 3));
-        lua_pushnumber(L, id);
-    }
     return 1;
 }
 
@@ -2310,11 +2314,12 @@ int Checkbox(lua_State* L)
 int CheckboxFlags(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    int flags = luaL_optinteger(L, 3, 0);
-    int flags_value = luaL_optinteger(L, 4, 0);
+    double flags = luaL_optnumber(L, 3, 0.0);
+    double flags_value = luaL_optinteger(L, 4, 0.0);
 
     lua_pushboolean(L, ImGui::CheckboxFlags(label, (unsigned int*)&flags, (unsigned int)flags_value));
-    return 1;
+    lua_pushnumber(L, flags);
+    return 2;
 }
 
 int RadioButton(lua_State* L)
@@ -5086,12 +5091,22 @@ int BeginDragDropSource(lua_State* L)
     return 1;
 }
 
-int SetDragDropPayload(lua_State* L)
+int SetNumberDragDropPayload(lua_State* L)
 {
     const char* type = luaL_checkstring(L, 2);
-    double data = luaL_checknumber(L, 3);
+    double v = luaL_checknumber(L, 3);
     ImGuiCond cond = luaL_optinteger(L, 4, 0);
-    lua_pushboolean(L, ImGui::SetDragDropPayload(type, (void*)&data, sizeof(double), cond));
+    lua_pushboolean(L, ImGui::SetDragDropPayload(type, (const void*)&v, sizeof(double), cond));
+    return 1;
+}
+
+int SetStringDragDropPayload(lua_State* L)
+{
+    const char* type = luaL_checkstring(L, 2);
+    const char* str = luaL_checkstring(L, 3);
+
+    ImGuiCond cond = luaL_optinteger(L, 4, 0);
+    lua_pushboolean(L, ImGui::SetDragDropPayload(type, str, strlen(str), cond));
     return 1;
 }
 
@@ -5107,14 +5122,22 @@ int BeginDragDropTarget(lua_State* L)
     return 1;
 }
 
-int AcceptDragDropPayload(lua_State* _UNUSED(L))
+int AcceptDragDropPayload(lua_State* L)
 {
-    //const char* type = luaL_checkstring(L, 2);
-    //ImGuiDragDropFlags flags = luaL_optinteger(L, 3, 0);
+    const char* type = luaL_checkstring(L, 2);
+    ImGuiDragDropFlags flags = luaL_optinteger(L, 3, 0);
 
-    //const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type, flags);
-    // TODO
-    return 0;
+    const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type, flags);
+    if (payload == nullptr)
+    {
+        lua_pushnil(L);
+    }
+    else
+    {
+        Binder binder(L);
+        binder.pushInstance("ImGuiPayload", const_cast<ImGuiPayload*>(reinterpret_cast<const ImGuiPayload*>(payload)));
+    }
+    return 1;
 }
 
 int EndDragDropTarget(lua_State* _UNUSED(L))
@@ -5123,11 +5146,79 @@ int EndDragDropTarget(lua_State* _UNUSED(L))
     return 0;
 }
 
-int GetDragDropPayload(lua_State* _UNUSED(L))
+int GetDragDropPayload(lua_State* L)
 {
     const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-    //TODO
+    if (payload == nullptr)
+    {
+        lua_pushnil(L);
+    }
+    else
+    {
+        Binder binder(L);
+        binder.pushInstance("ImGuiPayload", const_cast<ImGuiPayload*>(reinterpret_cast<const ImGuiPayload*>(payload)));
+    }
+
+    return 1;
+}
+
+ImGuiPayload* getPayload(lua_State* L)
+{
+    Binder binder(L);
+    return static_cast<ImGuiPayload*>(binder.getInstance("ImGuiPayload", 1));
+}
+
+int Payload_GetNumberData(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    double* v = (double*)(payload->Data);
+    lua_pushnumber(L, *v);
+    return 1;
+}
+
+int Payload_GetStringData(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    const char* str = static_cast<const char*>(payload->Data);
+    lua_pushstring(L, str);
+    return 1;
+}
+
+int Payload_Clear(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    payload->Clear();
     return 0;
+}
+
+int Payload_GetDataSize(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    lua_pushinteger(L, payload->DataSize);
+    return 1;
+}
+
+int Payload_IsDataType(lua_State* L)
+{
+    const char* datatype = luaL_checkstring(L, 2);
+
+    ImGuiPayload* payload = getPayload(L);
+    lua_pushboolean(L, payload->IsDataType(datatype));
+    return 1;
+}
+
+int Payload_IsPreview(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    lua_pushboolean(L, payload->IsPreview());
+    return 1;
+}
+
+int Payload_IsDelivery(lua_State* L)
+{
+    ImGuiPayload* payload = getPayload(L);
+    lua_pushboolean(L, payload->IsDelivery());
+    return 1;
 }
 
 // Clipping
@@ -8593,6 +8684,18 @@ int loader(lua_State* L)
     binder.createClass("ImGuiTabItem", 0, NULL, NULL, imguiTabItemFunctionList);
 #endif
 
+    const luaL_Reg imguiPayloadFunctionsList[] = {
+        {"getNumData", Payload_GetNumberData},
+        {"getStrData", Payload_GetStringData},
+        {"clear", Payload_Clear},
+        {"getDataSize", Payload_GetDataSize},
+        {"isDataType", Payload_IsDataType},
+        {"isPreview", Payload_IsPreview},
+        {"isDelivery", Payload_IsDelivery},
+        {NULL, NULL}
+    };
+    binder.createClass("ImGuiPayload", 0, NULL, NULL, imguiPayloadFunctionsList);
+
     const luaL_Reg imguiFunctionList[] =
     {
         {"setAutoUpdateCursor", SetAutoUpdateCursor},
@@ -8968,7 +9071,8 @@ int loader(lua_State* L)
 
         // Drag & Drop
         {"beginDragDropSource", BeginDragDropSource},
-        {"setDragDropPayload", SetDragDropPayload},
+        {"setNumDragDropPayload", SetNumberDragDropPayload},
+        {"setStrDragDropPayload", SetStringDragDropPayload},
         {"endDragDropSource", EndDragDropSource},
         {"beginDragDropTarget", BeginDragDropTarget},
         {"acceptDragDropPayload", AcceptDragDropPayload},
@@ -9031,4 +9135,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
