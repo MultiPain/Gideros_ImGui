@@ -5,79 +5,11 @@
 #endif
 
 #include "imgui_src/imgui.h"
-#include "imgui_src/imgui_internal.h"
-
-static const ImGuiDataTypeInfo GDataTypeInfo[] =
-{
-    { sizeof(char),             "%d",   "%d"    },  // ImGuiDataType_S8
-    { sizeof(unsigned char),    "%u",   "%u"    },
-    { sizeof(short),            "%d",   "%d"    },  // ImGuiDataType_S16
-    { sizeof(unsigned short),   "%u",   "%u"    },
-    { sizeof(int),              "%d",   "%d"    },  // ImGuiDataType_S32
-    { sizeof(unsigned int),     "%u",   "%u"    },
-#ifdef _MSC_VER
-    { sizeof(ImS64),            "%I64d","%I64d" },  // ImGuiDataType_S64
-    { sizeof(ImU64),            "%I64u","%I64u" },
-#else
-    { sizeof(ImS64),            "%lld", "%lld"  },  // ImGuiDataType_S64
-    { sizeof(ImU64),            "%llu", "%llu"  },
-#endif
-    { sizeof(float),            "%f",   "%f"    },  // ImGuiDataType_Float (float are promoted to double in va_arg)
-    { sizeof(double),           "%f",   "%lf"   },  // ImGuiDataType_Double
-};
-
-static const char* PatchFormatStringFloatToInt(const char* fmt)
-{
-    if (fmt[0] == '%' && fmt[1] == '.' && fmt[2] == '0' && fmt[3] == 'f' && fmt[4] == 0) // Fast legacy path for "%.0f" which is expected to be the most common case.
-        return "%d";
-    const char* fmt_start = ImParseFormatFindStart(fmt);    // Find % (if any, and ignore %%)
-    const char* fmt_end = ImParseFormatFindEnd(fmt_start);  // Find end of format specifier, which itself is an exercise of confidence/recklessness (because snprintf is dependent on libc or user).
-    if (fmt_end > fmt_start && fmt_end[-1] == 'f')
-    {
-#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-        if (fmt_start == fmt && fmt_end[0] == 0)
-            return "%d";
-        ImGuiContext& g = *GImGui;
-        ImFormatString(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), "%.*s%%d%s", (int)(fmt_start - fmt), fmt, fmt_end); // Honor leading and trailing decorations, but lose alignment/precision.
-        return g.TempBuffer;
-#else
-        IM_ASSERT(0 && "DragInt(): Invalid format string!"); // Old versions used a default parameter of "%.0f", please replace with e.g. "%d"
-#endif
-    }
-    return fmt;
-}
+//#include "imgui_src/imgui_internal.h"
+#include "imgui_src/imgui_widgets.cpp"
 
 namespace ImGui
 {
-/*
-static ImFileHandle ImFileFileOpen(const char* filename, const char* mode)
-{
-    return g_fopen(filename, mode);
-}
-
-static bool ImFileClose(ImFileHandle f)
-{
-    return g_fclose(f) == 0;
-}
-
-static size_t ImFileGetSize(ImFileHandle f)
-{
-    long off = 0;
-    long sz = 0;
-    return ((off = g_ftell(f)) != -1 && !g_fseek(f, 0, SEEK_END) && (sz = g_ftell(f)) != -1 && !g_fseek(f, off, SEEK_SET)) ? (size_t)sz : (size_t)-1;
-}
-
-static size_t ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f)
-{
-    return g_fread(data, (size_t)sz, (size_t)count, f);
-}
-
-static size_t ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f)
-{
-    return g_fwrite(data, (size_t)sz, (size_t)count, f);
-}
-*/
-
     bool FilledSliderScalar(const char* label, bool mirror, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
     {
         ImGuiWindow* window = GetCurrentWindow();
