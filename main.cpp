@@ -341,28 +341,12 @@ ImGuiID checkID(lua_State* L, int idx = 2)
 
 bool* getPopen(lua_State* L, int idx, int top = 2)
 {
-    bool* p_open;
-    if (lua_gettop(L) > top)
+    if (lua_gettop(L) > top && lua_type(L, idx) != LUA_TNIL)
     {
-        int type = lua_type(L, idx);
-        if (type == LUA_TBOOLEAN)
-        {
-            bool t = lua_toboolean(L, idx);
-            p_open = &t;
-        }
-        else if(type == LUA_TNIL)
-            p_open = NULL;
-        else
-        {
-            lua_pushfstring(L, "bad argument #2 (boolean/nil expected, got %s)", lua_typename(L, 3));
-            lua_error(L);
-            return 0;
-        }
+        bool flag = lua_toboolean(L, idx);
+        return new bool(flag);
     }
-    else
-        p_open = NULL;
-
-    return p_open;
+    return NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -738,6 +722,10 @@ void bindEnums(lua_State* L)
     lua_pushinteger(L, ImGuiGlyphRanges_Cyrillic);                      lua_setfield(L, -2, "GlyphRanges_Cyrillic");
     lua_pushinteger(L, ImGuiGlyphRanges_Thai);                          lua_setfield(L, -2, "GlyphRanges_Thai");
     lua_pushinteger(L, ImGuiGlyphRanges_Vietnamese);                    lua_setfield(L, -2, "GlyphRanges_Vietnamese");
+
+    lua_pushinteger(L, ImGuiItemFlags_Disabled);                        lua_setfield(L, -2, "ItemFlags_Disabled");
+    lua_pushinteger(L, ImGuiItemFlags_ButtonRepeat);                    lua_setfield(L, -2, "ItemFlags_ButtonRepeat");
+
     lua_pop(L, 1);
 }
 
@@ -1378,14 +1366,15 @@ int Begin(lua_State* L)
 
     bool draw_flag = ImGui::Begin(name, p_open, flags);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, draw_flag);
-    return 1;
+    return ret;
 }
 
 int End(lua_State* _UNUSED(L))
@@ -1416,14 +1405,15 @@ int BeginFullScreenWindow(lua_State* L)
 
     ImGui::PopStyleVar(3);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, draw_flag);
-    return 1;
+    return ret;
 }
 
 // Child Windows
@@ -1564,7 +1554,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     //ImGui::SetNextWindowPos(snap_pos, ImGuiCond_Always);
     //data->DesiredSize = ImVec2((int)(data->DesiredSize.x / step + 0.5f) * step, (int)(data->DesiredSize.y / step + 0.5f) * step);
 
-    lua_State* L = (lua_State*)data->UserData;
+    //lua_State* L = (lua_State*)data->UserData;
 
     luaL_checktype(L, 5, LUA_TFUNCTION);
     lua_pushvalue(L, 5);
@@ -1577,6 +1567,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     lua_call(L, 6, 2);
     data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
     lua_pop(L, 1);
+    //stackDump(L, "ConstraintCallback");
 }
 
 int SetNextWindowSizeConstraints(lua_State* L)
@@ -3530,14 +3521,15 @@ int CollapsingHeader(lua_State* L)
 
     bool flag = ImGui::CollapsingHeader(label, p_open, flags);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, flag);
-    return 1;
+    return ret;
 }
 
 int SetNextItemOpen(lua_State* L)
@@ -3814,15 +3806,8 @@ int BeginPopupModal(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     bool* p_open = getPopen(L, 3);
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-
     bool draw_flag = ImGui::BeginPopupModal(name, p_open, flags);
-
-    if (p_open != NULL)
-    {
-        lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
-    }
+    delete p_open;
     lua_pushboolean(L, draw_flag);
     return 1;
 }
@@ -3985,16 +3970,17 @@ int BeginTabItem(lua_State* L)
     bool* p_open = getPopen(L, 3);
     ImGuiTabItemFlags flags = luaL_optinteger(L, 4, 0);
 
-    bool result = ImGui::BeginTabItem(label, p_open, flags);
+    bool flag = ImGui::BeginTabItem(label, p_open, flags);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, result);
-        return 2;
+        ret = 2;
     }
-    lua_pushboolean(L, result);
-    return 1;
+    delete p_open;
+    lua_pushboolean(L, flag);
+    return ret;
 }
 
 int EndTabItem(lua_State* _UNUSED(L))
