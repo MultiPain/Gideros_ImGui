@@ -339,6 +339,16 @@ ImGuiID checkID(lua_State* L, int idx = 2)
     return (ImGuiID)id;
 }
 
+bool* getPopen(lua_State* L, int idx, int top = 2)
+{
+    if (lua_gettop(L) > top && lua_type(L, idx) != LUA_TNIL)
+    {
+        bool flag = lua_toboolean(L, idx);
+        return new bool(flag);
+    }
+    return NULL;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// ENUMS
@@ -1348,40 +1358,19 @@ int Begin(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 
-    bool* p_open;
-    if (lua_gettop(L) > 2)
-        switch(lua_type(L, 3))
-        {
-            case LUA_TBOOLEAN:
-                {
-                    bool t = lua_toboolean(L, 3);
-                    p_open = &t;
-                }
-                break;
-            case LUA_TNIL:
-                p_open = NULL;
-                break;
-            default:
-                {
-                    lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
-                    lua_error(L);
-                    return 0;
-                }
-                break;
-        }
-    else
-        p_open = NULL;
+    bool* p_open = getPopen(L, 3);
 
     bool draw_flag = ImGui::Begin(name, p_open, flags);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, draw_flag);
-    return 1;
+    return ret;
 }
 
 int End(lua_State* _UNUSED(L))
@@ -1397,27 +1386,7 @@ int BeginFullScreenWindow(lua_State* L)
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
     flags |= ImGuiWindowFlags_FullScreen;
 
-    bool* p_open;
-
-    switch(lua_type(L, 3))
-    {
-        case LUA_TBOOLEAN:
-            {
-                bool t = lua_toboolean(L, 3);
-                p_open = &t;
-            }
-            break;
-        case LUA_TNIL:
-            p_open = NULL;
-            break;
-        default:
-            {
-                lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
-                lua_error(L);
-                return 0;
-            }
-            break;
-    }
+    bool* p_open = getPopen(L, 3);
 
     ImGuiIO& IO = ImGui::GetIO();
 
@@ -1432,14 +1401,15 @@ int BeginFullScreenWindow(lua_State* L)
 
     ImGui::PopStyleVar(3);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, draw_flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, draw_flag);
-    return 1;
+    return ret;
 }
 
 // Child Windows
@@ -3541,41 +3511,20 @@ int GetTreeNodeToLabelSpacing(lua_State* L)
 int CollapsingHeader(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    bool* p_open;
-    if (lua_gettop(L) > 2)
-        switch(lua_type(L, 3))
-        {
-            case LUA_TBOOLEAN:
-                {
-                    bool t = lua_toboolean(L, 3);
-                    p_open = &t;
-                }
-                break;
-            case LUA_TNIL:
-                p_open = NULL;
-                break;
-            default:
-                {
-                    lua_pushfstring(L, "bad argument #2 to 'beginWindow' (boolean/nil expected, got %s)", lua_typename(L, 3));
-                    lua_error(L);
-                    return 0;
-                }
-                break;
-        }
-    else
-        p_open = NULL;
+    bool* p_open = getPopen(L, 3);
     ImGuiTreeNodeFlags flags = luaL_optinteger(L, 4, 0);
 
     bool flag = ImGui::CollapsingHeader(label, p_open, flags);
 
+    int ret = 1;
     if (p_open != NULL)
     {
         lua_pushboolean(L, *p_open);
-        lua_pushboolean(L, flag);
-        return 2;
+        ret = 2;
     }
+    delete p_open;
     lua_pushboolean(L, flag);
-    return 1;
+    return ret;
 }
 
 int SetNextItemOpen(lua_State* L)
@@ -3850,15 +3799,12 @@ int BeginPopup(lua_State* L)
 int BeginPopupModal(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 2);
-    bool p_open = lua_tointeger(L, 3) > 0;
+    bool* p_open = getPopen(L, 3);
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-
-    bool result = ImGui::BeginPopupModal(name, &p_open, flags);
-
-    lua_pushboolean(L, p_open);
-    lua_pushboolean(L, result);
-
-    return 2;
+    bool draw_flag = ImGui::BeginPopupModal(name, p_open, flags);
+    delete p_open;
+    lua_pushboolean(L, draw_flag);
+    return 1;
 }
 
 int EndPopup(lua_State* _UNUSED(L))
@@ -4016,14 +3962,20 @@ int EndTabBar(lua_State* _UNUSED(L))
 int BeginTabItem(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    bool p_open = lua_toboolean(L, 3) > 0;
+    bool* p_open = getPopen(L, 3);
     ImGuiTabItemFlags flags = luaL_optinteger(L, 4, 0);
 
-    bool result = ImGui::BeginTabItem(label, &p_open, flags);
+    bool flag = ImGui::BeginTabItem(label, p_open, flags);
 
-    lua_pushboolean(L, p_open);
-    lua_pushboolean(L, result);
-    return 2;
+    int ret = 1;
+    if (p_open != NULL)
+    {
+        lua_pushboolean(L, *p_open);
+        ret = 2;
+    }
+    delete p_open;
+    lua_pushboolean(L, flag);
+    return ret;
 }
 
 int EndTabItem(lua_State* _UNUSED(L))
@@ -8145,23 +8097,19 @@ int ShowLuaStyleEditor(lua_State* L)
 
     ImGuiWindowFlags window_flags = luaL_optinteger(L, 4, ImGuiWindowFlags_None);
 
-    switch (lua_type(L, 3))
+    int type = lua_type(L, 3);
+    if (type == LUA_TBOOLEAN)
     {
-        case LUA_TBOOLEAN:
-        {
-            bool p_open = lua_toboolean(L, 3);
-            DrawLuaStyleEditor(title, &p_open, window_flags);
-            lua_pushboolean(L, p_open);
-            return 1;
-        };
-        default:
-        {
-            DrawLuaStyleEditor(title, NULL, window_flags);
-            return 0;
-        }
+        bool p_open = lua_toboolean(L, 3);
+        DrawLuaStyleEditor(title, &p_open, window_flags);
+        lua_pushboolean(L, p_open);
+        return 1;
     }
-
-    return 0;
+    else
+    {
+        DrawLuaStyleEditor(title, NULL, window_flags);
+        return 0;
+    }
 }
 
 struct ExampleAppLog
