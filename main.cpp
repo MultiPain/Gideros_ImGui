@@ -722,6 +722,10 @@ void bindEnums(lua_State* L)
     lua_pushinteger(L, ImGuiGlyphRanges_Cyrillic);                      lua_setfield(L, -2, "GlyphRanges_Cyrillic");
     lua_pushinteger(L, ImGuiGlyphRanges_Thai);                          lua_setfield(L, -2, "GlyphRanges_Thai");
     lua_pushinteger(L, ImGuiGlyphRanges_Vietnamese);                    lua_setfield(L, -2, "GlyphRanges_Vietnamese");
+
+    lua_pushinteger(L, ImGuiItemFlags_Disabled);                        lua_setfield(L, -2, "ItemFlags_Disabled");
+    lua_pushinteger(L, ImGuiItemFlags_ButtonRepeat);                    lua_setfield(L, -2, "ItemFlags_ButtonRepeat");
+
     lua_pop(L, 1);
 }
 
@@ -1550,7 +1554,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     //ImGui::SetNextWindowPos(snap_pos, ImGuiCond_Always);
     //data->DesiredSize = ImVec2((int)(data->DesiredSize.x / step + 0.5f) * step, (int)(data->DesiredSize.y / step + 0.5f) * step);
 
-    lua_State* L = (lua_State*)data->UserData;
+    //lua_State* L = (lua_State*)data->UserData;
 
     luaL_checktype(L, 5, LUA_TFUNCTION);
     lua_pushvalue(L, 5);
@@ -1563,6 +1567,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     lua_call(L, 6, 2);
     data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
     lua_pop(L, 1);
+    //stackDump(L, "ConstraintCallback");
 }
 
 int SetNextWindowSizeConstraints(lua_State* L)
