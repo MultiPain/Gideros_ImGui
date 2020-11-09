@@ -734,7 +734,7 @@ ImGui:endChildFrame()
 [To top](#api)
 ## Text Utilities
 ```lua
-w, h = ImGui:calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
+w, h = ImGui:calcTextSize(text, [hide_text_after_double_hash = false, wrap_width = -1])
 ```
 [To top](#api)
 ## Inputs Utilities: Keyboard
