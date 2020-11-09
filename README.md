@@ -274,6 +274,7 @@ IO:setConfigFlags(ImGuiConfigFlag)
 IO:addConfigFlags(ImGuiConfigFlag)
 ImGuiBackendFlag = IO:getBackendFlags()
 IO:setBackendFlags(ImGuiBackendFlag)
+IO:addBackendFlags(flags)
 number = IO:getIniSavingRate()
 IO:setIniSavingRate(number)
 string = IO:getIniFilename()
@@ -340,6 +341,54 @@ number = IO:getMouseDownSec(mouse_button)
 IO:setDisplaySize(w, h)
 w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
+```
+[To top](#api)
+## Navigation
+```lua
+--[[
+ USING GAMEPAD/KEYBOARD NAVIGATION CONTROLS
+ ------------------------------------------
+ - The gamepad/keyboard navigation is fairly functional and keeps being improved.
+ - Gamepad support is particularly useful to use Dear ImGui on a console system (e.g. PS4, Switch, XB1) without a mouse!
+ - You can ask questions and report issues at https://github.com/ocornut/imgui/issues/787
+ - The initial focus was to support game controllers, but keyboard is becoming increasingly and decently usable.
+ - Keyboard:
+    - Set io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard to enable.
+      NewFrame() will automatically fill io.NavInputs[] based on your io.KeysDown[] + io.KeyMap[] arrays.
+    - When keyboard navigation is active (io.NavActive + ImGuiConfigFlags_NavEnableKeyboard), the io.WantCaptureKeyboard flag
+      will be set. For more advanced uses, you may want to read from:
+       - io.NavActive: true when a window is focused and it doesn't have the ImGuiWindowFlags_NoNavInputs flag set.
+       - io.NavVisible: true when the navigation cursor is visible (and usually goes false when mouse is used).
+       - or query focus information with e.g. IsWindowFocused(ImGuiFocusedFlags_AnyWindow), IsItemFocused() etc. functions.
+      Please reach out if you think the game vs navigation input sharing could be improved.
+ - Gamepad:
+    - Set io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad to enable.
+    - Backend: Set io.BackendFlags |= ImGuiBackendFlags_HasGamepad + fill the io.NavInputs[] fields before calling NewFrame().
+      Note that io.NavInputs[] is cleared by EndFrame().
+    - See 'enum ImGuiNavInput_' in imgui.h for a description of inputs. For each entry of io.NavInputs[], set the following values:
+         0.0f= not held. 1.0f= fully held. Pass intermediate 0.0f..1.0f values for analog triggers/sticks.
+    - We uses a simple >0.0f test for activation testing, and won't attempt to test for a dead-zone.
+      Your code will probably need to transform your raw inputs (such as e.g. remapping your 0.2..0.9 raw input range to 0.0..1.0 imgui range, etc.).
+    - You can download PNG/PSD files depicting the gamepad controls for common controllers at: http://goo.gl/9LgVZW.
+    - If you need to share inputs between your game and the imgui parts, the easiest approach is to go all-or-nothing, with a buttons combo
+      to toggle the target. Please reach out if you think the game vs navigation input sharing could be improved.
+ - Mouse:
+    - PS4 users: Consider emulating a mouse cursor with DualShock4 touch pad or a spare analog stick as a mouse-emulation fallback.
+    - Consoles/Tablet/Phone users: Consider using a Synergy 1.x server (on your PC) + uSynergy.c (on your console/tablet/phone app) to share your PC mouse/keyboard.
+    - On a TV/console system where readability may be lower or mouse inputs may be awkward, you may want to set the ImGuiConfigFlags_NavEnableSetMousePos flag.
+      Enabling ImGuiConfigFlags_NavEnableSetMousePos + ImGuiBackendFlags_HasSetMousePos instructs dear imgui to move your mouse cursor along with navigation movements.
+      When enabled, the NewFrame() function may alter 'io.MousePos' and set 'io.WantSetMousePos' to notify you that it wants the mouse cursor to be moved.
+      When that happens your backend NEEDS to move the OS or underlying mouse cursor on the next frame. Some of the backends in examples/ do that.
+      (If you set the NavEnableSetMousePos flag but don't honor 'io.WantSetMousePos' properly, imgui will misbehave as it will see your mouse as moving back and forth!)
+      (In a setup when you may not have easy control over the mouse cursor, e.g. uSynergy.c doesn't expose moving remote mouse cursor, you may want
+       to set a boolean to ignore your other external mouse positions until the external source is moved again.)
+]]
+IO:setNavNavInputsDownDuration()
+IO:getNavNavInputsDownDuration()
+IO:setNavNavInputsDownDurationPrev()
+IO:getNavNavInputsDownDurationPrev()
+IO:setNavVisible(flag)
+IO:setNavActive(flag)
 ```
 [To top](#api)
 # WIDGETS & STUFF
