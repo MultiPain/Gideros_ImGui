@@ -35,9 +35,9 @@
 * [Tabs](#tab-bars-tabs)
 * [Dock builder (BETA)](#dock-builder-beta)
 * [Docking (BETA)](#docking-beta)
-    - [Dock node](#docknode)
-    - [Tab Bar](#tabbar)
-    - [Tab Item](#tabitem)
+    - [Dock node (BETA)](#dock-node-betaTe)
+    - [Tab Bar (BETA)](#tab-bar-beta)
+    - [Tab Item (BETA)](#tab-item-beta)
 * [Logging/Capture](#loggingcapture)
 * [Drag and drop (Beta API)](#drag-and-drop)
 * [Clipping](#clipping)
@@ -875,7 +875,7 @@ ImGui:endChildFrame()
 [To top](#api)
 ## Text Utilities
 ```lua
-w, h = ImGui:calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
+w, h = ImGui:calcTextSize(text, [hide_text_after_double_hash = false, wrap_width = -1])
 ```
 [To top](#api)
 ## Inputs Utilities: Keyboard
