@@ -35,7 +35,7 @@
 * [Tabs](#tab-bars-tabs)
 * [Docking (BETA)](#docking-beta)
     - [Dock builder (BETA)](#dock-builder-beta)
-    - [Dock node (BETA)](#dock-node-betaTe)
+    - [Dock node (BETA)](#dock-node-beta)
     - [Tab Bar (BETA)](#tab-bar-beta)
     - [Tab Item (BETA)](#tab-item-beta)
 * [Logging/Capture](#loggingcapture)
