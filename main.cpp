@@ -723,8 +723,26 @@ void bindEnums(lua_State* L)
     lua_pushinteger(L, ImGuiGlyphRanges_Thai);                          lua_setfield(L, -2, "GlyphRanges_Thai");
     lua_pushinteger(L, ImGuiGlyphRanges_Vietnamese);                    lua_setfield(L, -2, "GlyphRanges_Vietnamese");
 
+
     lua_pushinteger(L, ImGuiItemFlags_Disabled);                        lua_setfield(L, -2, "ItemFlags_Disabled");
     lua_pushinteger(L, ImGuiItemFlags_ButtonRepeat);                    lua_setfield(L, -2, "ItemFlags_ButtonRepeat");
+
+    lua_pushinteger(L, ImGuiNavInput_FocusNext);                        lua_setfield(L, -2, "NavInput_FocusNext");
+    lua_pushinteger(L, ImGuiNavInput_TweakFast);                        lua_setfield(L, -2, "NavInput_TweakFast");
+    lua_pushinteger(L, ImGuiNavInput_Input);                            lua_setfield(L, -2, "NavInput_Input");
+    lua_pushinteger(L, ImGuiNavInput_DpadRight);                        lua_setfield(L, -2, "NavInput_DpadRight");
+    lua_pushinteger(L, ImGuiNavInput_FocusPrev);                        lua_setfield(L, -2, "NavInput_FocusPrev");
+    lua_pushinteger(L, ImGuiNavInput_LStickDown);                       lua_setfield(L, -2, "NavInput_LStickDown");
+    lua_pushinteger(L, ImGuiNavInput_LStickUp);                         lua_setfield(L, -2, "NavInput_LStickUp");
+    lua_pushinteger(L, ImGuiNavInput_Activate);                         lua_setfield(L, -2, "NavInput_Activate");
+    lua_pushinteger(L, ImGuiNavInput_LStickLeft);                       lua_setfield(L, -2, "NavInput_LStickLeft");
+    lua_pushinteger(L, ImGuiNavInput_LStickRight);                      lua_setfield(L, -2, "NavInput_LStickRight");
+    lua_pushinteger(L, ImGuiNavInput_DpadLeft);                         lua_setfield(L, -2, "NavInput_DpadLeft");
+    lua_pushinteger(L, ImGuiNavInput_DpadDown);                         lua_setfield(L, -2, "NavInput_DpadDown");
+    lua_pushinteger(L, ImGuiNavInput_TweakSlow);                        lua_setfield(L, -2, "NavInput_TweakSlow");
+    lua_pushinteger(L, ImGuiNavInput_DpadUp);                           lua_setfield(L, -2, "NavInput_DpadUp");
+    lua_pushinteger(L, ImGuiNavInput_Menu);                             lua_setfield(L, -2, "NavInput_Menu");
+    lua_pushinteger(L, ImGuiNavInput_Cancel);                           lua_setfield(L, -2, "NavInput_Cancel");
 
     lua_pop(L, 1);
 }
@@ -4058,30 +4076,6 @@ void lua_setintfield(lua_State* L, int idx, int index)
     lua_settable(L,idx-(idx<0));
 }
 
-
-/*
-    void createDockNodeTable(lua_State* L, ImGuiDockNode* node)
-    {
-        if (!node)
-        {
-            lua_pushnil(L);
-            return;
-        }
-        lua_newtable(L);
-        lua_pushinteger(L, node->ID); lua_setfield(L, -2, "ID");
-        lua_pushinteger(L, node->SharedFlags); lua_setfield(L, -2, "sharedFlags");
-        lua_pushinteger(L, node->LocalFlags); lua_setfield(L, -2, "localFlags");
-        // ParentNode
-        if (node->ParentNode)
-        {
-            createDockNodeTable(L, node->ParentNode);
-            lua_pushvalue(L, -1);
-            lua_pop(L, 1);
-            lua_setfield(L, -2, "parentNode");
-        }
-    }
-    */
-
 int DockBuilderDockWindow(lua_State* L)
 {
     const char* window_name = luaL_checkstring(L, 2);
@@ -4236,7 +4230,7 @@ int DockBuilderGetNode(lua_State* L)
 {
     ImGuiID node_id = checkID(L, 2);
     ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
-    if (!node)
+    if (node == nullptr)
     {
         lua_pushnil(L);
         return 1;
@@ -4271,6 +4265,11 @@ int DockBuilder_Node_GetParentNode(lua_State* L)
 {
     Binder binder(L);
     ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
+    if (node == nullptr)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
     binder.pushInstance("ImGuiDockNode", node->ParentNode);
     return 1;
 }
@@ -4279,8 +4278,15 @@ int DockBuilder_Node_GetChildNodes(lua_State* L)
 {
     Binder binder(L);
     ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
-    binder.pushInstance("ImGuiDockNode", node->ChildNodes[0]);
-    binder.pushInstance("ImGuiDockNode", node->ChildNodes[1]);
+    if (node->ChildNodes[0] == nullptr)
+        lua_pushnil(L);
+    else
+        binder.pushInstance("ImGuiDockNode", node->ChildNodes[0]);
+
+    if (node->ChildNodes[1] == nullptr)
+        lua_pushnil(L);
+    else
+        binder.pushInstance("ImGuiDockNode", node->ChildNodes[1]);
     return 2;
 }
 
@@ -4423,6 +4429,15 @@ int TabBar_GetTab(lua_State* L)
     int index = luaL_checkinteger(L, 2) - 1;
     LUA_ASSERT(index >= 0 && index <= count, "Tab index is out of bounds.");
     binder.pushInstance("ImGuiTabItem", &tabBar->Tabs[index]);
+    return 1;
+}
+
+int TabBar_GetTabCount(lua_State* L)
+{
+    Binder binder(L);
+    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(binder.getInstance("ImGuiTabBar", 1));
+    int count = tabBar->Tabs.Size;
+    lua_pushnumber(L, count);
     return 1;
 }
 
@@ -4743,7 +4758,7 @@ int DockBuilder_Node_GetCentralNode(lua_State* L)
 {
     Binder binder(L);
     ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
-    if (!node)
+    if (node == nullptr)
     {
         lua_pushnil(L);
         return 1;
@@ -4756,7 +4771,7 @@ int DockBuilder_Node_GetOnlyNodeWithWindows(lua_State* L)
 {
     Binder binder(L);
     ImGuiDockNode* node = static_cast<ImGuiDockNode*>(binder.getInstance("ImGuiDockNode", 1));
-    if (!node)
+    if (node == nullptr)
     {
         lua_pushnil(L);
         return 1;
@@ -4857,6 +4872,13 @@ int DockBuilder_Node_HasWindowMenuButton(lua_State* L)
 }
 
 int DockBuilder_Node_EnableCloseButton(lua_State* L)
+{
+    ImGuiDockNode* node = getDockNode(L);
+    node->EnableCloseButton = lua_toboolean(L, 2);
+    return 0;
+}
+
+int DockBuilder_Node_IsCloseButtonEnable(lua_State* L)
 {
     ImGuiDockNode* node = getDockNode(L);
     lua_pushboolean(L, node->EnableCloseButton);
@@ -4971,7 +4993,7 @@ int DockBuilder_Node_IsEmpty(lua_State* L)
 int DockBuilder_Node_GetMergedFlags(lua_State* L)
 {
     ImGuiDockNode* node = getDockNode(L);
-    lua_pushboolean(L, node->GetMergedFlags());
+    lua_pushnumber(L, node->GetMergedFlags());
     return 1;
 }
 
@@ -5397,13 +5419,11 @@ int EndChildFrame(lua_State* _UNUSED(L))
 // Text Utilities
 int CalcTextSize(lua_State* L)
 {
-    //const char* text, const char* text_end = NULL, , double wrap_width = -1.0f);
     const char* text = luaL_checkstring(L, 2);
-    const char* text_end = luaL_optstring(L, 3, NULL);
-    bool hide_text_after_double_hash = luaL_optboolean(L, 4, 0);
-    float wrap_width = luaL_optnumber(L, 5, -1.0);
+    bool hide_text_after_double_hash = luaL_optboolean(L, 3, 0);
+    float wrap_width = luaL_optnumber(L, 4, -1.0);
 
-    ImVec2 size = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
+    ImVec2 size = ImGui::CalcTextSize(text, NULL, hide_text_after_double_hash, wrap_width);
 
     lua_pushnumber(L, size.x);
     lua_pushnumber(L, size.y);
@@ -5715,7 +5735,6 @@ int ShowStyleSelector(lua_State* L)
 
     return 1;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -6547,19 +6566,90 @@ int IO_WantSaveIniSettings(lua_State* L)
     return 1;
 }
 
+int getNavButtonIndex(lua_State* L, int idx = 2)
+{
+    int index = luaL_checkinteger(L, idx) - 1;
+    LUA_FASSERT(index >= 0 && index <= ImGuiNavInput_COUNT - 5, "Nav input index is out of bounds! Must be [%d; %d]", 1, ImGuiNavInput_COUNT - 4);
+    return index;
+}
+
+int IO_SetNavInput(lua_State* L)
+{
+    int index = getNavButtonIndex(L);
+    float value = luaL_checknumber(L, 3);
+    ImGuiIO& io = getIO(L);
+    io.NavInputs[index] = value;
+    return 0;
+}
+
+int IO_GetNavInput(lua_State* L)
+{
+    int index = getNavButtonIndex(L);
+
+    ImGuiIO& io = getIO(L);
+    lua_pushnumber(L, io.NavInputs[index]);
+    return 1;
+}
+
 int IO_IsNavActive(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-
     lua_pushboolean(L, io.NavActive);
+    return 1;
+}
+
+int IO_SetNavActive(lua_State* L)
+{
+    ImGuiIO& io = getIO(L);
+    io.NavActive = lua_toboolean(L, 2);
     return 1;
 }
 
 int IO_IsNavVisible(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-
     lua_pushboolean(L, io.NavVisible);
+    return 1;
+}
+
+int IO_SetNavVisible(lua_State* L)
+{
+    ImGuiIO& io = getIO(L);
+    io.NavVisible = lua_toboolean(L, 2);
+    return 1;
+}
+
+int IO_SetNavInputsDownDuration(lua_State *L)
+{
+    ImGuiIO& io = getIO(L);
+    int index = getNavButtonIndex(L);
+    io.NavInputsDownDuration[index] = luaL_checknumber(L, 2);
+    return 0;
+}
+
+int IO_GetNavInputsDownDuration(lua_State *L)
+{
+    ImGuiIO& io = getIO(L);
+    int index = getNavButtonIndex(L);
+    lua_pushboolean(L, io.NavInputsDownDuration[index]);
+    return 1;
+}
+
+int IO_SetNavInputsDownDurationPrev(lua_State *L)
+{
+    ImGuiIO& io = getIO(L);
+    int index = getNavButtonIndex(L);
+    io.NavInputsDownDurationPrev[index] = luaL_checknumber(L, 2);
+    return 0;
+}
+
+int IO_GetNavInputsDownDurationPrev(lua_State *L)
+{
+    ImGuiIO& io = getIO(L);
+    int index = getNavButtonIndex(L);
+    //io.NavActive
+    //ImGuiKey_Nav
+    lua_pushboolean(L, io.NavInputsDownDurationPrev[index]);
     return 1;
 }
 
@@ -6685,6 +6775,15 @@ int IO_SetBackendFlags(lua_State* L)
 
     ImGuiIO& io = getIO(L);
     io.BackendFlags = flags;
+    return 0;
+}
+
+int IO_AddBackendFlags(lua_State* L)
+{
+    ImGuiBackendFlags flags = luaL_checkinteger(L, 2);
+
+    ImGuiIO& io = getIO(L);
+    io.BackendFlags |= flags;
     return 0;
 }
 
@@ -8123,6 +8222,7 @@ struct ExampleAppLog
     ImGuiTextFilter     Filter;
     ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
     bool                AutoScroll;  // Keep scrolling if already at the bottom.
+    bool                Shown;
 
     ExampleAppLog()
     {
@@ -8245,35 +8345,31 @@ static ExampleAppLog logapp;
 int ShowLog(lua_State* L)
 {
     const char* title = luaL_checkstring(L, 2);
+    bool* p_open = getPopen(L, 3);
+    ImGuiWindowFlags window_flags = luaL_optinteger(L, 4, ImGuiWindowFlags_None);
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+    logapp.Draw(title, p_open, window_flags);
 
-    if (lua_gettop(L) > 3)
+    if (p_open != nullptr)
     {
-        window_flags = luaL_checkinteger(L, 4);
-    }
-
-    switch (lua_type(L, 3))
-    {
-    case LUA_TBOOLEAN:
-    {
-        bool flag = lua_toboolean(L, 2) > 0;
-        logapp.Draw(title, &flag, window_flags);
-        lua_pushboolean(L, flag);
+        logapp.Shown = *p_open;
+        lua_pushboolean(L, *p_open);
+        delete p_open;
         return 1;
-    };
-    default:
-    {
-        logapp.Draw(title, NULL, window_flags);
-        return 0;
     }
-    }
+    logapp.Shown = false;
+    return 0;
 }
 
 int WriteLog(lua_State* L)
 {
+    if (!logapp.Shown)
+        return 0;
+
     const char* text = luaL_checkstring(L, 2);
-    logapp.AddLog("[%.1f] %s\n", ImGui::GetTime(), text);
+    logapp.AddLog("%s\n", text);
+
+    return 0;
 }
 
 int loader(lua_State* L)
@@ -8428,8 +8524,18 @@ int loader(lua_State* L)
         {"wantTextInput", IO_WantTextInput},
         {"wantSetMousePos", IO_WantSetMousePos},
         {"wantSaveIniSettings", IO_WantSaveIniSettings},
+        /// NAVIGATION +
+        {"setNavInput", IO_SetNavInput},
+        {"getNavInput", IO_GetNavInput},
+        {"setNavNavInputsDownDuration", IO_SetNavInputsDownDuration},
+        {"getNavNavInputsDownDuration", IO_GetNavInputsDownDuration},
+        {"setNavNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
+        {"getNavNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
         {"isNavActive", IO_IsNavActive},
+        {"setNavActive", IO_SetNavActive},
         {"isNavVisible", IO_IsNavVisible},
+        {"setNavVisible", IO_SetNavVisible},
+        /// NAVIGATION -
         {"getFramerate", IO_GetFramerate},
         {"getMetricsRenderVertices", IO_GetMetricsRenderVertices},
         {"getMetricsRenderIndices", IO_GetMetricsRenderIndices},
@@ -8456,6 +8562,7 @@ int loader(lua_State* L)
         {"addConfigFlags", IO_AddConfigFlags},
         {"getBackendFlags", IO_GetBackendFlags},
         {"setBackendFlags", IO_SetBackendFlags},
+        {"addBackendFlags", IO_AddBackendFlags},
         {"getIniSavingRate", IO_GetIniSavingRate},
         {"setIniSavingRate", IO_SetIniSavingRate},
         {"getIniFilename", IO_GetIniFilename},
@@ -8554,17 +8661,18 @@ int loader(lua_State* L)
         {"getAuthorityForPos", DockBuilder_Node_GetAuthorityForPos},
         {"getAuthorityForSize", DockBuilder_Node_GetAuthorityForSize},
         {"getAuthorityForViewport", DockBuilder_Node_GetAuthorityForViewport},
-        {"getIsVisible", DockBuilder_Node_IsVisible},
-        {"getIsFocused", DockBuilder_Node_IsFocused},
-        {"getHasCloseButton", DockBuilder_Node_HasCloseButton},
-        {"getHasWindowMenuButton", DockBuilder_Node_HasWindowMenuButton},
-        {"getEnableCloseButton", DockBuilder_Node_EnableCloseButton},
-        {"getWantCloseAll", DockBuilder_Node_WantCloseAll},
-        {"getWantLockSizeOnce", DockBuilder_Node_WantLockSizeOnce},
-        {"getWantMouseMove", DockBuilder_Node_WantMouseMove},
-        {"getWantHiddenTabBarUpdate", DockBuilder_Node_WantHiddenTabBarUpdate},
-        {"getWantHiddenTabBarToggle", DockBuilder_Node_WantHiddenTabBarToggle},
-        {"getMarkedForPosSizeWrite", DockBuilder_Node_MarkedForPosSizeWrite},
+        {"isVisible", DockBuilder_Node_IsVisible},
+        {"isFocused", DockBuilder_Node_IsFocused},
+        {"hasCloseButton", DockBuilder_Node_HasCloseButton},
+        {"hasWindowMenuButton", DockBuilder_Node_HasWindowMenuButton},
+        {"enableCloseButton", DockBuilder_Node_EnableCloseButton},
+        {"isCloseButtonEnable", DockBuilder_Node_IsCloseButtonEnable},
+        {"wantCloseAll", DockBuilder_Node_WantCloseAll},
+        {"wantLockSizeOnce", DockBuilder_Node_WantLockSizeOnce},
+        {"wantMouseMove", DockBuilder_Node_WantMouseMove},
+        {"wantHiddenTabBarUpdate", DockBuilder_Node_WantHiddenTabBarUpdate},
+        {"wantHiddenTabBarToggle", DockBuilder_Node_WantHiddenTabBarToggle},
+        {"isMarkedForPosSizeWrite", DockBuilder_Node_MarkedForPosSizeWrite},
 
         {"isRootNode", DockBuilder_Node_IsRootNode},
         {"isDockSpace", DockBuilder_Node_IsDockSpace},
@@ -8584,6 +8692,7 @@ int loader(lua_State* L)
     const luaL_Reg imguiTabBarFunctionList[] = {
         {"getTabs", TabBar_GetTabs},
         {"getTab", TabBar_GetTab},
+        {"getTabCount", TabBar_GetTabCount},
         {"getFlags", TabBar_GetFlags},
         {"getID", TabBar_GetID},
         {"getSelectedTabId", TabBar_GetSelectedTabId},
@@ -9049,7 +9158,7 @@ int loader(lua_State* L)
         {"dockBuilderRemoveNodeChildNodes", DockBuilderRemoveNodeChildNodes},
         {"dockBuilderRemoveNodeDockedWindows", DockBuilderRemoveNodeDockedWindows},
         {"dockBuilderSplitNode", DockBuilderSplitNode},
-        {"dockBuilderCopyNode", DockBuilderCopyNode},
+        //{"dockBuilderCopyNode", DockBuilderCopyNode},
         {"dockBuilderCopyWindowSettings", DockBuilderCopyWindowSettings},
         {"dockBuilderCopyDockSpace", DockBuilderCopyDockSpace},
         {"dockBuilderFinish", DockBuilderFinish},
