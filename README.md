@@ -1,8 +1,8 @@
 # Dear ImGui LUA binding for [Gideros mobile](http://giderosmobile.com/)
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
-
-* [Fonts ***NEW***](#fonts-wip)
+* [EXPERIMENTAL](#EXPERIMENTAL)
+* [Fonts](#fonts-wip)
 * [Inputs](#inputs)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
@@ -33,7 +33,7 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
-* [Dock builder (BETA) ***NEW***](#dock-builder-beta)
+* [Dock builder (BETA)](#dock-builder-beta)
 * [Docking (BETA)](#docking-beta)
 * [Logging/Capture](#loggingcapture)
 * [Drag and drop (Beta API)](#drag-and-drop)
@@ -42,7 +42,7 @@
 * [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [ImGui Demos](#demos)
-* [ENUMS ***NEW***](#enums)
+* [ENUMS](#enums)
     - [FocusedFlags](#focusedflags)
     - [PopoupFlags](#opoupflags)
     - [HoveredFlags](#hoveredflags)
@@ -67,8 +67,9 @@
     - [ConfigFlags](#configflags)
     - [BackendFlags](#backendflags)
     - [SliderFlags](#sliderflags)
-	- [DockNodeFlags](#docknodeflags)
+    - [DockNodeFlags](#docknodeflags)
     - [GlyphRanges](#glyphranges)
+    - [ItemFlags](#itemflags)
 * [Custom drawing](#draw-lists)
 
 !VERY IMPORTANT!</br> 
@@ -81,6 +82,13 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 ```lua
 ImGui.new()
 ```
+[To top](#api)
+## EXPERIMENTAL
+```lua
+p_open = ImGui:showLog(title, p_open, [ImGuiWindowFlags = 0]) -- draw log window
+ImGui:writeLog(text)
+```
+[To top](#api)
 ## FONTS 
 ```lua
 IO = imgui:getIO()
@@ -309,6 +317,8 @@ bool = IO:isKeyShift()
 bool = IO:isKeyAlt()
 bool = IO:isKeySuper()
 flag = IO:getKeysDown(key_index)
+IO:setNavInput(ImGuiNavInput, value) -- see enums
+value = IO:getNavInput(ImGuiNavInput)
 flag = IO:isNavActive()
 flag = IO:isNavVisible()
 flag = IO:wantCaptureMouse()
@@ -335,7 +345,9 @@ number = IO:getDeltaTime()
 -- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
 -- was called BEFORE 'ImGui:beginWindow(...)'
 p_open, draw = ImGui:beginWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback])
-draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show close button
+draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
+p_open, draw = ImGui:BeginFullScreenWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback]) -- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
+draw = ImGui:BeginFullScreenWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
 ImGui:endWindow()
 ```
 [To top](#api)
@@ -355,7 +367,8 @@ x, y = ImGui:getWindowPos()
 w, h = ImGui:getWindowSize()
 w = ImGui:getWindowWidth()
 h = ImGui:getWindowHeight()
- 
+
+x1,y1, x2,y2 = ImGui:getWindowBounds() -- returns window region rectangle in global coordinates
 ImGui:setNextWindowPos(x, y, [ImGuiCond = 0, pivotX = 0, pivotY = 0])
 ImGui:setNextWindowSize(w, h, [ImGuiCond = 0])
 ImGui:setNextWindowContentSize(w, h)
@@ -689,12 +702,23 @@ ImGui:logText(text)
 ## Drag and drop
 ```lua
 flag = ImGui:beginDragDropSource([ImGuiDragDropFlags flags = 0])
-flag = ImGui:setDragDropPayload(str_type, number, [ImGuiCond cond = 0])
+flag = ImGui:setNumDragDropPayload(str_type, number, [ImGuiCond cond = 0])
+flag = ImGui:setStrDragDropPayload(str_type, string, [ImGuiCond cond = 0])
 ImGui:endDragDropSource()
 flag = ImGui:beginDragDropTarget()
-table = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])  -- W.I.P. have no return value
+ImGuiPayload = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
 ImGui:endDragDropTarget()
-table = ImGui:getDragDropPayload() -- W.I.P. have no return value
+ImGuiPayload = ImGui:getDragDropPayload()
+
+-- ImGuiPayload --
+
+number = ImGuiPayload:getNumData()
+string = ImGuiPayload:getStrData()
+ImGuiPayload:clear()
+number = ImGuiPayload:getDataSize()
+flag = ImGuiPayload:isDataType(type) -- type must be the same as in "ImGui:acceptDragDropPayload(type)"
+flag = ImGuiPayload:isPreview()
+flag = ImGuiPayload:isDelivery()
 ```
 [To top](#api)
 ## Clipping
@@ -768,7 +792,9 @@ x, y = ImGui:getMouseDragDelta(mouse_button, [lock_threshold = -1])
 ImGui:resetMouseDragDelta(mouse_button)
 ImGuiMouseCursor = ImGui:getMouseCursor()
 ImGui:setMouseCursor(ImGuiMouseCursor)
-ImGui:CaptureMouseFromApp([want_capture_mouse_value = true])
+ImGui:captureMouseFromApp([want_capture_mouse_value = true])
+ImGui:setAutoUpdateCursor(flag) -- uses application:set("cursor", name) to modify native cursor
+flag = ImGui:getAutoUpdateCursor()
 ```
 [To top](#api)
 ## Render
@@ -852,7 +878,7 @@ ImGui.InputTextFlags_CallbackCharFilter
 ImGui.InputTextFlags_NoHorizontalScroll
 ImGui.InputTextFlags_AlwaysInsertMode
 ImGui.InputTextFlags_CharsUppercase
-ImGui.InputTextFlags_NoBackground -- do not draw background frame
+ImGui.InputTextFlags_NoBackground -- custom constant, used to disable background
 ```
 [To top](#api)
 ### NavInput
@@ -1039,6 +1065,7 @@ ImGui.WindowFlags_MenuBar
 ImGui.WindowFlags_NoBackground
 ImGui.WindowFlags_AlwaysAutoResize
 ImGui.WindowFlags_NoDocking
+ImGui.WindowFlags_FullScreen -- custom constant, used to create a fullscreen window
 ```
 [To top](#api)
 ### TabItemFlags
@@ -1219,6 +1246,12 @@ ImGui.GlyphRanges_Japanese,
 ImGui.GlyphRanges_Cyrillic,
 ImGui.GlyphRanges_Thai,
 ImGui.GlyphRanges_Vietnamese
+```
+[To top](#api)
+### ItemFlags
+```lua
+ImGui.ItemFlags_Disabled
+ImGui.ItemFlags_ButtonRepeat
 ```
 [To top](#api)
 ## DRAW LISTS
