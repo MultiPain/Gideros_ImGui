@@ -4,6 +4,7 @@
 * [EXPERIMENTAL](#EXPERIMENTAL)
 * [Fonts](#fonts-wip)
 * [Inputs](#inputs)
+* [Available KeyCodes](Available-KeyCodes)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
 * [Color convert](#color-convert)
@@ -150,6 +151,31 @@ ImGui:onMouseWheel(event)
 ImGui:onKeyUp(event)
 ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
+```
+[To top](#api)
+## Available KeyCodes
+List of KeyCodes that can be used with IO:isKeyDown/IO:isKeyPressed/IO:isKeyReleased
+```lua
+KeyCode.TAB
+KeyCode.LEFT
+KeyCode.RIGHT
+KeyCode.UP
+KeyCode.DOWN
+KeyCode.PAGE_UP
+KeyCode.PAGE_DOWN
+KeyCode.HOME
+KeyCode.END
+KeyCode.DELETE
+KeyCode.BACKSPACE
+KeyCode.ENTER
+KeyCode.ESC
+KeyCode.INSERT
+KeyCode.A
+KeyCode.C
+KeyCode.V
+KeyCode.X
+KeyCode.Y
+KeyCode.Z
 ```
 [To top](#api)
 ## Style setters/getters
