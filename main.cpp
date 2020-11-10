@@ -275,6 +275,17 @@ int getKeyboardModifiers(lua_State *L)
     return mod;
 }
 
+lua_Number getAppProperty(lua_State *L, const char* name)
+{
+    lua_getglobal(L, "application");
+    lua_getfield(L, -1, name);
+    lua_pushvalue(L, -2);
+    lua_call(L, 1, 1);
+    lua_Number value = lua_tonumber(L, -1);
+    lua_remove(L, -1);
+    return value;
+}
+
 void setApplicationCursor(lua_State* L, const char* name)
 {
     lua_getglobal(L, "application");
@@ -1171,6 +1182,9 @@ int initImGui(lua_State* L)
 
     io.BackendPlatformName = "Gideros";
     io.BackendRendererName = "Gideros";
+
+    io.DisplaySize.x = getAppProperty(L, "getContentWidth");
+    io.DisplaySize.y = getAppProperty(L, "getContentHeight");
 
     // Keyboard map
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
@@ -4490,7 +4504,6 @@ int DockBuilder_Node_GetHostWindow(lua_State* L)
     lua_pushnumber(L, node->HostWindow);
     return 1;
 }
-
 int DockBuilder_Node_GetVisibleWindow(lua_State* L)
 {
     ImGuiDockNode* node = getDockNode(L);
@@ -7354,7 +7367,6 @@ void addConfRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int va
 /*
     void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
     {
-
     }
     */
 void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
