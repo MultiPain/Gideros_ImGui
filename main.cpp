@@ -6738,8 +6738,8 @@ int IO_WantSaveIniSettings(lua_State* L)
 
 int getNavButtonIndex(lua_State* L, int idx = 2)
 {
-    int index = luaL_checkinteger(L, idx) - 1;
-    LUA_FASSERT(index >= 0 && index <= ImGuiNavInput_COUNT - 5, "Nav input index is out of bounds! Must be [%d; %d]", 1, ImGuiNavInput_COUNT - 4);
+    int index = luaL_checkinteger(L, idx);
+    LUA_FASSERT(index >= 0 && index <= ImGuiNavInput_COUNT - 5, "Nav input index is out of bounds! Must be [%d; %d]", 0, ImGuiNavInput_COUNT - 5);
     return index;
 }
 
