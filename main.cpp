@@ -9064,6 +9064,7 @@ int loader(lua_State* L)
         {"setCursorPosY", SetCursorPosY},
         {"getCursorStartPos", GetCursorStartPos},
         {"getCursorScreenPos", GetCursorScreenPos},
+        {"setCursorScreenPos", SetCursorScreenPos},
         {"alignTextToFramePadding", AlignTextToFramePadding},
         {"getTextLineHeight", GetTextLineHeight},
         {"getTextLineHeightWithSpacing", GetTextLineHeightWithSpacing},
