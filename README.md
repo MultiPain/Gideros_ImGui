@@ -35,7 +35,8 @@
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
 * [Logging/Capture](#loggingcapture)
-* [Drag and drop (Beta API)](#drag-and-drop)
+* [Drag and drop](#drag-and-drop)
+    - [Payload](#Payload)
 * [Clipping](#clipping)
 * [Focus](#focus-activation)
 * [Utilities](#miscellaneous-utilities)
@@ -707,9 +708,10 @@ flag = ImGui:beginDragDropTarget()
 ImGuiPayload = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
 ImGui:endDragDropTarget()
 ImGuiPayload = ImGui:getDragDropPayload()
-
--- ImGuiPayload --
-
+```
+[To top](#api)
+### Payload
+```lua
 number = ImGuiPayload:getNumData()
 string = ImGuiPayload:getStrData()
 ImGuiPayload:clear()
