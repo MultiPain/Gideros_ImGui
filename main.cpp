@@ -1211,8 +1211,6 @@ int initImGui(lua_State* L)
     luaL_rawsetptr(L, -2, imgui);
     lua_pop(L, 1);
 
-    LUA_THROW_FERROR("Test %d %s %f", 1, "->", 1.0f);
-
     return 1;
 }
 
