@@ -9372,4 +9372,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui_beta)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
