@@ -4,7 +4,7 @@
 * [EXPERIMENTAL](#EXPERIMENTAL)
 * [Fonts](#fonts-wip)
 * [Inputs](#inputs)
-* [Available KeyCodes](Available-KeyCodes)
+* [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
 * [Color convert](#color-convert)
