@@ -3,7 +3,7 @@
 #define ENABLE_ASSERTIONS
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "imgui_beta_nodes"
+#define PLUGIN_NAME "ImGui_beta_nodes"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -35,6 +35,7 @@ static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
 static bool autoUpdateCursor;
+static bool INITIALIZED;
 
 #ifdef __IMGUI_NODE_EDITOR_H__
 #define ED ax::NodeEditor
@@ -836,7 +837,7 @@ private:
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-static SpriteProxy* ImGuiProxy;
+//SpriteProxy* ImGuiProxy;
 
 class EventListener : public EventDispatcher
 {
@@ -1071,6 +1072,11 @@ public:
         r_app_scale.x = 1.0f / sx;
         r_app_scale.y = 1.0f / sy;
     }
+
+    void applicationExit(Event*)
+    {
+        ImGui::DestroyContext();
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1086,6 +1092,7 @@ static void _Draw(void* c, const CurrentTransform&t, float sx, float sy, float e
 
 static void _Destroy(void* c)
 {
+    LUA_PRINT(L, "<_Destroy>");
     delete ((GidImGui* ) c);
 }
 
@@ -1097,9 +1104,11 @@ static void _Destroy(void* c)
 
 GidImGui::GidImGui(LuaApplication* application, lua_State* L, bool addMouseListeners = true, bool addKeyboardListeners = true, bool addResizeListener = true)
 {
+    LUA_PRINT(L, "[Create GidImGui]");
+
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
-    ImGuiProxy = proxy;
+    //ImGuiProxy = proxy;
 
     eventListener = new EventListener(L, proxy);
 
@@ -1128,10 +1137,12 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L, bool addMouseListe
     {
         proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
     }
+    proxy->addEventListener(Event::APPLICATION_EXIT, eventListener, &EventListener::applicationExit);
 }
 
 GidImGui::~GidImGui()
 {
+    LUA_PRINT(L, "[Destroy GidImGui]");
     proxy->removeEventListeners();
     delete eventListener;
     delete proxy;
@@ -1231,12 +1242,15 @@ GidImGui* getImgui(lua_State* L)
 
 int initImGui(lua_State* L)
 {
+    LUA_PRINT(L, "[Initialize ImGui]");
+
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
     ::application = application->getApplication();
 
     autoUpdateCursor = false;
 
     // init ImGui itself
+
     ImGui::CreateContext();
 
     // Setup style theme
@@ -1295,13 +1309,14 @@ int initImGui(lua_State* L)
 
 int destroyImGui(lua_State* L)
 {
+    LUA_PRINT(L, "[Deinitialize ImGui]");
+
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->ClearTexData();
     if (io.MouseDrawCursor)
         setApplicationCursor(L, "arrow");
     ImGui::DestroyContext();
 
-    ImGuiProxy->removeEventListeners();
     return 0;
 }
 
@@ -10680,6 +10695,7 @@ int loader(lua_State* L)
 static void g_initializePlugin(lua_State* L)
 {
     ::L = L;
+    ImGui_impl::LUA_PRINT(L, "[InitializePlugin]");
 
     lua_getglobal(L, "package");
     lua_getfield(L, -1, "preload");
@@ -10690,6 +10706,9 @@ static void g_initializePlugin(lua_State* L)
     lua_pop(L, 2);
 }
 
-static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
+static void g_deinitializePlugin(lua_State* L)
+{
+    ImGui_impl::LUA_PRINT(L, "[DeinitializePlugin]");
+}
 
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta_nodes)
