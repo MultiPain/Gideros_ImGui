@@ -376,6 +376,13 @@ bool* getPopen(lua_State* L, int idx, int top = 2)
 void bindEnums(lua_State* L)
 {
     lua_getglobal(L, CLASS_NAME);
+    // BackendFlags
+    lua_pushinteger(L, ImGuiBackendFlags_None);                         lua_setfield(L, -2, "BackendFlags_None");
+    lua_pushinteger(L, ImGuiBackendFlags_HasGamepad);                   lua_setfield(L, -2, "BackendFlags_HasGamepad");
+    lua_pushinteger(L, ImGuiBackendFlags_HasMouseCursors);              lua_setfield(L, -2, "BackendFlags_HasMouseCursors");
+    lua_pushinteger(L, ImGuiBackendFlags_HasSetMousePos);               lua_setfield(L, -2, "BackendFlags_HasSetMousePos");
+    lua_pushinteger(L, ImGuiBackendFlags_RendererHasVtxOffset);         lua_setfield(L, -2, "BackendFlags_RendererHasVtxOffset");
+
     // ImGuiFocusedFlags
     lua_pushinteger(L, ImGuiFocusedFlags_ChildWindows);                 lua_setfield(L, -2, "FocusedFlags_ChildWindows");
     lua_pushinteger(L, ImGuiFocusedFlags_AnyWindow);                    lua_setfield(L, -2, "FocusedFlags_AnyWindow");
@@ -831,11 +838,29 @@ private:
     void mouseUpOrDown(float x, float y, int button, bool state)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getMousePos(proxy, x, y, 0.0f);
+        io.MousePos = getMousePos(x, y, 0.0f);
         io.MouseDown[button] = state;
     }
 
-    ImVec2 getMousePos(SpriteProxy* proxy, float x, float y, float z)
+public:
+    ImVec2 r_app_scale;
+    ImVec2 app_bounds;
+
+    lua_State* L;
+    SpriteProxy* proxy;
+
+    EventListener(lua_State* L, SpriteProxy* proxy) :
+        L(L),
+        proxy(proxy)
+    {
+        applicationResize(nullptr);
+    }
+
+    ~EventListener()
+    {
+    }
+
+    ImVec2 getMousePos(float x, float y, float z)
     {
         std::stack<const Sprite*> stack;
 
@@ -856,24 +881,6 @@ private:
         }
 
         return ImVec2(x, y);
-    }
-
-public:
-    ImVec2 r_app_scale;
-    ImVec2 app_bounds;
-
-    lua_State* L;
-    SpriteProxy* proxy;
-
-    EventListener(lua_State* L, SpriteProxy* proxy) :
-        L(L),
-        proxy(proxy)
-    {
-        applicationResize(nullptr);
-    }
-
-    ~EventListener()
-    {
     }
 
     void mouseDown(MouseEvent* event)
@@ -909,7 +916,7 @@ public:
     void mouseHover(float x, float y)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = getMousePos(proxy, x, y, 0.0f);
+        io.MousePos = getMousePos(x, y, 0.0f);
     }
 
     void mouseWheel(MouseEvent* event)
@@ -921,7 +928,7 @@ public:
     {
         ImGuiIO& io = ImGui::GetIO();
         io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = getMousePos(proxy, x, y, 0.0f);
+        io.MousePos = getMousePos(x, y, 0.0f);
     }
 
     void touchesBegin(TouchEvent* event)
@@ -1180,34 +1187,34 @@ int initImGui(lua_State* L)
     // Create font
     ImGuiIO& io = ImGui::GetIO();
 
-    io.BackendPlatformName = "Gideros";
-    io.BackendRendererName = "Gideros";
-
     io.DisplaySize.x = getAppProperty(L, "getContentWidth");
     io.DisplaySize.y = getAppProperty(L, "getContentHeight");
 
+    io.BackendPlatformName = "Gideros";
+    io.BackendRendererName = "Gideros";
+
     // Keyboard map
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
-    io.KeyMap[ImGuiKey_Tab] = GINPUT_KEY_TAB;
-    io.KeyMap[ImGuiKey_LeftArrow] = GINPUT_KEY_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = GINPUT_KEY_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = GINPUT_KEY_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = GINPUT_KEY_DOWN;
-    io.KeyMap[ImGuiKey_PageUp] = GINPUT_KEY_PAGEUP;
-    io.KeyMap[ImGuiKey_PageDown] = GINPUT_KEY_PAGEDOWN;
-    io.KeyMap[ImGuiKey_Home] = GINPUT_KEY_HOME;
-    io.KeyMap[ImGuiKey_End] = GINPUT_KEY_END;
-    io.KeyMap[ImGuiKey_Delete] = GINPUT_KEY_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = GINPUT_KEY_BACKSPACE;
-    io.KeyMap[ImGuiKey_Enter] = GINPUT_KEY_ENTER;
-    io.KeyMap[ImGuiKey_Escape] = GINPUT_KEY_ESC;
-    io.KeyMap[ImGuiKey_Insert] = GINPUT_KEY_INSERT;
-    io.KeyMap[ImGuiKey_A] = GINPUT_KEY_A;
-    io.KeyMap[ImGuiKey_C] = GINPUT_KEY_C;
-    io.KeyMap[ImGuiKey_V] = GINPUT_KEY_V;
-    io.KeyMap[ImGuiKey_X] = GINPUT_KEY_X;
-    io.KeyMap[ImGuiKey_Y] = GINPUT_KEY_Y;
-    io.KeyMap[ImGuiKey_Z] = GINPUT_KEY_Z;
+    io.KeyMap[ImGuiKey_Tab]         = GINPUT_KEY_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow]   = GINPUT_KEY_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow]  = GINPUT_KEY_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow]     = GINPUT_KEY_UP;
+    io.KeyMap[ImGuiKey_DownArrow]   = GINPUT_KEY_DOWN;
+    io.KeyMap[ImGuiKey_PageUp]      = GINPUT_KEY_PAGEUP;
+    io.KeyMap[ImGuiKey_PageDown]    = GINPUT_KEY_PAGEDOWN;
+    io.KeyMap[ImGuiKey_Home]        = GINPUT_KEY_HOME;
+    io.KeyMap[ImGuiKey_End]         = GINPUT_KEY_END;
+    io.KeyMap[ImGuiKey_Delete]      = GINPUT_KEY_DELETE;
+    io.KeyMap[ImGuiKey_Backspace]   = GINPUT_KEY_BACKSPACE;
+    io.KeyMap[ImGuiKey_Enter]       = GINPUT_KEY_ENTER;
+    io.KeyMap[ImGuiKey_Escape]      = GINPUT_KEY_ESC;
+    io.KeyMap[ImGuiKey_Insert]      = GINPUT_KEY_INSERT;
+    io.KeyMap[ImGuiKey_A]           = GINPUT_KEY_A;
+    io.KeyMap[ImGuiKey_C]           = GINPUT_KEY_C;
+    io.KeyMap[ImGuiKey_V]           = GINPUT_KEY_V;
+    io.KeyMap[ImGuiKey_X]           = GINPUT_KEY_X;
+    io.KeyMap[ImGuiKey_Y]           = GINPUT_KEY_Y;
+    io.KeyMap[ImGuiKey_Z]           = GINPUT_KEY_Z;
 
     unsigned char* pixels;
     int width, height;
@@ -4504,6 +4511,7 @@ int DockBuilder_Node_GetHostWindow(lua_State* L)
     lua_pushnumber(L, node->HostWindow);
     return 1;
 }
+
 int DockBuilder_Node_GetVisibleWindow(lua_State* L)
 {
     ImGuiDockNode* node = getDockNode(L);
@@ -5709,7 +5717,7 @@ int GetMousePos(lua_State* L)
     ImVec2 pos = ImGui::GetMousePos();
     lua_pushnumber(L, pos.x);
     lua_pushnumber(L, pos.y);
-    return  2;
+    return 2;
 }
 
 int GetMousePosOnOpeningCurrentPopup(lua_State* L)
@@ -6781,24 +6789,10 @@ int IO_IsNavActive(lua_State* L)
     return 1;
 }
 
-int IO_SetNavActive(lua_State* L)
-{
-    ImGuiIO& io = getIO(L);
-    io.NavActive = lua_toboolean(L, 2);
-    return 1;
-}
-
 int IO_IsNavVisible(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
     lua_pushboolean(L, io.NavVisible);
-    return 1;
-}
-
-int IO_SetNavVisible(lua_State* L)
-{
-    ImGuiIO& io = getIO(L);
-    io.NavVisible = lua_toboolean(L, 2);
     return 1;
 }
 
@@ -7367,6 +7361,7 @@ void addConfRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int va
 /*
     void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
     {
+
     }
     */
 void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
@@ -8718,9 +8713,7 @@ int loader(lua_State* L)
         {"setNavNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
         {"getNavNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
         {"isNavActive", IO_IsNavActive},
-        {"setNavActive", IO_SetNavActive},
         {"isNavVisible", IO_IsNavVisible},
-        {"setNavVisible", IO_SetNavVisible},
         /// NAVIGATION -
         {"getFramerate", IO_GetFramerate},
         {"getMetricsRenderVertices", IO_GetMetricsRenderVertices},
