@@ -842,6 +842,12 @@ private:
         io.MouseDown[button] = state;
     }
 
+    void scaleMouseCoords(float& x, float& y)
+    {
+        x = x * r_app_scale.x + app_bounds.x;
+        y = y * r_app_scale.y + app_bounds.y;
+    }
+
 public:
     ImVec2 r_app_scale;
     ImVec2 app_bounds;
@@ -864,9 +870,6 @@ public:
     {
         std::stack<const Sprite*> stack;
 
-        x = x * r_app_scale.x + app_bounds.x;
-        y = y * r_app_scale.y + app_bounds.y;
-
         const Sprite* curr = proxy;
         while (curr)
         {
@@ -885,7 +888,10 @@ public:
 
     void mouseDown(MouseEvent* event)
     {
-        mouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(event->button), true);
+        float x = (float)event->x;
+        float y = (float)event->y;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), true);
     }
 
     void mouseDown(float x, float y, int button)
@@ -895,7 +901,10 @@ public:
 
     void mouseUp(MouseEvent* event)
     {
-        mouseUpOrDown((float)event->x, (float)event->y, convertGiderosMouseButton(event->button), false);
+        float x = (float)event->x;
+        float y = (float)event->y;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), false);
     }
 
     void mouseUp(float x, float y, int button)
@@ -910,7 +919,10 @@ public:
 
     void mouseHover(MouseEvent* event)
     {
-        mouseHover((float)event->x, (float)event->y);
+        float x = (float)event->x;
+        float y = (float)event->y;
+        scaleMouseCoords(x, y);
+        mouseHover(x, y);
     }
 
     void mouseHover(float x, float y)
@@ -921,7 +933,10 @@ public:
 
     void mouseWheel(MouseEvent* event)
     {
-        mouseWheel((float)event->x, (float)event->y, event->wheel);
+        float x = (float)event->x;
+        float y = (float)event->y;
+        scaleMouseCoords(x, y);
+        mouseWheel(x, y, event->wheel);
     }
 
     void mouseWheel(float x, float y, int wheel)
@@ -933,22 +948,34 @@ public:
 
     void touchesBegin(TouchEvent* event)
     {
-        mouseUpOrDown(event->tx, event->ty, GINPUT_LEFT_BUTTON, true);
+        float x = event->tx;
+        float y = event->ty;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, GINPUT_LEFT_BUTTON, true);
     }
 
     void touchesEnd(TouchEvent* event)
     {
-        mouseUpOrDown(event->tx, event->ty, GINPUT_LEFT_BUTTON, false);
+        float x = event->tx;
+        float y = event->ty;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, GINPUT_LEFT_BUTTON, false);
     }
 
     void touchesMove(TouchEvent* event)
     {
-        mouseUpOrDown(event->tx, event->ty, GINPUT_LEFT_BUTTON, true);
+        float x = event->tx;
+        float y = event->ty;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, GINPUT_LEFT_BUTTON, true);
     }
 
     void touchesCancel(TouchEvent* event)
     {
-        mouseUpOrDown(event->tx, event->ty, GINPUT_LEFT_BUTTON, false);
+        float x = event->tx;
+        float y = event->ty;
+        scaleMouseCoords(x, y);
+        mouseUpOrDown(x, y, GINPUT_LEFT_BUTTON, false);
     }
 
     void keyDown(KeyboardEvent* event)
@@ -1273,7 +1300,7 @@ int MouseMove(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(getfield(L, "button"));
+    int button = getfield(L, "button");
 
     imgui->eventListener->mouseMove(event_x, event_y, button);
 
@@ -1286,7 +1313,7 @@ int MouseDown(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(getfield(L, "button"));
+    int button = getfield(L, "button");
 
     imgui->eventListener->mouseDown(event_x, event_y, button);
 
@@ -1299,7 +1326,7 @@ int MouseUp(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int button = convertGiderosMouseButton(getfield(L, "button"));
+    int button = getfield(L, "button");
 
     imgui->eventListener->mouseUp(event_x, event_y, button);
 
@@ -1318,7 +1345,6 @@ int MouseWheel(lua_State* L)
 
     return 0;
 }
-
 
 /// KEYBOARD INPUTS
 
@@ -1948,6 +1974,19 @@ int PushItemWidth(lua_State* L)
 int PopItemWidth(lua_State* _UNUSED(L))
 {
     ImGui::PopItemWidth();
+    return 0;
+}
+
+int PushItemFlag(lua_State* L)
+{
+    int option = luaL_checkinteger(L, 2);
+    ImGui::PushItemFlag(option, lua_toboolean(L, 3));
+    return 0;
+}
+
+int PopItemFlag(lua_State* _UNUSED(L))
+{
+    ImGui::PopItemFlag();
     return 0;
 }
 
@@ -9040,6 +9079,8 @@ int loader(lua_State* L)
 
         {"pushItemWidth", PushItemWidth},
         {"popItemWidth", PopItemWidth},
+        {"pushItemFlag", PushItemFlag},
+        {"popItemFlag", PopItemFlag},
         {"setNextItemWidth", SetNextItemWidth},
         {"calcItemWidth", CalcItemWidth},
         {"pushTextWrapPos", PushTextWrapPos},
