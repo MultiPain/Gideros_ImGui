@@ -1542,7 +1542,6 @@ ImU64   ImFileGetSize(ImFileHandle f)   { long off = 0, sz = 0; return ((off = f
 ImU64   ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f)           { return fread(data, (size_t)sz, (size_t)count, f); }
 ImU64   ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f)    { return fwrite(data, (size_t)sz, (size_t)count, f); }
 #else
-//#include "imgui_file_system.h"
 #include "gstdio.h"
 
 ImFileHandle ImFileOpen(const char* filename, const char* mode) { return g_fopen(filename, mode); }

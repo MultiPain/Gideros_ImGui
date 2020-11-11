@@ -1,8 +1,8 @@
 # Dear ImGui LUA binding for [Gideros mobile](http://giderosmobile.com/)
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
-
-* [Fonts ***NEW***](#fonts-wip)
+* [EXPERIMENTAL](#EXPERIMENTAL)
+* [Fonts](#fonts-wip)
 * [Inputs](#inputs)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
@@ -33,8 +33,11 @@
 * [Popups / Modals](#popups-modals)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
-* [Dock builder (BETA) ***NEW***](#dock-builder-beta)
 * [Docking (BETA)](#docking-beta)
+    - [Dock builder (BETA)](#dock-builder-beta)
+    - [Dock node (BETA)](#dock-node-beta)
+    - [Tab Bar (BETA)](#tab-bar-beta)
+    - [Tab Item (BETA)](#tab-item-beta)
 * [Logging/Capture](#loggingcapture)
 * [Drag and drop (Beta API)](#drag-and-drop)
 * [Clipping](#clipping)
@@ -42,7 +45,7 @@
 * [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [ImGui Demos](#demos)
-* [ENUMS ***NEW***](#enums)
+* [ENUMS](#enums)
     - [FocusedFlags](#focusedflags)
     - [PopoupFlags](#opoupflags)
     - [HoveredFlags](#hoveredflags)
@@ -67,8 +70,9 @@
     - [ConfigFlags](#configflags)
     - [BackendFlags](#backendflags)
     - [SliderFlags](#sliderflags)
-	- [DockNodeFlags](#docknodeflags)
+    - [DockNodeFlags](#docknodeflags)
     - [GlyphRanges](#glyphranges)
+    - [ItemFlags](#itemflags)
 * [Custom drawing](#draw-lists)
 
 !VERY IMPORTANT!</br> 
@@ -81,6 +85,13 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 ```lua
 ImGui.new()
 ```
+[To top](#api)
+## EXPERIMENTAL
+```lua
+p_open = ImGui:showLog(title, p_open, [ImGuiWindowFlags = 0]) -- draw log window
+ImGui:writeLog(text)
+```
+[To top](#api)
 ## FONTS 
 ```lua
 IO = imgui:getIO()
@@ -263,6 +274,7 @@ IO:setConfigFlags(ImGuiConfigFlag)
 IO:addConfigFlags(ImGuiConfigFlag)
 ImGuiBackendFlag = IO:getBackendFlags()
 IO:setBackendFlags(ImGuiBackendFlag)
+IO:addBackendFlags(flags)
 number = IO:getIniSavingRate()
 IO:setIniSavingRate(number)
 string = IO:getIniFilename()
@@ -309,6 +321,8 @@ bool = IO:isKeyShift()
 bool = IO:isKeyAlt()
 bool = IO:isKeySuper()
 flag = IO:getKeysDown(key_index)
+IO:setNavInput(ImGuiNavInput, value) -- see enums
+value = IO:getNavInput(ImGuiNavInput)
 flag = IO:isNavActive()
 flag = IO:isNavVisible()
 flag = IO:wantCaptureMouse()
@@ -329,13 +343,63 @@ w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
 ```
 [To top](#api)
+## Navigation
+```lua
+--[[
+ USING GAMEPAD/KEYBOARD NAVIGATION CONTROLS
+ ------------------------------------------
+ - The gamepad/keyboard navigation is fairly functional and keeps being improved.
+ - Gamepad support is particularly useful to use Dear ImGui on a console system (e.g. PS4, Switch, XB1) without a mouse!
+ - You can ask questions and report issues at https://github.com/ocornut/imgui/issues/787
+ - The initial focus was to support game controllers, but keyboard is becoming increasingly and decently usable.
+ - Keyboard:
+    - Set io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard to enable.
+      NewFrame() will automatically fill io.NavInputs[] based on your io.KeysDown[] + io.KeyMap[] arrays.
+    - When keyboard navigation is active (io.NavActive + ImGuiConfigFlags_NavEnableKeyboard), the io.WantCaptureKeyboard flag
+      will be set. For more advanced uses, you may want to read from:
+       - io.NavActive: true when a window is focused and it doesn't have the ImGuiWindowFlags_NoNavInputs flag set.
+       - io.NavVisible: true when the navigation cursor is visible (and usually goes false when mouse is used).
+       - or query focus information with e.g. IsWindowFocused(ImGuiFocusedFlags_AnyWindow), IsItemFocused() etc. functions.
+      Please reach out if you think the game vs navigation input sharing could be improved.
+ - Gamepad:
+    - Set io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad to enable.
+    - Backend: Set io.BackendFlags |= ImGuiBackendFlags_HasGamepad + fill the io.NavInputs[] fields before calling NewFrame().
+      Note that io.NavInputs[] is cleared by EndFrame().
+    - See 'enum ImGuiNavInput_' in imgui.h for a description of inputs. For each entry of io.NavInputs[], set the following values:
+         0.0f= not held. 1.0f= fully held. Pass intermediate 0.0f..1.0f values for analog triggers/sticks.
+    - We uses a simple >0.0f test for activation testing, and won't attempt to test for a dead-zone.
+      Your code will probably need to transform your raw inputs (such as e.g. remapping your 0.2..0.9 raw input range to 0.0..1.0 imgui range, etc.).
+    - You can download PNG/PSD files depicting the gamepad controls for common controllers at: http://goo.gl/9LgVZW.
+    - If you need to share inputs between your game and the imgui parts, the easiest approach is to go all-or-nothing, with a buttons combo
+      to toggle the target. Please reach out if you think the game vs navigation input sharing could be improved.
+ - Mouse:
+    - PS4 users: Consider emulating a mouse cursor with DualShock4 touch pad or a spare analog stick as a mouse-emulation fallback.
+    - Consoles/Tablet/Phone users: Consider using a Synergy 1.x server (on your PC) + uSynergy.c (on your console/tablet/phone app) to share your PC mouse/keyboard.
+    - On a TV/console system where readability may be lower or mouse inputs may be awkward, you may want to set the ImGuiConfigFlags_NavEnableSetMousePos flag.
+      Enabling ImGuiConfigFlags_NavEnableSetMousePos + ImGuiBackendFlags_HasSetMousePos instructs dear imgui to move your mouse cursor along with navigation movements.
+      When enabled, the NewFrame() function may alter 'io.MousePos' and set 'io.WantSetMousePos' to notify you that it wants the mouse cursor to be moved.
+      When that happens your backend NEEDS to move the OS or underlying mouse cursor on the next frame. Some of the backends in examples/ do that.
+      (If you set the NavEnableSetMousePos flag but don't honor 'io.WantSetMousePos' properly, imgui will misbehave as it will see your mouse as moving back and forth!)
+      (In a setup when you may not have easy control over the mouse cursor, e.g. uSynergy.c doesn't expose moving remote mouse cursor, you may want
+       to set a boolean to ignore your other external mouse positions until the external source is moved again.)
+]]
+IO:setNavNavInputsDownDuration()
+IO:getNavNavInputsDownDuration()
+IO:setNavNavInputsDownDurationPrev()
+IO:getNavNavInputsDownDurationPrev()
+IO:setNavVisible(flag)
+IO:setNavActive(flag)
+```
+[To top](#api)
 # WIDGETS & STUFF
 ## Windows
 ```lua
 -- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
 -- was called BEFORE 'ImGui:beginWindow(...)'
 p_open, draw = ImGui:beginWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback])
-draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show close button
+draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
+p_open, draw = ImGui:BeginFullScreenWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback]) -- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
+draw = ImGui:BeginFullScreenWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
 ImGui:endWindow()
 ```
 [To top](#api)
@@ -355,7 +419,8 @@ x, y = ImGui:getWindowPos()
 w, h = ImGui:getWindowSize()
 w = ImGui:getWindowWidth()
 h = ImGui:getWindowHeight()
- 
+
+x1,y1, x2,y2 = ImGui:getWindowBounds() -- returns window region rectangle in global coordinates
 ImGui:setNextWindowPos(x, y, [ImGuiCond = 0, pivotX = 0, pivotY = 0])
 ImGui:setNextWindowSize(w, h, [ImGuiCond = 0])
 ImGui:setNextWindowContentSize(w, h)
@@ -436,6 +501,7 @@ ImGui:setCursorPosX(local_x)
 ImGui:setCursorPosY(local_y)
 x, y = ImGui:getCursorStartPos()
 x, y = ImGui:getCursorScreenPos()
+ImGui:setCursorScreenPos(x, y)
 ImGui:alignTextToFramePadding()
 lineH = ImGui:getTextLineHeight()
 lineH = ImGui:getTextLineHeightWithSpacing()
@@ -662,7 +728,7 @@ flag = ImGui:isWindowDocked()
 ## Dock builder (BETA)
 ```lua
 ImGui:dockBuilderDockWindow(window_name, node_id)
---ImGuiDockNode = ImGui:dockBuilderGetNode(ImGuiID) -- WIP
+ImGuiDockNode = ImGui:dockBuilderGetNode(node_id)
 ImGui:dockBuilderSetNodePos(node_id, x, y)
 ImGui:dockBuilderSetNodeSize(node_id, w, h)
 node_id = ImGui:dockBuilderAddNode([node_id = 0, ImGuiDockNodeFlags = 0])
@@ -670,10 +736,119 @@ ImGui:dockBuilderRemoveNode(node_id)
 ImGui:dockBuilderRemoveNodeChildNodes(node_id)
 ImGui:dockBuilderRemoveNodeDockedWindows(node_id, clear_settings_refs_flag)
 node_id, out_id_at_dir, out_id_at_opposite_dir = ImGui:dockBuilderSplitNode(node_id, ImGuiDir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir)
-ImGui:dockBuilderCopyNode(src_node_id, dst_node_id)
+-- ImGui:dockBuilderCopyNode(src_node_id, dst_node_id) -- W.I.P.
 ImGui:dockBuilderCopyWindowSettings(src_name, dst_name)
-ImGui:dockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id)
+-- ImGui:dockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id) -- W.I.P.
 ImGui:dockBuilderFinish(node_id)
+```
+[To top](#api)
+### Dock node (BETA)
+```lua
+number = ImGuiDockNode:getID()
+number = ImGuiDockNode:getSharedFlags()
+number = ImGuiDockNode:getLocalFlags()
+ImGuiDockNode = ImGuiDockNode:getParentNode()
+ImGuiDockNode, ImGuiDockNode = ImGuiDockNode:getChildNodes()
+ImGuiTabBar = ImGuiDockNode:getTabBar()
+x, y = ImGuiDockNode:getPos()
+w, h = ImGuiDockNode:getSize()
+w, h = ImGuiDockNode:getSizeRef()
+number = ImGuiDockNode:getSplitAxis()
+number = ImGuiDockNode:getState() 
+-- states:
+-- 0: Unknown
+-- 1: Host window hidden because single window
+-- 2: Host window hidden because windows are resizing
+-- 3: Host window visible
+
+ImGuiDockNode = ImGuiDockNode:getCentralNode()
+ImGuiDockNode = ImGuiDockNode:getOnlyNodeWithWindows()
+number = ImGuiDockNode:getLastFrameAlive()
+number = ImGuiDockNode:getLastFrameActive()
+number = ImGuiDockNode:getLastFrameFocused()
+number = ImGuiDockNode:getLastFocusedNodeId()
+flag = ImGuiDockNode:getSelectedTabId()
+flag = ImGuiDockNode:getWantCloseTabId()
+number = ImGuiDockNode:getAuthorityForPos()
+number = ImGuiDockNode:getAuthorityForSize()
+number = ImGuiDockNode:getAuthorityForViewport()
+flag = ImGuiDockNode:isVisible()
+flag = ImGuiDockNode:isFocused()
+flag = ImGuiDockNode:hasCloseButton()
+flag = ImGuiDockNode:hasWindowMenuButton()
+ImGuiDockNode:enableCloseButton(flag)
+flag = ImGuiDockNode:isCloseButtonEnable()
+flag = ImGuiDockNode:wantCloseAll()
+flag = ImGuiDockNode:wantLockSizeOnce()
+flag = ImGuiDockNode:wantMouseMove()
+flag = ImGuiDockNode:wantHiddenTabBarUpdate()
+flag = ImGuiDockNode:wantHiddenTabBarToggle()
+flag = ImGuiDockNode:isMarkedForPosSizeWrite()
+flag = ImGuiDockNode:isRootNode()
+flag = ImGuiDockNode:isDockSpace()
+flag = ImGuiDockNode:isFloatingNode()
+flag = ImGuiDockNode:isCentralNode()
+flag = ImGuiDockNode:isHiddenTabBar()
+flag = ImGuiDockNode:isNoTabBar()
+flag = ImGuiDockNode:isSplitNode()
+flag = ImGuiDockNode:isLeafNode()
+flag = ImGuiDockNode:isEmpty()
+ImGuiDockNodeFlags = ImGuiDockNode:getMergedFlags()
+x1,y1, x2,y2 = ImGuiDockNode:rect()
+```
+[To top](#api)
+### Tab Bar (Beta)
+```lua
+table = ImGuiTabBar:getTabs() -- table of ImGuiTabItem
+ImGuiTabItem = ImGuiTabBar:getTab(index) -- get single ImGuiTabItem
+number = ImGuiTabBar:getTabCount()
+number = ImGuiTabBar:getFlags()
+number = ImGuiTabBar:getID()
+number = ImGuiTabBar:getSelectedTabId()
+number = ImGuiTabBar:getNextSelectedTabId()
+number = ImGuiTabBar:getVisibleTabId()
+number = ImGuiTabBar:getCurrFrameVisible()
+number = ImGuiTabBar:getPrevFrameVisible()
+x1,y1, x2,y2 = ImGuiTabBar:getBarRect()
+number = ImGuiTabBar:getCurrTabsContentsHeight()
+number = ImGuiTabBar:getPrevTabsContentsHeight()
+number = ImGuiTabBar:getWidthAllTabs()
+number = ImGuiTabBar:getWidthAllTabsIdeal()
+number = ImGuiTabBar:getScrollingAnim()
+number = ImGuiTabBar:getScrollingTarget()
+number = ImGuiTabBar:getScrollingTargetDistToVisibility()
+number = ImGuiTabBar:getScrollingSpeed()
+number = ImGuiTabBar:getScrollingRectMinX()
+number = ImGuiTabBar:getScrollingRectMaxX()
+number = ImGuiTabBar:getReorderRequestTabId()
+number = ImGuiTabBar:getReorderRequestDir()
+number = ImGuiTabBar:getBeginCount()
+flag = ImGuiTabBar:wantLayout()
+flag = ImGuiTabBar:visibleTabWasSubmitted()
+flag = ImGuiTabBar:getTabsAddedNew()
+number = ImGuiTabBar:getTabsActiveCount()
+number = ImGuiTabBar:getLastTabItemIdx()
+number = ImGuiTabBar:getItemSpacingY()
+x, y = ImGuiTabBar:getFramePadding()
+x, y = ImGuiTabBar:getBackupCursorPos()
+string = ImGuiTabBar:getTabsNames()
+string = ImGuiTabBar:getTabOrder(ImGuiTabItem) -- try not use it very often
+string = ImGuiTabBar:getTabName(ImGuiTabItem) -- try not use it very often
+```
+[To top](#api)
+### Tab Item (Beta)
+```lua
+number = ImGuiTabItem:getID()
+number = ImGuiTabItem:getFlags()
+number = ImGuiTabItem:getLastFrameVisible()
+number = ImGuiTabItem:getLastFrameSelected()
+number = ImGuiTabItem:getOffset()
+number = ImGuiTabItem:getWidth()
+number = ImGuiTabItem:getContentWidth()
+number = ImGuiTabItem:getNameOffset()
+number = ImGuiTabItem:getBeginOrder()
+number = ImGuiTabItem:getIndexDuringLayout()
+flag = ImGuiTabItem:wantClose()
 ```
 [To top](#api)
 ## Logging/Capture
@@ -689,12 +864,23 @@ ImGui:logText(text)
 ## Drag and drop
 ```lua
 flag = ImGui:beginDragDropSource([ImGuiDragDropFlags flags = 0])
-flag = ImGui:setDragDropPayload(str_type, number, [ImGuiCond cond = 0])
+flag = ImGui:setNumDragDropPayload(str_type, number, [ImGuiCond cond = 0])
+flag = ImGui:setStrDragDropPayload(str_type, string, [ImGuiCond cond = 0])
 ImGui:endDragDropSource()
 flag = ImGui:beginDragDropTarget()
-table = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])  -- W.I.P. have no return value
+ImGuiPayload = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
 ImGui:endDragDropTarget()
-table = ImGui:getDragDropPayload() -- W.I.P. have no return value
+ImGuiPayload = ImGui:getDragDropPayload()
+
+-- ImGuiPayload --
+
+number = ImGuiPayload:getNumData()
+string = ImGuiPayload:getStrData()
+ImGuiPayload:clear()
+number = ImGuiPayload:getDataSize()
+flag = ImGuiPayload:isDataType(type) -- type must be the same as in "ImGui:acceptDragDropPayload(type)"
+flag = ImGuiPayload:isPreview()
+flag = ImGuiPayload:isDelivery()
 ```
 [To top](#api)
 ## Clipping
@@ -739,7 +925,7 @@ ImGui:endChildFrame()
 [To top](#api)
 ## Text Utilities
 ```lua
-w, h = ImGui:calcTextSize(text, [text_end = nul, hide_text_after_double_hash = false, wrap_width = -1])
+w, h = ImGui:calcTextSize(text, [hide_text_after_double_hash = false, wrap_width = -1])
 ```
 [To top](#api)
 ## Inputs Utilities: Keyboard
@@ -768,7 +954,9 @@ x, y = ImGui:getMouseDragDelta(mouse_button, [lock_threshold = -1])
 ImGui:resetMouseDragDelta(mouse_button)
 ImGuiMouseCursor = ImGui:getMouseCursor()
 ImGui:setMouseCursor(ImGuiMouseCursor)
-ImGui:CaptureMouseFromApp([want_capture_mouse_value = true])
+ImGui:captureMouseFromApp([want_capture_mouse_value = true])
+ImGui:setAutoUpdateCursor(flag) -- uses application:set("cursor", name) to modify native cursor
+flag = ImGui:getAutoUpdateCursor()
 ```
 [To top](#api)
 ## Render
@@ -852,7 +1040,7 @@ ImGui.InputTextFlags_CallbackCharFilter
 ImGui.InputTextFlags_NoHorizontalScroll
 ImGui.InputTextFlags_AlwaysInsertMode
 ImGui.InputTextFlags_CharsUppercase
-ImGui.InputTextFlags_NoBackground -- do not draw background frame
+ImGui.InputTextFlags_NoBackground -- custom constant, used to disable background
 ```
 [To top](#api)
 ### NavInput
@@ -1039,6 +1227,7 @@ ImGui.WindowFlags_MenuBar
 ImGui.WindowFlags_NoBackground
 ImGui.WindowFlags_AlwaysAutoResize
 ImGui.WindowFlags_NoDocking
+ImGui.WindowFlags_FullScreen -- custom constant, used to create a fullscreen window
 ```
 [To top](#api)
 ### TabItemFlags
@@ -1219,6 +1408,12 @@ ImGui.GlyphRanges_Japanese,
 ImGui.GlyphRanges_Cyrillic,
 ImGui.GlyphRanges_Thai,
 ImGui.GlyphRanges_Vietnamese
+```
+[To top](#api)
+### ItemFlags
+```lua
+ImGui.ItemFlags_Disabled
+ImGui.ItemFlags_ButtonRepeat
 ```
 [To top](#api)
 ## DRAW LISTS

@@ -328,12 +328,19 @@ static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs)            
 // Helpers: File System
 #ifdef IMGUI_DISABLE_FILE_FUNCTIONS
 #define IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS
-typedef void* ImFileHandle;
-static inline ImFileHandle  ImFileOpen(const char*, const char*)                    { return NULL; }
-static inline bool          ImFileClose(ImFileHandle)                               { return false; }
-static inline ImU64         ImFileGetSize(ImFileHandle)                             { return (ImU64)-1; }
-static inline ImU64         ImFileRead(void*, ImU64, ImU64, ImFileHandle)           { return 0; }
-static inline ImU64         ImFileWrite(const void*, ImU64, ImU64, ImFileHandle)    { return 0; }
+//typedef void* ImFileHandle;
+//static inline ImFileHandle  ImFileOpen(const char*, const char*)                    { return NULL; }
+//static inline bool          ImFileClose(ImFileHandle)                               { return false; }
+//static inline ImU64         ImFileGetSize(ImFileHandle)                             { return (ImU64)-1; }
+//static inline ImU64         ImFileRead(void*, ImU64, ImU64, ImFileHandle)           { return 0; }
+//static inline ImU64         ImFileWrite(const void*, ImU64, ImU64, ImFileHandle)    { return 0; }
+#include "gstdio.h"
+ImFileHandle ImFileOpen(const char* filename, const char* mode);
+bool ImFileClose(ImFileHandle f);
+ImU64 ImFileGetSize(ImFileHandle f);
+ImU64 ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f);
+ImU64 ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f);
+
 #endif
 #ifndef IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS
 typedef FILE* ImFileHandle;
