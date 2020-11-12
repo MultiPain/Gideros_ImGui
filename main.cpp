@@ -29,9 +29,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 static lua_State* L;
-static Application* application;
 static char keyWeak = ' ';
 static bool autoUpdateCursor;
+static bool instanceCreated = false;
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -1200,10 +1200,12 @@ GidImGui* getImgui(lua_State* L)
 
 int initImGui(lua_State* L)
 {
-    LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
-    ::application = application->getApplication();
+    LUA_ASSERT(!instanceCreated, "ImGui instance alraedy exists! Please, use single ImGui object OR delete previous object first.");
 
     autoUpdateCursor = false;
+    instanceCreated = true;
+
+    LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
 
     // init ImGui itself
     ImGui::CreateContext();
@@ -1264,6 +1266,7 @@ int initImGui(lua_State* L)
 
 int destroyImGui(lua_State* L)
 {
+    instanceCreated = false;
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->ClearTexData();
     if (io.MouseDrawCursor)
