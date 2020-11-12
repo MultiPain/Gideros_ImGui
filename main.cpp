@@ -29,9 +29,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 static lua_State* L;
-static Application* application;
 static char keyWeak = ' ';
-static bool autoUpdateCursor;
+static bool autoUpdateCursor = false;
+static bool instanceCreated = false;
+static SpriteProxy* proxyImGui = nullptr;
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -135,7 +136,7 @@ void LUA_PRINTF(lua_State* L, const char* fmt, ...)
     lua_call(L, 1, 0);
 }
 
-std::map<int, const char*> GIDEROS_CURSORS_MAP = {
+static std::map<int, const char*> GIDEROS_CURSORS_MAP = {
     {ImGuiMouseCursor_Hand, "openHand"},
     {ImGuiMouseCursor_None, "blank"},
     {ImGuiMouseCursor_Arrow, "arrow"},
@@ -148,7 +149,7 @@ std::map<int, const char*> GIDEROS_CURSORS_MAP = {
     {ImGuiMouseCursor_ResizeNWSE, "sizeFDiag"},
 };
 
-void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float* ty)
+static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float* ty)
 {
     const Sprite* curr = proxy;
 
@@ -165,7 +166,7 @@ void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float* ty)
         *ty = y;
 }
 
-int convertGiderosMouseButton(int button)
+static int convertGiderosMouseButton(int button)
 {
     LUA_ASSERT(button >= 0, "Button index must be > 0");
     return log2(button);
@@ -263,7 +264,7 @@ struct GColor {
 
 };
 
-int getKeyboardModifiers(lua_State *L)
+static int getKeyboardModifiers(lua_State *L)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, "getKeyboardModifiers");
@@ -275,7 +276,7 @@ int getKeyboardModifiers(lua_State *L)
     return mod;
 }
 
-lua_Number getAppProperty(lua_State *L, const char* name)
+static lua_Number getAppProperty(lua_State *L, const char* name)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, name);
@@ -286,7 +287,7 @@ lua_Number getAppProperty(lua_State *L, const char* name)
     return value;
 }
 
-void setApplicationCursor(lua_State* L, const char* name)
+static void setApplicationCursor(lua_State* L, const char* name)
 {
     lua_getglobal(L, "application");
     lua_getfield(L, -1, "set");
@@ -329,12 +330,12 @@ GTextureData getTexture(lua_State* L, int idx = 1)
     }
 }
 
-int luaL_optboolean(lua_State* L, int narg, int def)
+static int luaL_optboolean(lua_State* L, int narg, int def)
 {
     return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
 }
 
-lua_Number getfield(lua_State* L, const char* key)
+static lua_Number getfield(lua_State* L, const char* key)
 {
     lua_pushstring(L, key);
     lua_gettable(L, -2);
@@ -343,7 +344,7 @@ lua_Number getfield(lua_State* L, const char* key)
     return result;
 }
 
-void lua_setintfield(lua_State* L, int idx, int index)
+static void lua_setintfield(lua_State* L, int idx, int index)
 {
     lua_pushinteger(L, index);
     lua_insert(L, -2);
@@ -357,7 +358,7 @@ ImGuiID checkID(lua_State* L, int idx = 2)
     return (ImGuiID)id;
 }
 
-bool* getPopen(lua_State* L, int idx, int top = 2)
+static bool* getPopen(lua_State* L, int idx, int top = 2)
 {
     if (lua_gettop(L) > top && lua_type(L, idx) != LUA_TNIL)
     {
@@ -805,8 +806,6 @@ private:
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-static SpriteProxy* ImGuiProxy;
-
 class EventListener : public EventDispatcher
 {
 private:
@@ -1068,7 +1067,7 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L, bool addMouseListe
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
-    ImGuiProxy = proxy;
+    proxyImGui = proxy;
 
     eventListener = new EventListener(L, proxy);
 
@@ -1200,10 +1199,12 @@ GidImGui* getImgui(lua_State* L)
 
 int initImGui(lua_State* L)
 {
-    LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
-    ::application = application->getApplication();
+    LUA_ASSERT(!instanceCreated, "ImGui instance alraedy exists! Please, use single ImGui object OR delete previous object first.");
 
     autoUpdateCursor = false;
+    instanceCreated = true;
+
+    LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
 
     // init ImGui itself
     ImGui::CreateContext();
@@ -1211,14 +1212,14 @@ int initImGui(lua_State* L)
     // Setup style theme
     ImGui::StyleColorsDark();
 
-    // Create font
     ImGuiIO& io = ImGui::GetIO();
 
+    // Setup display size
     io.DisplaySize.x = getAppProperty(L, "getContentWidth");
     io.DisplaySize.y = getAppProperty(L, "getContentHeight");
 
-    io.BackendPlatformName = "Gideros";
-    io.BackendRendererName = "Gideros";
+    io.BackendPlatformName = "Gideros Studio";
+    io.BackendRendererName = "Gideros Studio";
 
     // Keyboard map
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
@@ -1243,6 +1244,7 @@ int initImGui(lua_State* L)
     io.KeyMap[ImGuiKey_Y]           = GINPUT_KEY_Y;
     io.KeyMap[ImGuiKey_Z]           = GINPUT_KEY_Z;
 
+    // Create font atlas
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -1264,13 +1266,18 @@ int initImGui(lua_State* L)
 
 int destroyImGui(lua_State* L)
 {
+    instanceCreated = false;
+
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->ClearTexData();
+
     if (io.MouseDrawCursor)
         setApplicationCursor(L, "arrow");
+
     ImGui::DestroyContext();
 
-    ImGuiProxy->removeEventListeners();
+    proxyImGui->removeEventListeners();
+
     return 0;
 }
 
