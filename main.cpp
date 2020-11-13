@@ -24,7 +24,6 @@
 #include "texturebase.h"
 #include "bitmapdata.h"
 
-#include "imgui-node-editor/imgui_node_editor.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,16 +36,17 @@ static char keyWeak = ' ';
 static bool autoUpdateCursor;
 static bool INITIALIZED;
 
-#ifdef __IMGUI_NODE_EDITOR_H__
-#define ED ax::NodeEditor
-#endif
-
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
+#include "imgui-node-editor/imgui_node_editor.h"
+
+#ifdef __IMGUI_NODE_EDITOR_H__
+#define ED ax::NodeEditor
+#endif
 
 namespace ImGui_impl
 {
