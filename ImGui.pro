@@ -20,6 +20,7 @@ SOURCES += \
     imgui_src/imgui_draw.cpp \
     imgui_src/imgui_widgets.cpp \
     imgui_user.cpp \
+    ../../Src/2dsg/bitmapdata.cpp \
     ../../Src/2dsg/Matrices.cpp \
     ../../Src/2dsg/mouseevent.cpp \
     ../../Src/2dsg/keyboardevent.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
     main.cpp
 
 HEADERS += \
+    ../../Src/2dsg/bitmapdata.h \
     ../../Src/luabinding/binder.h \
     ../../Src/2dsg/mouseevent.h \
     ../../Src/2dsg/keyboardevent.h \
