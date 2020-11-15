@@ -5448,7 +5448,7 @@ int Payload_GetStringData(lua_State* L)
 {
     ImGuiPayload* payload = getPayload(L);
     const char* str = static_cast<const char*>(payload->Data);
-    lua_pushstring(L, str);
+    lua_pushlstring(L, str, payload->DataSize);
     return 1;
 }
 
