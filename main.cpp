@@ -23,6 +23,7 @@
 
 #include "texturebase.h"
 #include "bitmapdata.h"
+#include "bitmap.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +48,7 @@ static char keyWeak = ' ';
 static bool autoUpdateCursor = false;
 static bool instanceCreated = false;
 static SpriteProxy* proxyImGui = nullptr;
+static Application *application;
 
 namespace ImGui_impl
 {
@@ -182,7 +184,9 @@ static int convertGiderosMouseButton(int button)
 struct GTextureData
 {
     void* texture;
-    ImVec2 uv;
+    ImVec2 texture_size;
+    ImVec2 uv0;
+    ImVec2 uv1;
 };
 
 struct VColor {
@@ -315,9 +319,13 @@ GTextureData getTexture(lua_State* L, int idx = 1)
         TextureBase* textureBase = static_cast<TextureBase*>(binder.getInstance("TextureBase", idx));
 
         TextureData* gdata = textureBase->data;
+        data.texture_size.x = (float)gdata->width;
+        data.texture_size.y = (float)gdata->height;
         data.texture = (void*)gdata->gid;
-        data.uv.x = (double)gdata->width / (double)gdata->exwidth;
-        data.uv.y = (double)gdata->width / (double)gdata->exheight;
+        data.uv0.x = 0.0f;
+        data.uv0.y = 0.0f;
+        data.uv1.x = 1.0f;
+        data.uv1.y = 1.0f;
         return data;
     }
     else if (binder.isInstanceOf("TextureRegion", idx))
@@ -326,14 +334,25 @@ GTextureData getTexture(lua_State* L, int idx = 1)
         BitmapData* bitmapData = static_cast<BitmapData*>(binder.getInstance("TextureRegion", idx));
 
         TextureData* gdata = bitmapData->texture()->data;
+
+        int x, y, w, h;
+        bitmapData->getRegion(&x, &y, &w, &h, 0, 0, 0, 0);
+        data.texture_size.x = (float)w;
+        data.texture_size.y = (float)h;
+
+        LUA_PRINTF(L, "[%d, %d], [%d, %d], [%d, %d], [%d, %d]", w, h, gdata->width, gdata->height, gdata->exwidth, gdata->exheight, gdata->baseWidth, gdata->baseHeight);
+
+        data.uv0.x = (float)x / (float)gdata->exwidth;
+        data.uv0.y = (float)y / (float)gdata->exheight;
+        data.uv1.x = (float)(x + w) / (float)gdata->exwidth;
+        data.uv1.y = (float)(y + h) / (float)gdata->exheight;
         data.texture = (void*)gdata->gid;
-        data.uv.x = (double)gdata->width / (double)gdata->exwidth;
-        data.uv.x = (double)gdata->width / (double)gdata->exheight;
+
         return data;
     }
     else
     {
-        LUA_THROW_FERROR("bad argument #1 ('TextureBase' or 'TextureRegion' expected, got %s)", lua_typename(L, idx));
+        luaL_typerror(L, idx, "TextureBase or TextureRegion");
     }
 }
 
@@ -1237,6 +1256,7 @@ int initImGui(lua_State* L)
     instanceCreated = true;
 
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
+    ::application = application->getApplication();
 
     // init ImGui itself
     ImGui::CreateContext();
@@ -2396,10 +2416,8 @@ int Image(lua_State* L)
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
     ImVec4 border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    const ImVec2& uv0 = ImVec2(luaL_optnumber(L,  9, 0.0f), luaL_optnumber(L, 10, 0.0f));
-    const ImVec2& uv1 = ImVec2(luaL_optnumber(L, 11, 1.0f), luaL_optnumber(L, 12, 1.0f));
 
-    ImGui::Image(data.texture, size, uv0 * data.uv, uv1 * data.uv, tint, border);
+    ImGui::Image(data.texture, size, data.uv0, data.uv1, tint, border);
     return 0;
 }
 
@@ -2410,10 +2428,8 @@ int ImageFilled(lua_State* L)
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
     ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
     ImVec4 border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
-    const ImVec2& uv0 = ImVec2(luaL_optnumber(L, 11, 0.0f), luaL_optnumber(L, 12, 0.0f));
-    const ImVec2& uv1 = ImVec2(luaL_optnumber(L, 13, 1.0f), luaL_optnumber(L, 14, 1.0f));
 
-    ImGui::ImageFilled(data.texture, size, uv0 * data.uv, uv1 * data.uv, bg_col, tint, border);
+    ImGui::ImageFilled(data.texture, size, data.uv0, data.uv1, bg_col, tint, border);
     return 0;
 }
 
@@ -2424,10 +2440,8 @@ int ImageButton(lua_State* L)
     int frame_padding = luaL_optinteger(L, 5, -1);
     ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
     ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
-    const ImVec2& uv0 = ImVec2(luaL_optnumber(L, 10, 0.0f), luaL_optnumber(L, 11, 0.0f));
-    const ImVec2& uv1 = ImVec2(luaL_optnumber(L, 12, 1.0f), luaL_optnumber(L, 13, 1.0f));
 
-    lua_pushboolean(L, ImGui::ImageButton(data.texture, size, uv0 * data.uv, uv1 * data.uv, frame_padding, bg_col, tint));
+    lua_pushboolean(L, ImGui::ImageButton(data.texture, size, data.uv0, data.uv1, frame_padding, bg_col, tint));
     return 1;
 }
 
@@ -2439,9 +2453,60 @@ int ImageButtonWithText(lua_State* L)
     int frame_padding = luaL_optinteger(L, 6, -1);
     ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
     ImVec4 tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
-    const ImVec2& uv0 = ImVec2(luaL_optnumber(L, 13, 0.0f), luaL_optnumber(L, 14, 0.0f));
-    const ImVec2& uv1 = ImVec2(luaL_optnumber(L, 11, 1.0f), luaL_optnumber(L, 12, 1.0f));
-    lua_pushboolean(L, ImGui::ImageButtonWithText(data.texture, label, size, uv0 * data.uv, uv1 * data.uv, frame_padding, bg_col, tint_col));
+
+    lua_pushboolean(L, ImGui::ImageButtonWithText(data.texture, label, size, data.uv0, data.uv1, frame_padding, bg_col, tint_col));
+    return 1;
+}
+
+int ScaledImage(lua_State* L)
+{
+    GTextureData data = getTexture(L, 2);
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
+    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L,  9, 0.5f), luaL_optnumber(L, 10, 0.5f));
+
+    ImGui::ScaledImage(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, tint, border);
+    return 0;
+}
+
+int ScaledImageFilled(lua_State* L)
+{
+    GTextureData data = getTexture(L, 2);
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
+    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+
+    ImGui::ScaledImageFilled(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, bg_col, tint, border);
+    return 0;
+}
+
+int ScaledImageButton(lua_State* L)
+{
+    GTextureData data = getTexture(L, 2);
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    int frame_padding = luaL_optinteger(L, 5, -1);
+    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
+    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 10, 0.5f), luaL_optnumber(L, 11, 0.5f));
+
+    lua_pushboolean(L, ImGui::ScaledImageButton(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, frame_padding, bg_col, tint));
+    return 1;
+}
+
+int ScaledImageButtonWithText(lua_State* L)
+{
+    GTextureData data = getTexture(L, 2);
+    const char* label = luaL_checkstring(L, 3);
+    ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    int frame_padding = luaL_optinteger(L, 6, -1);
+    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    ImVec4 tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 13, 0.5f), luaL_optnumber(L, 14, 0.5f));
+
+    lua_pushboolean(L, ImGui::ScaledImageButtonWithText(data.texture, label, data.texture_size, anchor, size, data.uv0, data.uv1, frame_padding, bg_col, tint_col));
     return 1;
 }
 
@@ -8135,7 +8200,7 @@ int DrawList_AddImage(lua_State* L)
     ImVec2 uv_max = ImVec2(luaL_optnumber(L, 11, 1.0f), luaL_optnumber(L, 12, 1.0f));
 
     ImDrawList* list = getDrawList(L);
-    list->AddImage(data.texture, p_min, p_max, uv_min * data.uv, uv_max * data.uv, col);
+    list->AddImage(data.texture, p_min, p_max, uv_min, uv_max, col);
     return 0;
 }
 
@@ -8151,11 +8216,6 @@ int DrawList_AddImageQuad(lua_State* L)
     ImVec2 uv2 = ImVec2(luaL_optnumber(L, 15, 1.0f), luaL_optnumber(L, 16, 0.0f));
     ImVec2 uv3 = ImVec2(luaL_optnumber(L, 17, 1.0f), luaL_optnumber(L, 18, 1.0f));
     ImVec2 uv4 = ImVec2(luaL_optnumber(L, 19, 0.0f), luaL_optnumber(L, 20, 1.0f));
-
-    uv1 *= data.uv;
-    uv2 *= data.uv;
-    uv3 *= data.uv;
-    uv4 *= data.uv;
 
     ImDrawList* list = getDrawList(L);
     list->AddImageQuad(data.texture, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
@@ -8174,7 +8234,7 @@ int DrawList_AddImageRounded(lua_State* L)
     ImVec2 uv_max = ImVec2(luaL_optnumber(L, 13, 1.0f), luaL_optnumber(L, 14, 1.0f));
 
     ImDrawList* list = getDrawList(L);
-    list->AddImageRounded(data.texture, p_min, p_max, uv_min * data.uv, uv_max * data.uv, col, rounding, rounding_corners);
+    list->AddImageRounded(data.texture, p_min, p_max, uv_min, uv_max, col, rounding, rounding_corners);
     return 0;
 }
 
@@ -10407,10 +10467,21 @@ int loader(lua_State* L)
         {"smallButton", SmallButton},
         {"invisibleButton", InvisibleButton},
         {"arrowButton", ArrowButton},
+
+        /// Images +
+
         {"image", Image},
         {"imageFilled", ImageFilled},
         {"imageButton", ImageButton},
         {"imageButtonWithText", ImageButtonWithText},
+
+        {"scaledImage", ScaledImage},
+        {"scaledImageFilled", ScaledImageFilled},
+        {"scaledImageButton", ScaledImageButton},
+        {"scaledImageButtonWithText", ScaledImageButtonWithText},
+
+        /// Images -
+
         {"checkbox", Checkbox},
         {"checkboxFlags", CheckboxFlags},
         {"radioButton", RadioButton},
