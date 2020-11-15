@@ -340,8 +340,6 @@ GTextureData getTexture(lua_State* L, int idx = 1)
         data.texture_size.x = (float)w;
         data.texture_size.y = (float)h;
 
-        LUA_PRINTF(L, "[%d, %d], [%d, %d], [%d, %d], [%d, %d]", w, h, gdata->width, gdata->height, gdata->exwidth, gdata->exheight, gdata->baseWidth, gdata->baseHeight);
-
         data.uv0.x = (float)x / (float)gdata->exwidth;
         data.uv0.y = (float)y / (float)gdata->exheight;
         data.uv1.x = (float)(x + w) / (float)gdata->exwidth;
