@@ -53,14 +53,14 @@ static const char* PatchFormatStringFloatToInt(const char* fmt)
 
 namespace ImGui
 {
-void FitImage(ImRect* bb, const ImVec2& size, const ImVec2& texture_size, const ImVec2& anchor)
+    void FitImage(ImVec2& Min, ImVec2& Max, const ImVec2& size, const ImVec2& texture_size, const ImVec2& anchor)
     {
         float s = std::fminf(size.x / texture_size.x, size.y / texture_size.y);
         ImVec2 scaled_texture_size = ImVec2(s * texture_size.x, s * texture_size.y);
 
         ImVec2 anchor_offset = anchor * (size - scaled_texture_size);
-        bb->Min += anchor_offset;
-        bb->Max = bb->Min + scaled_texture_size;
+        Min += anchor_offset;
+        Max = Min + scaled_texture_size;
     }
 
     void ScaledImage(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& texture_size, const ImVec2& anchor, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
@@ -81,14 +81,14 @@ void FitImage(ImRect* bb, const ImVec2& size, const ImVec2& texture_size, const 
         {
             window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(border_col), 0.0f);
             // @MultiPain +
-            FitImage(&bb, size + ImVec2(2, 2), texture_size, anchor);
+            FitImage(bb.Min, bb.Max, size + ImVec2(2, 2), texture_size, anchor);
             // @MultiPain -
             window->DrawList->AddImage(user_texture_id, bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), uv0, uv1, GetColorU32(tint_col));
         }
         else
         {
             // @MultiPain +
-            FitImage(&bb, size, texture_size, anchor);
+            FitImage(bb.Min, bb.Max, size, texture_size, anchor);
             // @MultiPain -
             window->DrawList->AddImage(user_texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
         }
@@ -117,7 +117,7 @@ void FitImage(ImRect* bb, const ImVec2& size, const ImVec2& texture_size, const 
             window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, GetColorU32(bg_col));
 
         // @MultiPain +
-        FitImage(&bb, size + padding*2.0f, texture_size, anchor);
+        FitImage(bb.Min, bb.Max, size + padding*2.0f, texture_size, anchor);
         // @MultiPain -
         window->DrawList->AddImage(texture_id, bb.Min + padding, bb.Max - padding, uv0, uv1, GetColorU32(tint_col));
 
@@ -487,7 +487,7 @@ void FitImage(ImRect* bb, const ImVec2& size, const ImVec2& texture_size, const 
             window->DrawList->AddRectFilled(image_bb.Min, image_bb.Max, GetColorU32(bg_col));
 
         // @MultiPain +
-        FitImage(&image_bb, size, texture_size, anchor);
+        FitImage(image_bb.Min, image_bb.Max, size, texture_size, anchor);
         // @MultiPain -
         window->DrawList->AddImage(texId, image_bb.Min, image_bb.Max, uv0, uv1, GetColorU32(tint_col));
 
@@ -543,14 +543,14 @@ void FitImage(ImRect* bb, const ImVec2& size, const ImVec2& texture_size, const 
         {
             window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(border_col), 0.0f);
             // @MultiPain +
-            FitImage(&bb, size + ImVec2(2, 2), texture_size, anchor);
+            FitImage(bb.Min, bb.Max, size + ImVec2(2, 2), texture_size, anchor);
             // @MultiPain -
             window->DrawList->AddImage(user_texture_id, bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), uv0, uv1, GetColorU32(tint_col));
         }
         else
         {
             // @MultiPain +
-            FitImage(&bb, size, texture_size, anchor);
+            FitImage(bb.Min, bb.Max, size, texture_size, anchor);
             // @MultiPain -
             window->DrawList->AddImage(user_texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
         }

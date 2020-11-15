@@ -3,7 +3,7 @@
 #define ENABLE_ASSERTIONS
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui"
+#define PLUGIN_NAME "ImGui_beta"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -8194,11 +8194,11 @@ int DrawList_AddImage(lua_State* L)
     ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
     ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
-    ImVec2 uv_min = ImVec2(luaL_optnumber(L,  9, 0.0f), luaL_optnumber(L, 10, 0.0f));
-    ImVec2 uv_max = ImVec2(luaL_optnumber(L, 11, 1.0f), luaL_optnumber(L, 12, 1.0f));
 
     ImDrawList* list = getDrawList(L);
-    list->AddImage(data.texture, p_min, p_max, uv_min, uv_max, col);
+    ImGui::FitImage(p_min, p_max, p_max - p_min, data.texture_size, ImVec2(0.5f, 0.5f));
+
+    list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
     return 0;
 }
 
@@ -8228,11 +8228,11 @@ int DrawList_AddImageRounded(lua_State* L)
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, 1.0f));
     double rounding = luaL_checknumber(L, 9);
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 10, ImDrawCornerFlags_All);
-    ImVec2 uv_min = ImVec2(luaL_optnumber(L, 11, 0.0f), luaL_optnumber(L, 12, 0.0f));
-    ImVec2 uv_max = ImVec2(luaL_optnumber(L, 13, 1.0f), luaL_optnumber(L, 14, 1.0f));
+
+    ImGui::FitImage(p_min, p_max, p_max - p_min, data.texture_size, ImVec2(0.5f, 0.5f));
 
     ImDrawList* list = getDrawList(L);
-    list->AddImageRounded(data.texture, p_min, p_max, uv_min, uv_max, col, rounding, rounding_corners);
+    list->AddImageRounded(data.texture, p_min, p_max, data.uv0, data.uv1, col, rounding, rounding_corners);
     return 0;
 }
 
@@ -8322,6 +8322,45 @@ int DrawList_PathRect(lua_State* L)
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 7, ImDrawCornerFlags_All);
     ImDrawList* list = getDrawList(L);
     list->PathRect(rect_min, rect_max, rounding, rounding_corners);
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// https://gist.github.com/carasuca/e72aacadcf6cf8139de46f97158f790f
+// https://github.com/ocornut/imgui/issues/1286
+
+int rotation_start_index;
+
+int DrawList_RotateStart(lua_State* L)
+{
+    ImDrawList* list = getDrawList(L);
+    rotation_start_index = list->VtxBuffer.Size;
+    return 0;
+}
+
+ImVec2 DrawList_RotationCenter(ImDrawList* list)
+{
+    ImVec2 l(FLT_MAX, FLT_MAX), u(-FLT_MAX, -FLT_MAX); // bounds
+
+    const ImVector<ImDrawVert>& buf = list->VtxBuffer;
+    for (int i = rotation_start_index; i < buf.Size; i++)
+        l = ImMin(l, buf[i].pos), u = ImMax(u, buf[i].pos);
+
+    return ImVec2((l.x+u.x)/2, (l.y+u.y)/2); // or use _ClipRectStack?
+}
+
+int DrawList_RotateEnd(lua_State* L)
+{
+    float rad = luaL_checknumber(L, 2);
+    ImDrawList* list = getDrawList(L);
+    ImVec2 center = DrawList_RotationCenter(list);
+
+    float s = sin(rad), c = cos(rad);
+    center = ImRotate(center, s, c) - center;
+
+    ImVector<ImDrawVert>& buf = list->VtxBuffer;
+    for (int i = rotation_start_index; i < buf.Size; i++)
+        buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
     return 0;
 }
 
@@ -9899,6 +9938,9 @@ int loader(lua_State* L)
         {"pathArcToFast", DrawList_PathArcToFast},
         {"pathBezierCurveTo", DrawList_PathBezierCurveTo},
         {"pathRect", DrawList_PathRect},
+
+        {"rotateBegin", DrawList_RotateStart},
+        {"rotateEnd", DrawList_RotateEnd},
         {NULL, NULL}
     };
     binder.createClass("ImDrawList", 0, NULL, NULL, imguiDrawListFunctionList);
@@ -10764,4 +10806,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
