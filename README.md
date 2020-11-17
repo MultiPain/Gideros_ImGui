@@ -19,6 +19,7 @@
 * [ID](#id-stackscopes)
 * [[Widgets] Text](#widgets-text)
 * [[Widgets] Main](#widgets-main)
+* [[Widgets] Images](#widgets-images)
 * [[Widgets] ComboBox](#widgets-combo-box)
 * [[Widgets] Drags](#widgets-drags)
 * [[Widgets] Sliders](#widgets-sliders)
@@ -541,6 +542,7 @@ pressFlag = ImGui:radioButton(text, flag)
 ImGui:progressBar(fraction, [anchorX = -1, anchorY = 0, overlayString = nil])
 ImGui:bullet()
 ```
+[To top](#api)
 ## Widgets: Images
 ```lua
 ImGui:image(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0])
@@ -552,7 +554,6 @@ ImGui:scaledImageFilled(texture, w, h, [tint_color = 0xffffff, 1, bg_color = 0xf
 pressFlag = ImGui:scaledImageButton(texture, w, h, [frame_padding = -1, tintColor = 0xffffff, 1, borderColor = 0xffffff, 0 , anchorX = 0.5, anchorY = 0.5])
 pressFlag = ImGui:scaledImageButtonWithText(texture, label, w, h, [frame_padding = -1, bg_col = 0xffffff, 0, tint_col = 0xfffff, 1 , anchorX = 0.5, anchorY = 0.5])
 ```
-[To top](#api)
 [To top](#api)
 ## Widgets: Combo Box
 ```lua
