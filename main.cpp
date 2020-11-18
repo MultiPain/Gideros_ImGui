@@ -400,6 +400,57 @@ static bool* getPopen(lua_State* L, int idx, int top = 2)
 
 void bindEnums(lua_State* L)
 {
+#ifdef __IMGUI_NODE_EDITOR_H__
+    lua_getglobal(L, "ImGuiNodeEditor");
+
+    lua_pushinteger(L, (int)ED::PinKind::Input);                        lua_setfield(L, -2, "Input");
+    lua_pushinteger(L, (int)ED::PinKind::Output);                       lua_setfield(L, -2, "Output");
+
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_Bg);             lua_setfield(L, -2, "StyleColor_Bg");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_Grid);           lua_setfield(L, -2, "StyleColor_Grid");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_NodeBg);         lua_setfield(L, -2, "StyleColor_NodeBg");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_NodeBorder);     lua_setfield(L, -2, "StyleColor_NodeBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_HovNodeBorder);  lua_setfield(L, -2, "StyleColor_HovNodeBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_SelNodeBorder);  lua_setfield(L, -2, "StyleColor_SelNodeBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_NodeSelRect);    lua_setfield(L, -2, "StyleColor_NodeSelRect");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_NodeSelRectBorder);lua_setfield(L, -2, "StyleColor_NodeSelRectBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_HovLinkBorder);  lua_setfield(L, -2, "StyleColor_HovLinkBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_SelLinkBorder);  lua_setfield(L, -2, "StyleColor_SelLinkBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_LinkSelRect);    lua_setfield(L, -2, "StyleColor_LinkSelRect");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_LinkSelRectBorder);lua_setfield(L, -2, "StyleColor_LinkSelRectBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_PinRect);        lua_setfield(L, -2, "StyleColor_PinRect");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_PinRectBorder);  lua_setfield(L, -2, "StyleColor_PinRectBorder");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_Flow);           lua_setfield(L, -2, "StyleColor_Flow");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_FlowMarker);     lua_setfield(L, -2, "StyleColor_FlowMarker");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_GroupBg);        lua_setfield(L, -2, "StyleColor_GroupBg");
+    lua_pushinteger(L, (int)ED::StyleColor::StyleColor_GroupBorder);    lua_setfield(L, -2, "StyleColor_GroupBorder");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_NodePadding);        lua_setfield(L, -2, "StyleVar_NodePadding");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_NodeRounding);       lua_setfield(L, -2, "StyleVar_NodeRounding");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_NodeBorderWidth);    lua_setfield(L, -2, "StyleVar_NodeBorderWidth");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_HoveredNodeBorderWidth);lua_setfield(L, -2, "StyleVar_HoveredNodeBorderWidth");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_SelectedNodeBorderWidth);lua_setfield(L, -2, "StyleVar_SelectedNodeBorderWidth");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinRounding);        lua_setfield(L, -2, "StyleVar_PinRounding");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinBorderWidth);     lua_setfield(L, -2, "StyleVar_PinBorderWidth");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_LinkStrength);       lua_setfield(L, -2, "StyleVar_LinkStrength");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_SourceDirection);    lua_setfield(L, -2, "StyleVar_SourceDirection");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_TargetDirection);    lua_setfield(L, -2, "StyleVar_TargetDirection");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_ScrollDuration);     lua_setfield(L, -2, "StyleVar_ScrollDuration");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_FlowMarkerDistance); lua_setfield(L, -2, "StyleVar_FlowMarkerDistance");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_FlowSpeed);          lua_setfield(L, -2, "StyleVar_FlowSpeed");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_FlowDuration);       lua_setfield(L, -2, "StyleVar_FlowDuration");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PivotAlignment);     lua_setfield(L, -2, "StyleVar_PivotAlignment");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PivotSize);          lua_setfield(L, -2, "StyleVar_PivotSize");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PivotScale);         lua_setfield(L, -2, "StyleVar_PivotScale");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinCorners);         lua_setfield(L, -2, "StyleVar_PinCorners");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinRadius);          lua_setfield(L, -2, "StyleVar_PinRadius");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinArrowSize);       lua_setfield(L, -2, "StyleVar_PinArrowSize");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_PinArrowWidth);      lua_setfield(L, -2, "StyleVar_PinArrowWidth");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_GroupRounding);      lua_setfield(L, -2, "StyleVar_GroupRounding");
+    lua_pushinteger(L, (int)ED::StyleVar::StyleVar_GroupBorderWidth);   lua_setfield(L, -2, "StyleVar_GroupBorderWidth");
+
+    lua_pop(L, 1);
+#endif
+
     lua_getglobal(L, CLASS_NAME);
     // BackendFlags
     lua_pushinteger(L, ImGuiBackendFlags_None);                         lua_setfield(L, -2, "BackendFlags_None");
@@ -7815,9 +7866,16 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+void ErrorCheck()
+{
+    ImGuiContext* g = ImGui::GetCurrentContext();
+    LUA_ASSERT((g->FrameCount == 0 || g->FrameCountEnded == g->FrameCount), "Forgot to call Render() or EndFrame() at the end of the previous frame?");
+    LUA_ASSERT(g->IO.DisplaySize.x >= 0.0f && g->IO.DisplaySize.y >= 0.0f, "Invalid DisplaySize value!");
+}
+
 int GetWindowDrawList(lua_State* L)
 {
-    // TODO: add assertion 'called before "ImGui:newFrame()"
+    ErrorCheck();
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -7827,7 +7885,7 @@ int GetWindowDrawList(lua_State* L)
 
 int GetBackgroundDrawList(lua_State* L)
 {
-    // TODO: add assertion 'called before "ImGui:newFrame()"
+    ErrorCheck();
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
@@ -7837,7 +7895,7 @@ int GetBackgroundDrawList(lua_State* L)
 
 int GetForegroundDrawList(lua_State* L)
 {
-    // TODO: add assertion 'called before "ImGui:newFrame()"
+    ErrorCheck();
 
     Binder binder(L);
     ImDrawList* draw_list = ImGui::GetForegroundDrawList();
@@ -9021,34 +9079,71 @@ int ED_BeginCreate(lua_State* L)
 {
     ImVec4 color = GColor::toVec4(luaL_optinteger(L, 2, 0xffffff), luaL_optnumber(L, 3, 1.0f));
     float thickness = luaL_optnumber(L, 4, 1.0f);
-    ED::BeginCreate(color, thickness);
-    return 0;
+    lua_pushboolean(L, ED::BeginCreate(color, thickness));
+    return 1;
 }
 
 int ED_QueryNewLink(lua_State* L)
 {
-    ED::PinId startPin = luaL_checkinteger(L, 2);
-    ED::PinId endPin = luaL_checkinteger(L, 3);
-    lua_pushboolean(L, ED::QueryNewLink(&startPin, &endPin));
-    return 1; // TODO id, color overload
+    ED::PinId startPin = luaL_optnumber(L, 2, NULL);
+    ED::PinId endPin = luaL_optnumber(L, 3, NULL);
+
+    if (lua_gettop(L) > 3)
+    {
+        ImVec4 color = GColor::toVec4(luaL_checknumber(L, 4), luaL_optnumber(L, 5, 1.0f));
+        float thickness = luaL_optnumber(L, 6, 1.0f);
+        lua_pushboolean(L, ED::QueryNewLink(&startPin, &endPin, color, thickness));
+
+    }
+    else
+        lua_pushboolean(L, ED::QueryNewLink(&startPin, &endPin));
+
+    lua_pushnumber(L, startPin.Get());
+    lua_pushnumber(L, endPin.Get());
+    return 3;
 }
 
 int ED_QueryNewNode(lua_State* L)
 {
     ED::PinId id = luaL_checkinteger(L, 2);
-    lua_pushboolean(L, ED::QueryNewNode(&id));
-    return 1; // TODO id, color overload
+    if (lua_gettop(L) > 2)
+    {
+        ImVec4 color = GColor::toVec4(luaL_checknumber(L, 3), luaL_optnumber(L, 4, 1.0f));
+        float thickness = luaL_optnumber(L, 5, 1.0f);
+        lua_pushboolean(L, ED::QueryNewNode(&id, color, thickness));
+
+    }
+    else
+        lua_pushboolean(L, ED::QueryNewNode(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
-int ED_AcceptNewItem(lua_State* _UNUSED(L))
+int ED_AcceptNewItem(lua_State* L)
 {
-    ED::AcceptNewItem(); // TODO color
-    return 0;
+    if (lua_gettop(L) > 1)
+    {
+        ImVec4 color = GColor::toVec4(luaL_checknumber(L, 2), luaL_optnumber(L, 3, 1.0f));
+        float thickness = luaL_optnumber(L, 4, 1.0f);
+        lua_pushboolean(L, ED::AcceptNewItem(color, thickness));
+
+    }
+    else
+        lua_pushboolean(L, ED::AcceptNewItem());
+    return 1;
 }
 
-int ED_RejectNewItem(lua_State* _UNUSED(L))
+int ED_RejectNewItem(lua_State* L)
 {
-    ED::RejectNewItem(); // TODO color
+    if (lua_gettop(L) > 1)
+    {
+        ImVec4 color = GColor::toVec4(luaL_checknumber(L, 2), luaL_optnumber(L, 3, 1.0f));
+        float thickness = luaL_optnumber(L, 4, 1.0f);
+        ED::RejectNewItem(color, thickness);
+
+    }
+    else
+        ED::RejectNewItem();
     return 0;
 }
 
@@ -9058,32 +9153,37 @@ int ED_EndCreate(lua_State* _UNUSED(L))
     return 0;
 }
 
-int ED_BeginDelete(lua_State* _UNUSED(L))
+int ED_BeginDelete(lua_State* L)
 {
-    ED::BeginDelete();
-    return 0;
+    lua_pushboolean(L, ED::BeginDelete());
+    return 1;
 }
 
-int ED_QueryDeletedLink(lua_State* _UNUSED(L))
+int ED_QueryDeletedLink(lua_State* L)
 {
-    //TODO
-    return 0;
+    ED::LinkId id = luaL_optnumber(L, 2, NULL);
+    lua_pushboolean(L, ED::QueryDeletedLink(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
-int ED_QueryDeletedNode(lua_State* _UNUSED(L))
+int ED_QueryDeletedNode(lua_State* L)
 {
-    //TODO
-    return 0;
+    ED::NodeId id = luaL_optnumber(L, 2, NULL);
+    lua_pushboolean(L, ED::QueryDeletedNode(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
-int ED_AcceptDeletedItem(lua_State* _UNUSED(L))
+int ED_AcceptDeletedItem(lua_State* L)
 {
-    ED::AcceptDeletedItem();
-    return 0;
+    lua_pushboolean(L, ED::AcceptDeletedItem());
+    return 1;
 }
 
 int ED_RejectDeletedItem(lua_State* _UNUSED(L))
 {
+    ED::RejectDeletedItem();
     return 0;
 }
 
@@ -9169,17 +9269,46 @@ int ED_GetSelectedObjectCount(lua_State* L)
     return 1;
 }
 
-int ED_GetSelectedNodes(lua_State* _UNUSED(L))
+int ED_GetSelectedNodes(lua_State* L)
 {
-    // TODO
-    //ED::GetSelectedNodes()
-    return 0;
+    int size = luaL_checkinteger(L, 2);
+    ED::NodeId* nodes = new ED::NodeId[size];
+    int actualSize = ED::GetSelectedNodes(nodes, size);
+    if (actualSize <= 0)
+    {
+        delete[] nodes;
+        return 0;
+    }
+
+    lua_createtable(L, actualSize, 0);
+    for (int i = 0; i < actualSize; i++)
+    {
+        lua_pushnumber(L, nodes[i].Get());
+        lua_rawseti(L, -2, i + 1);
+    }
+    delete[] nodes;
+    return 1;
 }
 
-int ED_GetSelectedLinks(lua_State* _UNUSED(L))
+int ED_GetSelectedLinks(lua_State* L)
 {
-    // TODO
-    return 0;
+    int size = luaL_checkinteger(L, 2);
+    ED::LinkId* links = new ED::LinkId[size];
+    int actualSize = ED::GetSelectedLinks(links, size);
+    if (actualSize <= 0)
+    {
+        delete[] links;
+        return 0;
+    }
+
+    lua_createtable(L, actualSize, 0);
+    for (int i = 0; i < actualSize; i++)
+    {
+        lua_pushnumber(L, links[i].Get());
+        lua_rawseti(L, -2, i + 1);
+    }
+    delete[] links;
+    return 1;
 }
 
 int ED_ClearSelection(lua_State* _UNUSED(L))
@@ -9219,51 +9348,54 @@ int ED_DeselectLink(lua_State* L)
 int ED_DeleteNode(lua_State* L)
 {
     ED::NodeId id = luaL_checkinteger(L, 2);
-    ED::DeleteNode(id);
-    return 0;
+    lua_pushboolean(L, ED::DeleteNode(id));
+    return 1;
 }
 
 int ED_DeleteLink(lua_State* L)
 {
     ED::LinkId id = luaL_checkinteger(L, 2);
-    ED::DeleteLink(id);
+    lua_pushboolean(L, ED::DeleteLink(id));
+    return 1;
+}
+
+int ED_NavigateToContent(lua_State* L)
+{
+    float duration = luaL_optnumber(L, 2, -1);
+    ED::NavigateToContent(duration);
     return 0;
 }
 
-int ED_NavigateToContent(lua_State* _UNUSED(L))
+int ED_NavigateToSelection(lua_State* L)
 {
-    ED::NavigateToContent();
-    return 0;
-}
-
-int ED_NavigateToSelection(lua_State* _UNUSED(L))
-{
-    ED::NavigateToSelection();
+    bool zoomIn = luaL_optboolean(L, 2, 0);
+    float duration = luaL_optnumber(L, 3, -1.0f);
+    ED::NavigateToSelection(zoomIn, duration);
     return 0;
 }
 
 int ED_ShowNodeContextMenu(lua_State* L)
 {
     ED::NodeId id = luaL_checkinteger(L, 2);
-    ED::ShowNodeContextMenu(&id);
-    // TODO return id
-    return 0;
+    lua_pushboolean(L, ED::ShowNodeContextMenu(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
 int ED_ShowPinContextMenu(lua_State* L)
 {
     ED::PinId id = luaL_checkinteger(L, 2);
-    ED::ShowPinContextMenu(&id);
-    // TODO return id
-    return 0;
+    lua_pushboolean(L, ED::ShowPinContextMenu(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
 int ED_ShowLinkContextMenu(lua_State* L)
 {
     ED::LinkId id = luaL_checkinteger(L, 2);
-    ED::ShowLinkContextMenu(&id);
-    // TODO return id
-    return 0;
+    lua_pushboolean(L, ED::ShowLinkContextMenu(&id));
+    lua_pushnumber(L, id.Get());
+    return 2;
 }
 
 int ED_ShowBackgroundContextMenu(lua_State* L)
@@ -9326,18 +9458,46 @@ int ED_GetActionContextSize(lua_State* L)
     return 1;
 }
 
-int ED_GetActionContextNodes(lua_State* _UNUSED(L))
+int ED_GetActionContextNodes(lua_State* L)
 {
-    // TODO
-    //ED::GetActionContextNodes();
-    return 0;
+    int size = luaL_checkinteger(L, 2);
+    ED::NodeId* nodes = new ED::NodeId[size];
+    int actualSize = ED::GetActionContextNodes(nodes, size);
+    if (actualSize <= 0)
+    {
+        delete[] nodes;
+        return 0;
+    }
+
+    lua_createtable(L, actualSize, 0);
+    for (int i = 0; i < actualSize; i++)
+    {
+        lua_pushnumber(L, nodes[i].Get());
+        lua_rawseti(L, -2, i + 1);
+    }
+    delete[] nodes;
+    return 1;
 }
 
-int ED_GetActionContextLinks(lua_State* _UNUSED(L))
+int ED_GetActionContextLinks(lua_State* L)
 {
-    // TODO
-    //ED::GetActionContextLinks();
-    return 0;
+    int size = luaL_checkinteger(L, 2);
+    ED::LinkId* links = new ED::LinkId[size];
+    int actualSize = ED::GetActionContextLinks(links, size);
+    if (actualSize <= 0)
+    {
+        delete[] links;
+        return 0;
+    }
+
+    lua_createtable(L, actualSize, 0);
+    for (int i = 0; i < actualSize; i++)
+    {
+        lua_pushnumber(L, links[i].Get());
+        lua_rawseti(L, -2, i + 1);
+    }
+    delete[] links;
+    return 1;
 }
 
 int ED_EndShortcut(lua_State* _UNUSED(L))
@@ -9352,25 +9512,25 @@ int ED_GetCurrentZoom(lua_State* L)
     return 1;
 }
 
-int ED_GetDoubleClickedNode(lua_State* _UNUSED(L))
+int ED_GetDoubleClickedNode(lua_State* L)
 {
-    // TODO return id
-    ED::GetDoubleClickedNode();
-    return 0;
+    ED::NodeId id = ED::GetDoubleClickedNode();
+    lua_pushnumber(L, id.Get());
+    return 1;
 }
 
-int ED_GetDoubleClickedPin(lua_State* _UNUSED(L))
+int ED_GetDoubleClickedPin(lua_State* L)
 {
-    // TODO return id
-    ED::GetDoubleClickedPin();
-    return 0;
+    ED::PinId id = ED::GetDoubleClickedPin();
+    lua_pushnumber(L, id.Get());
+    return 1;
 }
 
-int ED_GetDoubleClickedLink(lua_State* _UNUSED(L))
+int ED_GetDoubleClickedLink(lua_State* L)
 {
-    // TODO return id
-    ED::GetDoubleClickedLink();
-    return 0;
+    ED::LinkId id = ED::GetDoubleClickedLink();
+    lua_pushnumber(L, id.Get());
+    return 1;
 }
 
 int ED_IsBackgroundClicked(lua_State* L)
@@ -10393,7 +10553,7 @@ int loader(lua_State* L)
 
         /////////////////////////////////////////////////////////////////////////////// Inputs -
 
-        // Colors TODO
+        // Colors
         {"colorConvertHEXtoRGB", ColorConvertHEXtoRGB},
         {"colorConvertRGBtoHEX", ColorConvertRGBtoHEX},
         {"colorConvertRGBtoHSV", ColorConvertRGBtoHSV},
