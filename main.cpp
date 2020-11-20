@@ -7869,8 +7869,9 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
 void ErrorCheck()
 {
     ImGuiContext* g = ImGui::GetCurrentContext();
-    LUA_ASSERT((g->FrameCount == 0 || g->FrameCountEnded == g->FrameCount), "Forgot to call Render() or EndFrame() at the end of the previous frame?");
-    LUA_ASSERT(g->IO.DisplaySize.x >= 0.0f && g->IO.DisplaySize.y >= 0.0f, "Invalid DisplaySize value!");
+    LUA_ASSERT(g->FrameCount > 0, "Forgot to call newFrame()?");
+    //LUA_ASSERT((g->FrameCount == 0 || g->FrameCountEnded == g->FrameCount), "Forgot to call Render() or EndFrame() at the end of the previous frame?");
+    //LUA_ASSERT(g->IO.DisplaySize.x >= 0.0f && g->IO.DisplaySize.y >= 0.0f, "Invalid DisplaySize value!");
 }
 
 int GetWindowDrawList(lua_State* L)

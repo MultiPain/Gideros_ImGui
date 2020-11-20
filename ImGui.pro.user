@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.11.1, 2020-11-18T17:58:58. -->
+<!-- Written by QtCreator 4.11.1, 2020-11-19T15:37:12. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -100,7 +100,7 @@
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.3">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
-      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">&quot;%{buildDir}\debug\imgui_beta_docking.dll&quot; &quot;%{buildDir}\..\All Plugins\Gideros_ImGui\&quot; /Y /I</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">&quot;%{buildDir}\debug\imgui_beta_docking.dll&quot; &quot;%{buildDir}\..\Gideros_ImGui\&quot; /Y /I</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Command">xcopy</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">%{buildDir}</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
