@@ -319,13 +319,14 @@ GTextureData getTexture(lua_State* L, int idx = 1)
         TextureBase* textureBase = static_cast<TextureBase*>(binder.getInstance("TextureBase", idx));
 
         TextureData* gdata = textureBase->data;
+
         data.texture_size.x = (float)gdata->width;
         data.texture_size.y = (float)gdata->height;
         data.texture = (void*)gdata->gid;
         data.uv0.x = 0.0f;
         data.uv0.y = 0.0f;
-        data.uv1.x = 1.0f;
-        data.uv1.y = 1.0f;
+        data.uv1.x = data.texture_size.x / (float)gdata->exwidth;
+        data.uv1.y = data.texture_size.y / (float)gdata->exheight;
         return data;
     }
     else if (binder.isInstanceOf("TextureRegion", idx))
@@ -1586,11 +1587,10 @@ int BeginFullScreenWindow(lua_State* L)
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
     bool draw_flag = ImGui::Begin(name, p_open, flags);
 
-    ImGui::PopStyleVar(3);
+    ImGui::PopStyleVar(2);
 
     int ret = 1;
     if (p_open != NULL)
@@ -9967,7 +9967,6 @@ int ED_StyleSetColor(lua_State* L)
 }
 
 #endif
-
 
 int loader(lua_State* L)
 {
