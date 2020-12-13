@@ -3954,7 +3954,7 @@ int PlotLines(lua_State* L)
     ImVec2 graph_size = ImVec2(luaL_optnumber(L, 8, 0), luaL_optnumber(L, 9, 0));
     int stride = sizeof(float);
 
-    ImGui::PlotLines(label, (float*)&values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
+    ImGui::PlotLines(label, values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
     delete[] values;
     return 0;
 }
@@ -3984,7 +3984,7 @@ int PlotHistogram(lua_State* L)
     ImVec2 graph_size = ImVec2(luaL_optnumber(L, 8, 0), luaL_optnumber(L, 9, 0));
     int stride = sizeof(float);
 
-    ImGui::PlotHistogram(label, (float*)&values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
+    ImGui::PlotHistogram(label, values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
     delete[] values;
     return 0;
 }
