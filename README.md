@@ -1778,7 +1778,7 @@ pressFlag = ImGui:imageButtonWithText(texture, text, w, h, [padding = -1, bg_col
 ImGui:scaledImage(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
 ImGui:scaledImageFilled(texture, w, h, [tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
 pressFlag = ImGui:scaledImageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
-pressFlag = ImGui:ScaledImageButtonWithText(texture, text, w, h, [padding = -1, bgColor = 0xffffff, 0,tintColor = 0xffffff, 1, nil, nil, anchorX = 0.5, anchorY = 0.5])
+pressFlag = ImGui:scaledImageButtonWithText(texture, text, w, h, [padding = -1, bgColor = 0xffffff, 0,tintColor = 0xffffff, 1, nil, nil, anchorX = 0.5, anchorY = 0.5])
 ```
 [To top](#api)
 ## Widgets: Combo Box
