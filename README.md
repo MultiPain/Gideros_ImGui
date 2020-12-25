@@ -2,7 +2,7 @@
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
-* [Fonts](#fonts-wip)
+* [Fonts](#fonts)
 * [Inputs](#inputs)
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
