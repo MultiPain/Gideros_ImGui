@@ -3,7 +3,7 @@
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
 * [Fonts](#fonts) ([example](#minimal-example))
-* [Inputs](#inputs)
+* [Inputs](#inputs) ([example](#usage-example))
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
 * [Styles](#default-styles)
@@ -70,7 +70,7 @@
     - [SliderFlags](#sliderflags)
     - [GlyphRanges](#glyphranges)
     - [ItemFlags](#itemflags)
-* [Custom drawing](#draw-lists)
+* [Custom drawing](#draw-lists) ([example](#usage-example-2))
 
 !VERY IMPORTANT!</br> 
 every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
