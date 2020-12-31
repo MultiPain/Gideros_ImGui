@@ -1400,9 +1400,9 @@ DrawList:pathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
 DrawList:pathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
 ```
 ### Usage example
-reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
 <img src="https://user-images.githubusercontent.com/1312968/99901217-4697fa80-2cb5-11eb-9e80-c469cc69b848.gif"></br>
 ```lua
+-- reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
 local cos,sin,sqrt=math.cos,math.sin,math.sqrt
 local p = {-1,-1, 1,-1, 1,1, -1,1}
 local function conv(z,szx,szy,ox,oy,vx,vy) return ((vx/z)*szx*5+szx*0.5)+ox,((vy/z)*szy*5+szy*0.5)+oy end
