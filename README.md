@@ -1398,6 +1398,17 @@ DrawList:pathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
 DrawList:pathArcToFast(centerX, centerY, radius, a_min, a_max)
 DrawList:pathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
 DrawList:pathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
+-- CUSTOM
+-- rotate any draw list item around its center point
+DrawList:rotateBegin()
+DrawList:rotateEnd(radians)
+-- example:
+...
+local list = ImGui:getWindowDrawList()
+list:rotateBegin()
+list:addLine(100, 100, 100, 250, 0xff0000, 1, 10)
+list:rotateEnd(math.pi/2.2)
+...
 ```
 ### Usage example
 <img src="https://user-images.githubusercontent.com/1312968/99901217-4697fa80-2cb5-11eb-9e80-c469cc69b848.gif"></br>
