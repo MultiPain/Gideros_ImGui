@@ -1399,7 +1399,7 @@ DrawList:pathArcToFast(centerX, centerY, radius, a_min, a_max)
 DrawList:pathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
 DrawList:pathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
 ```
-### Usage exmple
+### Usage example
 reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
 ```lua
 local cos,sin,sqrt=math.cos,math.sin,math.sqrt
