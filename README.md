@@ -169,6 +169,18 @@ ImGui:onKeyUp(event)
 ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
 ```
+### Usage example
+```lua
+local UI = ImGui.new(false, false, false)
+stage:addEventListener("mouseHover", function(e) UI:onMouseHover(e) end)
+stage:addEventListener("mouseMove", function(e) UI:onMouseMove(e) end)
+stage:addEventListener("mouseDown", function(e) UI:onMouseDown(e) end)
+stage:addEventListener("mouseUp", function(e) UI:onMouseUp(e) end)
+stage:addEventListener("mouseWheel", function(e) UI:onMouseWheel(e) end)
+stage:addEventListener("keyUp", function(e) UI:onKeyUp(e) end)
+stage:addEventListener("keyDown", function(e) UI:onKeyDown(e) end)
+stage:addEventListener("keyChar", function(e) UI:onKeyChar(e) end)
+```
 [To top](#api)
 ## Available KeyCodes
 List of KeyCodes that can be used with IO:isKeyDown/IO:isKeyPressed/IO:isKeyReleased
@@ -735,6 +747,71 @@ flag = ImGui:beginDragDropTarget()
 ImGuiPayload = ImGui:acceptDragDropPayload(type, [ImGuiDragDropFlags flags = 0])
 ImGui:endDragDropTarget()
 ImGuiPayload = ImGui:getDragDropPayload()
+```
+### Usage example
+```lua
+local names = {
+	"Bobby", "Beatrice", "Betty",
+	"Brianna", "Barry", "Bernard",
+	"Bibi", "Blaine", "Bryn"
+}
+-- modes:
+local Mode_Copy = 0
+local Mode_Move = 1
+local Mode_Swap = 2
+ 
+local mode = 0 -- current mode
+
+function onEnterFrame(e)
+	UI:newFrame(e)
+ 
+	if (UI:radioButton("Copy", mode == Mode_Copy)) then mode = Mode_Copy end UI:sameLine()
+	if (UI:radioButton("Move", mode == Mode_Move)) then mode = Mode_Move end UI:sameLine()
+	if (UI:radioButton("Swap", mode == Mode_Swap)) then mode = Mode_Swap end
+ 
+	for i,v in ipairs(names) do
+		UI:pushID(i)
+		if (((i-1) % 3) ~= 0) then UI:sameLine() end
+ 
+		UI:button(v, 60, 60)
+ 
+		if (UI:beginDragDropSource(ImGui.DragDropFlags_None)) then
+			--UI:setStrDragDropPayload("DND_DEMO_CELL", "ID_"..i) -- used for strings
+			UI:setNumDragDropPayload("DND_DEMO_CELL", i) -- used for numbers
+ 
+			if (mode == Mode_Copy) then UI:text(("Copy %s"):format(v)) end
+			if (mode == Mode_Move) then UI:text(("Move %s"):format(v)) end
+			if (mode == Mode_Swap) then UI:text(("Swap %s"):format(v)) end
+			UI:endDragDropSource()
+		end
+ 
+		if (UI:beginDragDropTarget()) then
+			local payload = UI:acceptDragDropPayload("DND_DEMO_CELL")
+			if (payload) then
+				--local payload_n = tonumber(payload:getStrData():sub(4))  -- if "setStrDragDropPayload" was used
+				local payload_n = payload:getNumData() -- if "setNumDragDropPayload" was used
+ 
+				if (mode == Mode_Copy) then
+					names[i] = names[payload_n];
+				end
+				if (mode == Mode_Move) then
+					names[i] = names[payload_n];
+					names[payload_n] = "";
+				end
+ 
+				if (mode == Mode_Swap) then
+					names[i], names[payload_n] = names[payload_n], names[i]
+				end
+			end
+			UI:endDragDropTarget()
+		end
+		UI:popID()
+	end
+	UI:render()
+	UI:endFrame()
+end
+
+stage:addEventListener("enterFrame", onEnterFrame)
 ```
 [To top](#api)
 ### Payload
@@ -1321,5 +1398,47 @@ DrawList:pathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
 DrawList:pathArcToFast(centerX, centerY, radius, a_min, a_max)
 DrawList:pathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
 DrawList:pathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
+```
+### Usage exmple
+reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
+```lua
+local cos,sin,sqrt=math.cos,math.sin,math.sqrt
+local p = {-1,-1, 1,-1, 1,1, -1,1}
+local function conv(z,szx,szy,ox,oy,vx,vy) return ((vx/z)*szx*5+szx*0.5)+ox,((vy/z)*szy*5+szy*0.5)+oy end
+local function R(vx, vy, ng) ng*=0.1 local cosn = cos(ng) local sinn = sin(ng) return vx*cosn-vy*sinn, vx*sinn+vy*cosn end
+local function FX(d,ax,ay,bx,by,sw,sh,t)
+	d:addRectFilled(ax,ay,bx,by,0,1,0)
+	t *= 4
+	for i = 0, 19 do
+		local z=21-i-(t-(t//1))*2
+		local ng,ot0,ot1=-t*2.1+z,-t+z*0.2,-t+(z+1)*0.2
+		local s,of,pts={cos((t+z)*0.1)*0.2+1,sin((t+z)*0.1)*0.2+1,cos((t+z+1)*0.1)*0.2+1,sin((t+z+1)*0.1)*0.2+1},{cos(ot0)*0.3,sin(ot0)*0.3,cos(ot1)*0.3,sin(ot1)*0.3},{}
+		for j=0,7 do local i,n = ((j%4)+1)*2,j//4 pts[j*2+1],pts[j*2+2]=conv((z+n)*2,sw,sh,ax,ay,R(p[i-1]*s[n*2+1]+of[n*2+1],p[i-0]*s[n*2+2]+of[n*2+2],ng+n)) end
+		for j=0,3 do local it=((((i&1) ~= 0) and 0.5 or 0.6)+j*0.05)*((21-z)/21) d:addConvexPolyFilled({pts[j*2+1],pts[j*2+2],pts[((j+1)%4)*2+1],pts[((j+1)%4)*2+2],pts[(((j+1)%4)+4)*2+1],pts[(((j+1)%4)+4)*2+2],pts[(j+4)*2+1],pts[(j+4)*2+2]},UI:colorConvertRGBtoHEX(UI:colorConvertHSVtoRGB(0.6+sin(t*0.03)*0.5,1,sqrt(it)))) end
+	end
+end
+
+UI = ImGui.new()
+IO = UI:getIO()
+stage:addChild(UI)
+local w = 320
+local h = 180
+IO:setDisplaySize(w*2,h*2)
+function onEnterFrame(e)
+	UI:newFrame(e)
+	UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)
+	UI:invisibleButton("canvas", w, h)
+	local minX, minY = UI:getItemRectMin()
+	local maxX, maxY = UI:getItemRectMax()
+	local draw_list = UI:getWindowDrawList()
+	draw_list:pushClipRect(minX, minY, maxX, maxY)
+	FX(draw_list,minX,minY,maxX,maxY,w,h,UI:getTime())
+	draw_list:popClipRect()
+	UI:endWindow()
+	UI:render()
+	UI:endFrame()
+end
+
+stage:addEventListener("enterFrame", onEnterFrame)
 ```
 [To top](#api)
