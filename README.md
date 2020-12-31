@@ -2,7 +2,7 @@
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
-* [Fonts](#fonts)
+* [Fonts](#fonts) ([example](#minimal-example))
 * [Inputs](#inputs)
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
@@ -139,6 +139,21 @@ w, h, x, y, glyph_id, offset_x, offset_y, font, is_packed_flag = FontAtlas:getCu
 
 ImGui:pushFont(font)  -- font (table): object returned by FontAtlas:addFont(...) or FontAtlas:getFont([index])
 ImGui:popFont()
+```
+### Minimal example:
+```lua
+local UI = ImGui.new()
+local IO = UI:getIO()
+local FontAtlas = IO:getFonts()
+IO:setFontDefault(FontAtlas:addFont("fonts/VDS.ttf", 16, {
+    oversampleH = 2,
+    oversampleV = 2,
+	glyphs = {
+		ranges = {ImGui.GlyphRanges_Cyrillic}
+	}
+}))
+FontAtlas:bake()
+stage:addChild(UI)
 ```
 [To top](#api)
 ## INPUTS
