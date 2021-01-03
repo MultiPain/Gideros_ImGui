@@ -146,7 +146,7 @@ void LUA_PRINTF(lua_State* L, const char* fmt, ...)
 }
 
 static std::map<int, const char*> GIDEROS_CURSORS_MAP = {
-    {ImGuiMouseCursor_Hand, "openHand"},
+    {ImGuiMouseCursor_Hand, "pointingHand"},
     {ImGuiMouseCursor_None, "blank"},
     {ImGuiMouseCursor_Arrow, "arrow"},
     {ImGuiMouseCursor_ResizeEW, "sizeHor"},
