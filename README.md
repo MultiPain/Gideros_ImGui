@@ -145,15 +145,32 @@ ImGui:popFont()
 local UI = ImGui.new()
 local IO = UI:getIO()
 local FontAtlas = IO:getFonts()
-IO:setFontDefault(FontAtlas:addFont("fonts/VDS.ttf", 16, {
+local VDS_font = FontAtlas:addFont("fonts/VDS.ttf", 16, {
     oversampleH = 2,
     oversampleV = 2,
 	glyphs = {
 		ranges = {ImGui.GlyphRanges_Cyrillic}
 	}
-}))
+})
+IO:setFontDefault(VDS_font)
 FontAtlas:bake()
 stage:addChild(UI)
+
+-- you can use multiple fonts at the same time
+function enterFrame(e)
+	UI:newFrame(e)
+	
+	imgui:pushFont(font1)
+	imgui:text("Font1")
+	imgui:popFont()
+	
+	imgui:pushFont(font2)
+	imgui:text("Font2")
+	imgui:popFont()
+	
+	UI:render()
+	UI:endFrame()
+end
 ```
 [To top](#api)
 ## INPUTS
