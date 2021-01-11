@@ -3,7 +3,7 @@
 #define ENABLE_ASSERTIONS
 
 #define _UNUSED(n)
-#define PLUGIN_NAME "ImGui"
+#define PLUGIN_NAME "ImGui_beta"
 #define CLASS_NAME "ImGui"
 
 #include "gplugin.h"
@@ -7727,16 +7727,24 @@ int FontAtlas_AddFonts(lua_State* L)
     return 0;
 }
 
+int FontAtlas_GetFontsCount(lua_State* L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+    lua_pushinteger(L, atlas->Fonts.Size);
+    return 1;
+}
+
 int FontAtlas_GetFontByIndex(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
-    int index = 0;
+    int index = 1;
     if (lua_gettop(L) > 1 && !lua_isnil(L, 2))
     {
         index = luaL_checkinteger(L, 2);
     }
+    index--;
     int fonts_count = atlas->Fonts.Size;
-    LUA_ASSERT(index >= 0 && index < fonts_count, "Font index is out of bounds!");
+    LUA_FASSERT(index >= 0 && index < fonts_count, "Font index is out of bounds! Must be: [1..%d], but was: %d", fonts_count, index + 1);
     ImFont* font = atlas->Fonts[index];
     LUA_ASSERT(font, "Font is nil");
     Binder binder(L);
@@ -10209,6 +10217,7 @@ int loader(lua_State* L)
         {"addFont", FontAtlas_AddFont},
         {"addFonts", FontAtlas_AddFonts},
         {"getFont", FontAtlas_GetFontByIndex},
+        {"getFontsCount", FontAtlas_GetFontsCount},
         {"getCurrentFont", FontAtlas_GetCurrentFont},
         {"addDefaultFont", FontAtlas_AddDefaultFont},
         {"build", FontAtlas_BuildFont},
@@ -10966,4 +10975,4 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) {  }
 
-REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", ImGui_beta)
