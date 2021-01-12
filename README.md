@@ -80,7 +80,11 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
-ImGui.new()
+-- mouseListeners: adds internal mouse event listeners
+-- keyboardListeners: adds internal keyboard event listeners
+-- resizeListener: adds internal window resize event listener
+-- touchListeners: adds internal touch event listeners
+ImGui.new([mouseListeners = true, keyboardListeners = true, resizeListener = true, touchListeners = false])
 ```
 [To top](#api)
 ## EXPERIMENTAL
@@ -182,18 +186,31 @@ ImGui:onMouseDown(event)
 ImGui:onMouseUp(event)
 ImGui:onMouseWheel(event)
 
+
+ImGui:onTouchMove(event)
+ImGui:onTouchBegin(event)
+ImGui:onTouchEnd(event)
+ImGui:onTouchCancel(event)
+
 ImGui:onKeyUp(event)
 ImGui:onKeyDown(event)
 ImGui:onKeyChar(event)
 ```
 ### Usage example
 ```lua
-local UI = ImGui.new(false, false, false)
+local UI = ImGui.new(false, false, false, false)
+-- Mouse
 stage:addEventListener("mouseHover", function(e) UI:onMouseHover(e) end)
 stage:addEventListener("mouseMove", function(e) UI:onMouseMove(e) end)
 stage:addEventListener("mouseDown", function(e) UI:onMouseDown(e) end)
 stage:addEventListener("mouseUp", function(e) UI:onMouseUp(e) end)
 stage:addEventListener("mouseWheel", function(e) UI:onMouseWheel(e) end)
+-- Touch
+stage:addEventListener("touchesCancel", function(e) ui:onTouchCancel(e) end)
+stage:addEventListener("touchesMove", function(e) ui:onTouchMove(e) end)
+stage:addEventListener("touchesBegin", function(e) ui:onTouchBegin(e) end)
+stage:addEventListener("touchesEnd", function(e) ui:onTouchEnd(e) end)
+-- Keyboard
 stage:addEventListener("keyUp", function(e) UI:onKeyUp(e) end)
 stage:addEventListener("keyDown", function(e) UI:onKeyDown(e) end)
 stage:addEventListener("keyChar", function(e) UI:onKeyChar(e) end)
