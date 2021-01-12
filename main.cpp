@@ -48,6 +48,7 @@
 static lua_State* L;
 static char keyWeak = ' ';
 static bool autoUpdateCursor = false;
+static bool instanceCreated = false;
 static Application* application;
 static std::map<int, const char*> giderosCursorMap;
 
@@ -894,8 +895,6 @@ private:
     VertexBuffer<VColor> colors;
 };
 
-//static GidImGui* GidImGuiPtr;
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// EVENT LISTENER
@@ -1189,7 +1188,6 @@ GidImGui::GidImGui(LuaApplication* application, lua_State* L,
 {
     this->application = application;
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
-    //imguiProxy = proxy;
 
     eventListener = new EventListener(L, proxy);
 
@@ -1324,8 +1322,9 @@ GidImGui* getImgui(lua_State* L)
 
 int initImGui(lua_State* L)
 {
-    //LUA_ASSERT(GidImGuiPtr == nullptr, "ImGui instance alraedy exists! Please, use single ImGui object OR delete previous object first.");
+    LUA_ASSERT(!instanceCreated, "ImGui instance already exists! Please, consider using single ImGui object OR delete previous instance first!");
 
+    instanceCreated = true;
     autoUpdateCursor = false;
 
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
@@ -1394,6 +1393,7 @@ int initImGui(lua_State* L)
 
 int destroyImGui(lua_State* L)
 {
+    instanceCreated = false;
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->ClearTexData();
 
@@ -1403,7 +1403,6 @@ int destroyImGui(lua_State* L)
     ImGui::DestroyContext();
 
     //imguiProxy->removeEventListeners();
-    //delete imguiProxy;
 
     return 0;
 }
@@ -11044,7 +11043,7 @@ static void g_initializePlugin(lua_State* L)
     lua_pop(L, 2);
 }
 
-static void g_deinitializePlugin(lua_State* _UNUSED(L)) { }
+static void g_deinitializePlugin(lua_State* _UNUSED(L)) { instanceCreated = false; }
 
 #ifdef IS_BETA_BUILD
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
