@@ -922,10 +922,10 @@ private:
         }
         else
         {
-            io.KeyAlt = (mod & GINPUT_ALT_MODIFIER) > 0;
-            io.KeyCtrl = (mod & GINPUT_CTRL_MODIFIER) > 0;
-            io.KeyShift = (mod & GINPUT_SHIFT_MODIFIER) > 0;
-            io.KeySuper = (mod & GINPUT_META_MODIFIER) > 0;
+            io.KeyAlt = mod & GINPUT_ALT_MODIFIER;
+            io.KeyCtrl = mod & GINPUT_CTRL_MODIFIER;
+            io.KeyShift = mod & GINPUT_SHIFT_MODIFIER;
+            io.KeySuper = mod & GINPUT_META_MODIFIER;
         }
     }
 
