@@ -7327,7 +7327,9 @@ int IO_SetMouseDrawCursor(lua_State* L)
     io.MouseDrawCursor = lua_toboolean(L, 2) > 0;
     if (io.MouseDrawCursor)
     {
-        setApplicationCursor(L, "blank");
+        bool hideSystemCursor = luaL_optboolean(L, 3, 1);
+        if (hideSystemCursor)
+            setApplicationCursor(L, "blank");
     }
     else
     {
