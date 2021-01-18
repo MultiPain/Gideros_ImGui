@@ -3856,13 +3856,16 @@ int SetColorEditOptions(lua_State* L)
 int TreeNode(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    bool result;
+    bool result = ImGui::TreeNode(label);
+    lua_pushboolean(L, result);
+    return 1;
+}
 
-    if (lua_type(L, 3) == LUA_TNIL)
-        result = ImGui::TreeNode(label);
-    else
-        result = ImGui::TreeNode(label, "%s", luaL_checkstring(L, 3));
-
+int TreeNodeID(lua_State* L)
+{
+    const char* str_id = luaL_checkstring(L, 2);
+    const char* label = luaL_checkstring(L, 3);
+    bool result = ImGui::TreeNode(str_id, "%s", label);
     lua_pushboolean(L, result);
     return 1;
 }
@@ -3871,13 +3874,7 @@ int TreeNodeEx(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     ImGuiTreeNodeFlags flags = luaL_checkinteger(L, 3);
-
-    bool result;
-    if (lua_type(L, 4) == LUA_TNIL)
-        result = ImGui::TreeNodeEx(label, flags);
-    else
-        result = ImGui::TreeNodeEx(label, flags, "%s", luaL_checkstring(L, 4));
-
+    bool result = ImGui::TreeNodeEx(label, flags);
     lua_pushboolean(L, result);
     return 1;
 }
@@ -8932,7 +8929,7 @@ int destroyNodeEditor(lua_State* _UNUSED(L))
 
 int ED_SetCurrentEditor(lua_State* L)
 {
-    if (lua_type(L, 2) == LUA_TNIL)
+    if (lua_gettop(L) > 1 && lua_type(L, 2) == LUA_TNIL)
     {
         ED::SetCurrentEditor(nullptr);
         return 0;
@@ -10881,6 +10878,7 @@ int loader(lua_State* L)
         {"setColorEditOptions", SetColorEditOptions},
 
         {"treeNode", TreeNode},
+        {"treeNodeID", TreeNodeID},
         {"treeNodeEx", TreeNodeEx},
         {"treePush", TreePush},
         {"treePop", TreePop},
