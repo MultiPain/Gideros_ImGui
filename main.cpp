@@ -2767,7 +2767,7 @@ int Combo(lua_State* L)
         } break;
         default:
         {
-            LUA_THROW_ERRORF("bad argument #3 to 'combo' (table/string expected, got %s)", lua_typename(L, 4));
+            LUA_THROW_ERRORF("bad argument #3 to 'combo' (table/string expected, got %s)", lua_typename(L, arg_type));
             return 0;
         }
     }
@@ -4160,7 +4160,8 @@ int MenuItem(lua_State* L)
     int selected = luaL_optboolean(L, 4, 0);
     int enabled = luaL_optboolean(L, 5, 1);
 
-    lua_pushboolean(L, ImGui::MenuItem(label, shortcut, selected, enabled));
+    bool flag = ImGui::MenuItem(label, shortcut, selected, enabled);
+    lua_pushboolean(L, flag);
 
     return 1;
 }
@@ -7627,9 +7628,9 @@ const ImWchar* getRanges(ImFontAtlas* atlas, const int ranges)
 
 typedef void (*GidConfCallback)(ImFontGlyphRangesBuilder&, ImFontAtlas*, int);
 
-void readConfTable(lua_State* L, const char* name, ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, GidConfCallback f)
+void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
 {
-    lua_getfield(L, -1, name);
+    lua_getfield(L, -1, "chars");
     luaL_checktype(L, 1, LUA_TTABLE);
     int len = luaL_getn(L, -1);
 
@@ -7638,32 +7639,68 @@ void readConfTable(lua_State* L, const char* name, ImFontGlyphRangesBuilder &bui
         for (int i = 0; i < len; i++)
         {
             lua_rawgeti(L, -1, i + 1);
-            f(builder, atlas, luaL_checkinteger(L, -1));
+            int value = luaL_checkinteger(L, -1);
+            LUA_PRINTF("Added char: %d", value);
+            builder.AddChar(value);
             lua_pop(L, 1);
         }
     }
     lua_pop(L, 1);
 }
 
-void addConfChars(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas)
 {
-    builder.AddChar(value);
-}
+    lua_getfield(L, -1, "ranges");
+    luaL_checktype(L, 1, LUA_TTABLE);
+    int len = luaL_getn(L, -1);
 
-void addConfRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
-{
-    builder.AddRanges(getRanges(atlas, value));
-}
-
-// TODO
-/*
-    void addConfCustomRanges(ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas, int value)
+    if (!lua_isnil(L, -1) && len > 0)
     {
+        for (int i = 0; i < len; i++)
+        {
+            lua_rawgeti(L, -1, i + 1);
+            if (lua_type(L, -1) == LUA_TTABLE)
+            {
+                int ranges_len = luaL_getn(L, -1);
 
+                if (ranges_len > 0)
+                {
+                    ImWchar* ranges = new ImWchar[ranges_len];
+
+                    for (int j = 0; j < ranges_len; j++)
+                    {
+                        lua_rawgeti(L, -1, j + 1);
+                        int v = luaL_checkinteger(L, -1);
+                        LUA_PRINTF("Range[%d]: %d", j, v);
+                        ranges[j] = v;
+                        lua_pop(L, 1);
+                    }
+
+                    builder.AddRanges(ranges);
+
+                    delete[] ranges;
+                }
+            }
+            else if (lua_type(L, -1) == LUA_TNUMBER)
+            {
+                int value = luaL_checkinteger(L, -1);
+                LUA_PRINTF("Added range: %d", value);
+                builder.AddRanges(getRanges(atlas, value));
+            }
+            else
+            {
+                LUA_THROW_ERRORF("Expected \"number\" or \"table\" to \"ranges\" table, but got: %s", lua_typename(L, lua_type(L, -1)));
+            }
+            lua_pop(L, 1);
+        }
     }
-    */
+    lua_pop(L, 1);
+}
+
 void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
 {
+    luaL_checktype(L, index, LUA_TTABLE);
+
     float GlyphExtraSpacingX = 0.0f;
     float GlyphExtraSpacingY = 0.0f;
     float GlyphOffsetX = 0.0f;
@@ -7677,8 +7714,6 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     if (!lua_isnil(L, -1)) GlyphExtraSpacingY = luaL_checknumber(L, -1);
     lua_pop(L, 1);
 
-    config.GlyphExtraSpacing = ImVec2(GlyphExtraSpacingX, GlyphExtraSpacingY);
-
     lua_getfield(L, index, "glyphOffsetX");
     if (!lua_isnil(L, -1)) GlyphOffsetX = luaL_checknumber(L, -1);
     lua_pop(L, 1);
@@ -7686,7 +7721,6 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     lua_getfield(L, index, "glyphOffsetY");
     if (!lua_isnil(L, -1)) GlyphOffsetY = luaL_checknumber(L, -1);
     lua_pop(L, 1);
-    config.GlyphOffset = ImVec2(GlyphOffsetX, GlyphOffsetY);
 
     lua_getfield(L, index, "fontDataOwnedByAtlas");
     if (!lua_isnil(L, -1)) config.FontDataOwnedByAtlas = lua_toboolean(L, -1) > 0;
@@ -7739,25 +7773,25 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     lua_getfield(L, index, "glyphs");
     if (!lua_isnil(L, -1))
     {
+        luaL_checktype(L, -1, LUA_TTABLE);
+
         ImVector<ImWchar> ranges;
         ImFontGlyphRangesBuilder builder;
-
-        luaL_checktype(L, 1, LUA_TTABLE);
 
         lua_getfield(L, -1, "text");
         if (!lua_isnil(L, -1)) builder.AddText(luaL_checkstring(L, -1));
         lua_pop(L, 1);
 
-        readConfTable(L, "chars", builder, atlas, addConfChars);
-        readConfTable(L, "ranges", builder, atlas, addConfRanges);
-        //readConfTable(L, "customRanges", builder, atlas, addConfCustomRanges);
-
-        //builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
+        loadRangesConf(L, builder, atlas);
+        loadCharsConf(L, builder);
 
         builder.BuildRanges(&ranges);
         config.GlyphRanges = ranges.Data;
     }
     lua_pop(L, 1);
+
+    config.GlyphExtraSpacing = ImVec2(GlyphExtraSpacingX, GlyphExtraSpacingY);
+    config.GlyphOffset = ImVec2(GlyphOffsetX, GlyphOffsetY);
 }
 
 ImFont* addFont(ImFontAtlas* atlas, const char* file_name, double size_pixels, ImFontConfig& font_cfg)
@@ -7781,15 +7815,13 @@ int FontAtlas_AddFont(lua_State* L)
     // load options table
     if (lua_gettop(L) > 3)
     {
-        luaL_checktype(L, 4, LUA_TTABLE);
-        lua_pushvalue(L, 4); // push options table to top
         loadFontConfig(L, 4, font_cfg, atlas);
-        lua_pop(L, 1); // pop options table
     }
 
     ImFont* font = addFont(atlas, file_name, size_pixels, font_cfg);
     Binder binder(L);
     binder.pushInstance("ImFont", font);
+
     return 1;
 }
 
