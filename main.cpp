@@ -8437,7 +8437,7 @@ int DrawList_PathStroke(lua_State* L)
 {
     ImU32 color = GColor::toU32(luaL_checkinteger(L, 2), luaL_optnumber(L, 3, 1.0f));
     bool closed = lua_toboolean(L, 4) > 0;
-    float thickness = luaL_optnumber(L, 3, 1.0f);
+    float thickness = luaL_optnumber(L, 5, 1.0f);
     ImDrawList* list = getDrawList(L);
     list->PathStroke(color, closed, thickness);
     return 0;
