@@ -7640,6 +7640,7 @@ void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
         {
             lua_rawgeti(L, -1, i + 1);
             int value = luaL_checkinteger(L, -1);
+            LUA_PRINTF("Added char: %d", value);
             builder.AddChar(value);
             lua_pop(L, 1);
         }
@@ -7670,6 +7671,7 @@ void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas
                     {
                         lua_rawgeti(L, -1, j + 1);
                         int v = luaL_checkinteger(L, -1);
+                        LUA_PRINTF("Range[%d]: %d", j, v);
                         ranges[j] = v;
                         lua_pop(L, 1);
                     }
@@ -7682,6 +7684,7 @@ void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas
             else if (lua_type(L, -1) == LUA_TNUMBER)
             {
                 int value = luaL_checkinteger(L, -1);
+                LUA_PRINTF("Added range: %d", value);
                 builder.AddRanges(getRanges(atlas, value));
             }
             else
@@ -7723,7 +7726,7 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     if (!lua_isnil(L, -1)) config.FontDataOwnedByAtlas = lua_toboolean(L, -1) > 0;
     lua_pop(L, 1);
 
-    lua_getfield(L, index, "pixelSnapH");
+    lua_getfield(L, index, "fixelSnapH");
     if (!lua_isnil(L, -1)) config.PixelSnapH = lua_toboolean(L, -1) > 0;
     lua_pop(L, 1);
 
@@ -7739,7 +7742,7 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     if (!lua_isnil(L, -1)) config.OversampleV = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, index, "sizePixels");
+    lua_getfield(L, index, "SizePixels");
     if (!lua_isnil(L, -1)) config.SizePixels = luaL_checknumber(L, -1);
     lua_pop(L, 1);
 
@@ -7814,8 +7817,6 @@ int FontAtlas_AddFont(lua_State* L)
     {
         loadFontConfig(L, 4, font_cfg, atlas);
     }
-
-    LUA_PRINTF("Merge? %d", font_cfg.MergeMode);
 
     ImFont* font = addFont(atlas, file_name, size_pixels, font_cfg);
     Binder binder(L);
@@ -7987,13 +7988,14 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
     lua_pushinteger(L, rect->Height);
     lua_pushinteger(L, rect->X);
     lua_pushinteger(L, rect->Y);
+    lua_pushinteger(L, rect->X);
     lua_pushinteger(L, rect->GlyphID);
     lua_pushnumber(L, rect->GlyphOffset.x);
     lua_pushnumber(L, rect->GlyphOffset.y);
     Binder binder(L);
     binder.pushInstance("ImFont", rect->Font);
     lua_pushboolean(L, rect->IsPacked());
-    return 9;
+    return 10;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -8005,7 +8007,9 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
 void ErrorCheck()
 {
     ImGuiContext* g = ImGui::GetCurrentContext();
-    LUA_ASSERT(g->FrameCount > 0, "Forgot to call ImGui:newFrame(event)?");
+    LUA_ASSERT(g->FrameCount > 0, "Forgot to call newFrame()?");
+    //LUA_ASSERT((g->FrameCount == 0 || g->FrameCountEnded == g->FrameCount), "Forgot to call Render() or EndFrame() at the end of the previous frame?");
+    //LUA_ASSERT(g->IO.DisplaySize.x >= 0.0f && g->IO.DisplaySize.y >= 0.0f, "Invalid DisplaySize value!");
 }
 
 int GetWindowDrawList(lua_State* L)
