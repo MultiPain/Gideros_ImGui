@@ -48,8 +48,8 @@
 static lua_State* L;
 static Application* application;
 static SpriteProxy* imguiProxy;
-
 static char keyWeak = ' ';
+
 static bool autoUpdateCursor = false;
 static bool instanceCreated = false;
 static bool resetTouchPosOnEnd = false;
@@ -1407,7 +1407,6 @@ int initImGui(lua_State* L)
 
     Binder binder(L);
     GidImGui* imgui = new GidImGui(application, L, luaL_optboolean(L, 1, 1), luaL_optboolean(L, 2, 1), luaL_optboolean(L, 3, 0));
-    //GidImGuiPtr = imgui;
     binder.pushInstance("ImGui", imguiProxy);
 
     luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
@@ -1422,15 +1421,7 @@ int destroyImGui(lua_State* L)
 {
     resetStaticVars();
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->ClearTexData();
-
-    if (io.MouseDrawCursor)
-        setApplicationCursor(L, "arrow");
-
     ImGui::DestroyContext();
-
-    //imguiProxy->removeEventListeners();
 
     return 0;
 }
@@ -7626,12 +7617,10 @@ const ImWchar* getRanges(ImFontAtlas* atlas, const int ranges)
     }
 }
 
-typedef void (*GidConfCallback)(ImFontGlyphRangesBuilder&, ImFontAtlas*, int);
-
 void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
 {
     lua_getfield(L, -1, "chars");
-    luaL_checktype(L, 1, LUA_TTABLE);
+    luaL_checktype(L, -1, LUA_TTABLE);
     int len = luaL_getn(L, -1);
 
     if (!lua_isnil(L, -1) && len > 0)
@@ -7640,7 +7629,6 @@ void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
         {
             lua_rawgeti(L, -1, i + 1);
             int value = luaL_checkinteger(L, -1);
-            LUA_PRINTF("Added char: %d", value);
             builder.AddChar(value);
             lua_pop(L, 1);
         }
@@ -7651,7 +7639,7 @@ void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
 void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas)
 {
     lua_getfield(L, -1, "ranges");
-    luaL_checktype(L, 1, LUA_TTABLE);
+    luaL_checktype(L, -1, LUA_TTABLE);
     int len = luaL_getn(L, -1);
 
     if (!lua_isnil(L, -1) && len > 0)
@@ -7671,7 +7659,6 @@ void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas
                     {
                         lua_rawgeti(L, -1, j + 1);
                         int v = luaL_checkinteger(L, -1);
-                        LUA_PRINTF("Range[%d]: %d", j, v);
                         ranges[j] = v;
                         lua_pop(L, 1);
                     }
@@ -7684,7 +7671,6 @@ void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas
             else if (lua_type(L, -1) == LUA_TNUMBER)
             {
                 int value = luaL_checkinteger(L, -1);
-                LUA_PRINTF("Added range: %d", value);
                 builder.AddRanges(getRanges(atlas, value));
             }
             else
