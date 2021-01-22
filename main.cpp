@@ -1,13 +1,5 @@
 // regex: (\s\*)+\b
-
 #define _UNUSED(n)
-#define IS_BETA_BUILD
-
-#ifdef IS_BETA_BUILD
-#define PLUGIN_NAME "ImGui_beta"
-#else
-#define PLUGIN_NAME "ImGui"
-#endif
 
 #include "lua.hpp"
 #include "luautil.h"
@@ -41,18 +33,20 @@
 #include "imgui_src/imgui_internal.h"
 
 #ifdef IS_BETA_BUILD
+#define PLUGIN_NAME "ImGui_beta"
+#else
+#define PLUGIN_NAME "ImGui"
+#endif
+
+#ifdef IS_BETA_BUILD
 #include "imgui-node-editor/imgui_node_editor.h" // https://github.com/thedmd/imgui-node-editor
 #define ED ax::NodeEditor
 #endif
 
 static lua_State* L;
 static Application* application;
-//static SpriteProxy* imguiProxy;
 static char keyWeak = ' ';
 
-//static bool autoUpdateCursor = false;
-//static bool instanceCreated = false;
-//static bool resetTouchPosOnEnd = false;
 static std::map<int, const char*> giderosCursorMap;
 
 #define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
@@ -1297,6 +1291,8 @@ GidImGui::~GidImGui()
 
 void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
 {
+    IM_TRACE("doDraw");
+
     ImGui::SetCurrentContext(this->ctx);
 
     ImDrawData* draw_data = ImGui::GetDrawData();
@@ -1353,18 +1349,23 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
             }
             else
             {
-                g_id textureId = (g_id)pcmd->TextureId;
+                if (pcmd->TextureId == NULL)
+                    continue;
+                else
+                {
+                    g_id textureId = (g_id)pcmd->TextureId;
 
-                engine->bindTexture(0, gtexture_getInternalTexture(textureId));
+                    engine->bindTexture(0, gtexture_getInternalTexture(textureId));
 
-                engine->pushClip(
-                            (int)(pcmd->ClipRect.x - pos.x),
-                            (int)(pcmd->ClipRect.y - pos.y),
-                            (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
-                            (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
-                            );
-                shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
-                engine->popClip();
+                    engine->pushClip(
+                                (int)(pcmd->ClipRect.x - pos.x),
+                                (int)(pcmd->ClipRect.y - pos.y),
+                                (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
+                                (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
+                                );
+                    shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
+                    engine->popClip();
+                }
 
             }
             idx_buffer += pcmd->ElemCount;
@@ -6897,168 +6898,207 @@ int IO_SetConfigDockingTransparentPayload(lua_State* L)
 }
 #endif
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int initImFontGlyphRangesBuilder(lua_State* L)
+const ImWchar* getRanges(ImFontAtlas* atlas, const int ranges)
 {
-    ImFontGlyphRangesBuilder builder;
-
-    g_pushInstance(L, "ImFontGlyphRangesBuilder", &builder);
-
-    return 1;
-}
-
-int destroyImFontGlyphRangesBuilder(lua_State *L)
-{
-    return 0;
-}
-
-ImFontGlyphRangesBuilder* getBuilder(lua_State* L, int index = 1)
-{
-    Binder binder(L);
-    //ImGuiIO &io = *(static_cast<ImGuiIO*>(binder.getInstance("ImGuiIO", index)));
-    return static_cast<ImFontGlyphRangesBuilder*>(binder.getInstance("ImFontGlyphRangesBuilder", index));
-}
-
-int ImFontGlyphRangesBuilder_AddChar(lua_State* L)
-{
-    ImFontGlyphRangesBuilder* builder = getBuilder(L);
-    ImWchar c = luaL_checkinteger(L, 2);
-    builder->AddChar(c);
-    return 0;
-}
-
-int ImFontGlyphRangesBuilder_AddText(lua_State* L)
-{
-    ImFontGlyphRangesBuilder* builder = getBuilder(L);
-    const char* text = luaL_checkstring(L, 2);
-    builder->AddText(text);
-    return 0;
-}
-
-int ImFontGlyphRangesBuilder_AddRange(lua_State* L)
-{
-    ImFontGlyphRangesBuilder* builder = getBuilder(L);
-    luaL_checktype(L, 2, LUA_TTABLE);
-    int len = luaL_getn(L, 2);
-    ImWchar* ranges = new ImWchar[len];
-    for (int i = 0; i < len; i++)
+    switch(ranges)
     {
-        lua_rawgeti(L, 2, i + 1);
-        ranges[i] = lua_tonumber(L, -1);
+    case ImGuiGlyphRanges_Default:
+        return atlas->GetGlyphRangesDefault();
+    case ImGuiGlyphRanges_Korean:
+        return atlas->GetGlyphRangesKorean();
+    case ImGuiGlyphRanges_ChineseFull:
+        return atlas->GetGlyphRangesChineseFull();
+    case ImGuiGlyphRanges_ChineseSimplifiedCommon:
+        return atlas->GetGlyphRangesChineseSimplifiedCommon();
+    case ImGuiGlyphRanges_Japanese:
+        return atlas->GetGlyphRangesJapanese();
+    case ImGuiGlyphRanges_Cyrillic:
+        return atlas->GetGlyphRangesCyrillic();
+    case ImGuiGlyphRanges_Thai:
+        return atlas->GetGlyphRangesThai();
+    case ImGuiGlyphRanges_Vietnamese:
+        return atlas->GetGlyphRangesVietnamese();
+    }
+}
+
+void loadCharsConf(lua_State* L, ImFontGlyphRangesBuilder &builder)
+{
+    luaL_checktype(L, -1, LUA_TTABLE);
+    int len = luaL_getn(L, -1);
+
+    if (!lua_isnil(L, -1) && len > 0)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            lua_rawgeti(L, -1, i + 1);
+            int value = luaL_checkinteger(L, -1);
+
+            char hex_string[20];
+            sprintf(hex_string, "%X", value);
+
+            LUA_PRINTF("Added char: %s", hex_string);
+
+            builder.AddChar((ImWchar)value);
+            lua_pop(L, 1);
+        }
+    }
+}
+
+void loadRangesConf(lua_State* L, ImFontGlyphRangesBuilder &builder, ImFontAtlas* atlas)
+{
+    luaL_checktype(L, -1, LUA_TTABLE);
+    int len = luaL_getn(L, -1);
+
+    if (!lua_isnil(L, -1) && len > 0)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            lua_rawgeti(L, -1, i + 1);
+            if (lua_type(L, -1) == LUA_TTABLE)
+            {
+                int ranges_len = luaL_getn(L, -1);
+
+                if (ranges_len > 0)
+                {
+                    ImWchar* ranges = new ImWchar[ranges_len];
+
+                    for (int j = 0; j < ranges_len; j++)
+                    {
+                        lua_rawgeti(L, -1, j + 1);
+                        int v = luaL_checkinteger(L, -1);
+                        ranges[j] = v;
+                        lua_pop(L, 1);
+                    }
+
+                    builder.AddRanges(ranges);
+
+                    delete[] ranges;
+                }
+            }
+            else if (lua_type(L, -1) == LUA_TNUMBER)
+            {
+                int value = luaL_checkinteger(L, -1);
+                builder.AddRanges(getRanges(atlas, value));
+            }
+            else
+            {
+                LUA_THROW_ERRORF("Expected \"number\" or \"table\" to \"ranges\" table, but got: %s", lua_typename(L, lua_type(L, -1)));
+            }
+            lua_pop(L, 1);
+        }
+    }
+}
+
+void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* atlas)
+{
+    luaL_checktype(L, index, LUA_TTABLE);
+
+    lua_getfield(L, index, "glyphExtraSpacingX");
+    if (!lua_isnil(L, -1)) config.GlyphExtraSpacing.x = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphExtraSpacingY");
+    if (!lua_isnil(L, -1)) config.GlyphExtraSpacing.y = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphOffsetX");
+    if (!lua_isnil(L, -1)) config.GlyphOffset.x = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphOffsetY");
+    if (!lua_isnil(L, -1)) config.GlyphOffset.y = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "fontDataOwnedByAtlas");
+    if (!lua_isnil(L, -1)) config.FontDataOwnedByAtlas = lua_toboolean(L, -1) > 0;
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "fixelSnapH");
+    if (!lua_isnil(L, -1)) config.PixelSnapH = lua_toboolean(L, -1) > 0;
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "fontNo");
+    if (!lua_isnil(L, -1)) config.FontNo = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "oversampleH");
+    if (!lua_isnil(L, -1)) config.OversampleH = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "oversampleV");
+    if (!lua_isnil(L, -1)) config.OversampleV = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "SizePixels");
+    if (!lua_isnil(L, -1)) config.SizePixels = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphMinAdvanceX");
+    if (!lua_isnil(L, -1)) config.GlyphMinAdvanceX = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphMaxAdvanceX");
+    if (!lua_isnil(L, -1)) config.GlyphMaxAdvanceX = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "mergeMode");
+    if (!lua_isnil(L, -1)) config.MergeMode = lua_toboolean(L, -1) > 0;
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "rasterizerFlags");
+    if (!lua_isnil(L, -1)) config.RasterizerFlags = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "rasterizerMultiply");
+    if (!lua_isnil(L, -1)) config.RasterizerMultiply = luaL_checknumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "ellipsisChar");
+    if (!lua_isnil(L, -1)) config.EllipsisChar = (ImWchar)luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "glyphs");
+    if (!lua_isnil(L, -1))
+    {
+        luaL_checktype(L, -1, LUA_TTABLE);
+
+        ImFontGlyphRangesBuilder builder;
+
+        lua_getfield(L, -1, "text");
+        if (!lua_isnil(L, -1)) builder.AddText(luaL_checkstring(L, -1));
         lua_pop(L, 1);
-    }
-    builder->AddRanges(ranges);
-    delete[] ranges;
 
-    return 0;
-}
+        lua_getfield(L, -1, "ranges");
+        if (!lua_isnil(L, -1)) loadRangesConf(L, builder, atlas);
+        lua_pop(L, 1);
 
-int ImFontGlyphRangesBuilder_BuildRanges(lua_State* L)
-{
-    ImFontGlyphRangesBuilder* builder = getBuilder(L);
-    ImVector<ImWchar> ranges;
-    builder->BuildRanges(&ranges);
-    g_pushInstance(L, "ImRanges", ranges.Data);
-    return 1;
-}
+        lua_getfield(L, -1, "chars");
+        if (!lua_isnil(L, -1)) loadCharsConf(L, builder);
+        lua_pop(L, 1);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int initImFontConfig(lua_State *L)
-{
-    ImFontConfig cfg = ImFontConfig();
-
-    luaL_checktype(L, 1, LUA_TTABLE);
-
-    lua_getfield(L, -1, "sizePixels");
-    if (!lua_isnil(L, -1)) cfg.SizePixels = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "oversampleH");
-    if (!lua_isnil(L, -1)) cfg.OversampleH = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "oversampleV");
-    if (!lua_isnil(L, -1)) cfg.OversampleV = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "pixelSnapH");
-    if (!lua_isnil(L, -1)) cfg.PixelSnapH = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphExtraSpacingX");
-    if (!lua_isnil(L, -1)) cfg.GlyphExtraSpacing.x = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphExtraSpacingY");
-    if (!lua_isnil(L, -1)) cfg.GlyphExtraSpacing.y = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphOffsetX");
-    if (!lua_isnil(L, -1)) cfg.GlyphOffset.x = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphOffsetY");
-    if (!lua_isnil(L, -1)) cfg.GlyphOffset.x = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphRanges");
-    if (!lua_isnil(L, -1) && g_isInstanceOf(L, "ImRanges", -1))
-    {
-        ImWchar* ranges = static_cast<ImWchar*>(g_getInstance(L, "ImRanges", -1));
-        cfg.GlyphRanges = ranges;
+        ImVector<ImWchar> ranges;
+        builder.BuildRanges(&ranges);
+        config.GlyphRanges = ranges.Data;
     }
     lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphMinAdvanceX");
-    if (!lua_isnil(L, -1)) cfg.GlyphMinAdvanceX = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "glyphMaxAdvanceX");
-    if (!lua_isnil(L, -1)) cfg.GlyphMaxAdvanceX = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "mergeMode");
-    if (!lua_isnil(L, -1)) cfg.MergeMode = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "rasterizerFlags");
-    if (!lua_isnil(L, -1)) cfg.RasterizerFlags = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "rasterizerMultiply");
-    if (!lua_isnil(L, -1)) cfg.RasterizerMultiply = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "ellipsisChar");
-    if (!lua_isnil(L, -1)) cfg.EllipsisChar = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    g_pushInstance(L, "ImFontConfig", &cfg);
-
-    return 1;
 }
 
-int destroyImFontConfig(lua_State *L)
-{
-    return 0;
-}
 
 int IO_AddFont(lua_State *L)
 {
+
     ImGuiIO& io = getIO(L);
 
     const char* file_name = luaL_checkstring(L, 2);
     double size_pixels = luaL_checknumber(L, 3);
 
-    ImFontConfig* cfg = NULL;
-    if (lua_gettop(L) > 3 && g_isInstanceOf(L, "ImFontConfig", 4))
+    ImFontConfig cfg = ImFontConfig();
+    if (lua_gettop(L) > 3)
     {
-        cfg = static_cast<ImFontConfig*>(g_getInstance(L, "ImFontConfig", 4));
+        loadFontConfig(L, 4, cfg, io.Fonts);
     }
 
-    ImFont* font = io.Fonts->AddFontFromFileTTF(file_name, size_pixels, cfg);
+    ImFont* font = io.Fonts->AddFontFromFileTTF(file_name, size_pixels, &cfg);
 
     Binder binder(L);
     binder.pushInstance("ImFont", font);
@@ -7069,7 +7109,6 @@ int IO_AddFont(lua_State *L)
 int IO_Build(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-    LUA_ASSERT(!io.Fonts->Locked, "ERROR");
     io.Fonts->Build();
     return 0;
 }
@@ -7078,7 +7117,10 @@ int IO_Bake(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
 
-    io.Fonts->ClearTexData();
+    g_id t = (g_id)io.Fonts->TexID;
+    gtexture_delete(t);
+
+    io.Fonts->Build();
 
     unsigned char* pixels;
     int width, height;
@@ -10561,20 +10603,6 @@ int loader(lua_State* L)
     //    {NULL, NULL}
     //};
     //binder.createClass("ImFontAtlas", 0, NULL, NULL, imguiFontAtlasFunctionList);
-
-    const luaL_reg imguiImFontConfigFunctionList[] = {
-        {NULL, NULL}
-    };
-    binder.createClass("ImFontConfig", 0, initImFontConfig, destroyImFontConfig, imguiImFontConfigFunctionList);
-
-    const luaL_reg imguiImFontGlyphRangesBuilderFunctionList[] = {
-        {"addChar", ImFontGlyphRangesBuilder_AddChar},
-        {"addText", ImFontGlyphRangesBuilder_AddText},
-        {"addRange", ImFontGlyphRangesBuilder_AddRange},
-        {"buildRanges", ImFontGlyphRangesBuilder_BuildRanges},
-        {NULL, NULL}
-    };
-    binder.createClass("ImFontGlyphRangesBuilder", 0, initImFontGlyphRangesBuilder, destroyImFontGlyphRangesBuilder, imguiImFontGlyphRangesBuilderFunctionList);
 
     const luaL_Reg imguiFontFunctionList[] = {
         {NULL, NULL}
