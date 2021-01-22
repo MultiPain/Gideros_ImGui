@@ -7013,7 +7013,7 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     if (!lua_isnil(L, -1)) config.FontDataOwnedByAtlas = lua_toboolean(L, -1) > 0;
     lua_pop(L, 1);
 
-    lua_getfield(L, index, "fixelSnapH");
+    lua_getfield(L, index, "pixelSnapH");
     if (!lua_isnil(L, -1)) config.PixelSnapH = lua_toboolean(L, -1) > 0;
     lua_pop(L, 1);
 
@@ -7029,7 +7029,7 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
     if (!lua_isnil(L, -1)) config.OversampleV = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, index, "SizePixels");
+    lua_getfield(L, index, "sizePixels");
     if (!lua_isnil(L, -1)) config.SizePixels = luaL_checknumber(L, -1);
     lua_pop(L, 1);
 
