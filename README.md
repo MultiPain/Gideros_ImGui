@@ -87,11 +87,11 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
+-- fontAtlas: copy fonts
 -- mouseListeners: adds internal mouse event listeners
 -- keyboardListeners: adds internal keyboard event listeners
--- resizeListener: adds internal window resize event listener
 -- touchListeners: adds internal touch event listeners
-ImGui.new([mouseListeners = true, keyboardListeners = true, resizeListener = true, touchListeners = false])
+ImGui.new([fontAtlas = nil, mouseListeners = true, keyboardListeners = true, touchListeners = false])
 ```
 [To top](#api)
 ## EXPERIMENTAL
