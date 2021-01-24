@@ -1347,24 +1347,18 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
             }
             else
             {
-                if (pcmd->TextureId == NULL)
-                    continue;
-                else
-                {
-                    g_id textureId = (g_id)pcmd->TextureId;
+                g_id textureId = (g_id)pcmd->TextureId;
 
-                    engine->bindTexture(0, gtexture_getInternalTexture(textureId));
+                engine->bindTexture(0, gtexture_getInternalTexture(textureId));
 
-                    engine->pushClip(
-                                (int)(pcmd->ClipRect.x - pos.x),
-                                (int)(pcmd->ClipRect.y - pos.y),
-                                (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
-                                (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
-                                );
-                    shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
-                    engine->popClip();
-                }
-
+                engine->pushClip(
+                            (int)(pcmd->ClipRect.x - pos.x),
+                            (int)(pcmd->ClipRect.y - pos.y),
+                            (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
+                            (int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
+                            );
+                shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
+                engine->popClip();
             }
             idx_buffer += pcmd->ElemCount;
         }
@@ -7789,9 +7783,7 @@ int FontAtlas_AddFont(lua_State *L)
 int FontAtlas_Build(lua_State* L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
-
-    g_id t = (g_id)atlas->TexID;
-    gtexture_delete(t);
+    g_id backupID = (g_id)atlas->TexID;
 
     atlas->Build();
 
@@ -7799,8 +7791,8 @@ int FontAtlas_Build(lua_State* L)
     int width, height;
     atlas->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
-    atlas->TexID = (void *)texture;
+    gtexture_update(backupID, width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels);
+    atlas->TexID = (void *)backupID;
 
     return 0;
 }
