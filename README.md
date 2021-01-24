@@ -87,11 +87,11 @@ usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS
 
 # Constructor
 ```lua
+-- fontAtlas: copy fonts
 -- mouseListeners: adds internal mouse event listeners
 -- keyboardListeners: adds internal keyboard event listeners
--- resizeListener: adds internal window resize event listener
 -- touchListeners: adds internal touch event listeners
-ImGui.new([mouseListeners = true, keyboardListeners = true, resizeListener = true, touchListeners = false])
+ImGui.new([fontAtlas = nil, mouseListeners = true, keyboardListeners = true, touchListeners = false])
 ```
 [To top](#api)
 ## EXPERIMENTAL
@@ -591,21 +591,21 @@ frameH = ImGui:getFrameHeightWithSpacing()
 [To top](#api)
 ## Tables
 ```lua
-ImGui:beginTable(str_id, column, [ImGuiTableFlags = 0, outer_w = 0, outer_h = 0, inner_width = 0])
+flag = ImGui:beginTable(str_id, column, [ImGuiTableFlags = 0, outer_w = 0, outer_h = 0, inner_width = 0])
 ImGui:endTable()
 ImGui:tableNextRow([ImGuiTableRowFlags = 0, min_row_height = 0])
-ImGui:tableNextColumn()
-ImGui:tableSetColumnIndex(column_n)
+flag = ImGui:tableNextColumn()
+flag = ImGui:tableSetColumnIndex(column_n)
 ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight = 0, user_id = 0])
 ImGui:tableSetupScrollFreeze(cols, rows)
 ImGui:tableHeadersRow()
 ImGui:tableHeader(label)
 -- ImGui:tableGetSortSpecs() W.I.P.
-ImGui:tableGetColumnCount()
-ImGui:tableGetColumnIndex()
-ImGui:tableGetRowIndex()
-ImGui:tableGetColumnName([column_n = -1])
-ImGui:tableGetColumnFlags([column_n = -1])
+number = ImGui:tableGetColumnCount()
+number = ImGui:tableGetColumnIndex()
+number = ImGui:tableGetRowIndex()
+string = ImGui:tableGetColumnName([column_n = -1])
+ImGuiTableColumnFlags = ImGui:tableGetColumnFlags([column_n = -1])
 ImGui:tableSetBgColor(ImGuiTableBgTarget, color, [column_n = -1])
 ```
 [To top](#api)
