@@ -80,7 +80,7 @@
 * [Custom drawing](#draw-lists) ([example](#usage-example-2))
 
 !VERY IMPORTANT!</br> 
-every color related argument is actualy 2 arguments: color it self in hex format: 0xRRGGBB AND alpha [0..1]</br> 
+every color related argument is actually 2 arguments: color itself in hex format: 0xRRGGBB AND alpha [0..1]</br> 
 for example:</br> 
 ```DrawList:addRect(p_min_x, p_min_y, p_max_x, p_max_y, color, [rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])```</br> 
 usage: ```DrawList:addRect(0,0, 100,100, 0xff0000, 1, ROUNDING, ROUNDING_CORNERS, THICKNESS)```</br> 
