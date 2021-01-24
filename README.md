@@ -2,7 +2,7 @@
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
-* [Fonts](#fonts) ([example](#minimal-example))
+* [Fonts](#fonts) ([example](#minimal-example), [glyphs example](#glyphs-example))
 * [Inputs](#inputs) ([example](#usage-example))
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
@@ -17,6 +17,7 @@
 * [Windows scroll](#windows-scrolling)
 * [Parameters stacks](#parameters-stacks-shared)
 * [Cursor / layout](#cursor--layout)
+* [Tables](#tables)
 * [ID](#id-stackscopes)
 * [[Widgets] Text](#widgets-text)
 * [[Widgets] Main](#widgets-main)
@@ -70,6 +71,12 @@
     - [SliderFlags](#sliderflags)
     - [GlyphRanges](#glyphranges)
     - [ItemFlags](#itemflags)
+    - [TableBgTarget](#tablebgtarget)
+    - [TableColumnFlags](#tablecolumnflags)
+    - [TableFlags](#tableflags)
+    - [TableColumnFlags](#tablecolumnflags)
+    - [TableRowFlags](#tablerowflags)
+    - [SortDirection](#sortdirection)
 * [Custom drawing](#draw-lists) ([example](#usage-example-2))
 
 !VERY IMPORTANT!</br> 
@@ -175,6 +182,45 @@ function enterFrame(e)
 	UI:render()
 	UI:endFrame()
 end
+```
+### Glyphs example:
+```lua
+local fonts = io:getFonts()
+fonts:addFont(font_path, font_size, {
+	glyphs = {
+		ranges = {
+			{
+				0x2590,0x2593, -- range1
+				0x2660,0x266B  -- range2
+				-- ...
+			},
+			ImGui.GlyphRanges_Cyrillic,
+			{
+				0x01C0, 0x01C3 -- range3
+			},
+			ImGui.GlyphRanges_Korean
+		},
+ 
+		-- same structure:
+		ranges = {
+			{
+				0x2590,0x2593, -- range1
+				0x2660,0x266B, -- range2
+				0x01C0,0x01C3  -- range3
+				-- ...
+			}, 
+			ImGui.GlyphRanges_Cyrillic, 
+			ImGui.GlyphRanges_Korean
+		}
+	},
+	mergeMode = true, -- merge into previous font
+})
+fonts:build()
+ 
+-- To use specific icons:
+local icon = utf8.char(0x2590)
+ 
+ImGui:text("My icon >>" .. icon .. " << !!!")
 ```
 [To top](#api)
 ## INPUTS
@@ -541,6 +587,26 @@ lineH = ImGui:getTextLineHeight()
 lineH = ImGui:getTextLineHeightWithSpacing()
 frameH = ImGui:getFrameHeight()
 frameH = ImGui:getFrameHeightWithSpacing()
+```
+[To top](#api)
+## Tables
+```lua
+ImGui:beginTable(str_id, column, [ImGuiTableFlags = 0, outer_w = 0, outer_h = 0, inner_width = 0])
+ImGui:endTable()
+ImGui:tableNextRow([ImGuiTableRowFlags = 0, min_row_height = 0])
+ImGui:tableNextColumn()
+ImGui:tableSetColumnIndex(column_n)
+ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight = 0, user_id = 0])
+ImGui:tableSetupScrollFreeze(cols, rows)
+ImGui:tableHeadersRow()
+ImGui:tableHeader(label)
+-- ImGui:tableGetSortSpecs() W.I.P.
+ImGui:tableGetColumnCount()
+ImGui:tableGetColumnIndex()
+ImGui:tableGetRowIndex()
+ImGui:tableGetColumnName([column_n = -1])
+ImGui:tableGetColumnFlags([column_n = -1])
+ImGui:tableSetBgColor(ImGuiTableBgTarget, color, [column_n = -1])
 ```
 [To top](#api)
 ## ID stack/scopes
@@ -1099,6 +1165,7 @@ ImGui.StyleVar_WindowTitleAlign
 ImGui.StyleVar_SelectableTextAlign
 ImGui.StyleVar_PopupRounding
 ImGui.StyleVar_ButtonTextAlign
+ImGui.StyleVar_CellPadding
 ```
 [To top](#api)
 ### Col
@@ -1151,6 +1218,11 @@ ImGui.Col_NavHighlight
 ImGui.Col_FrameBgHovered
 ImGui.Col_TextDisabled
 ImGui.Col_ResizeGrip
+ImGui.Col_TableHeaderBg
+ImGui.Col_TableBorderStrong
+ImGui.Col_TableBorderLight
+ImGui.Col_TableRowBg
+ImGui.Col_TableRowBgAlt
 ```
 [To top](#api)
 ### DataType
@@ -1379,6 +1451,121 @@ ImGui.ItemFlags_Disabled
 ImGui.ItemFlags_ButtonRepeat
 ```
 [To top](#api)
+### TableBgTarget
+```lua
+ImGui.ImGuiTableBgTarget_None
+ImGui.ImGuiTableBgTarget_RowBg0
+ImGui.ImGuiTableBgTarget_RowBg1
+ImGui.ImGuiTableBgTarget_CellBg
+```
+[To top](#api)
+
+### TableColumnFlags
+```lua
+ImGui.ImGuiTableColumnFlags_None
+ImGui.ImGuiTableColumnFlags_DefaultHide
+ImGui.ImGuiTableColumnFlags_DefaultSort
+ImGui.ImGuiTableColumnFlags_WidthStretch
+ImGui.ImGuiTableColumnFlags_WidthFixed
+ImGui.ImGuiTableColumnFlags_NoResize
+ImGui.ImGuiTableColumnFlags_NoReorder
+ImGui.ImGuiTableColumnFlags_NoHide
+ImGui.ImGuiTableColumnFlags_NoClip
+ImGui.ImGuiTableColumnFlags_NoSort
+ImGui.ImGuiTableColumnFlags_NoSortAscending
+ImGui.ImGuiTableColumnFlags_NoSortDescending
+ImGui.ImGuiTableColumnFlags_NoHeaderWidth
+ImGui.ImGuiTableColumnFlags_PreferSortAscending
+ImGui.ImGuiTableColumnFlags_PreferSortDescending
+ImGui.ImGuiTableColumnFlags_IndentEnable
+ImGui.ImGuiTableColumnFlags_IndentDisable
+ImGui.ImGuiTableColumnFlags_IsEnabled
+ImGui.ImGuiTableColumnFlags_IsVisible
+ImGui.ImGuiTableColumnFlags_IsSorted
+ImGui.ImGuiTableColumnFlags_IsHovered
+```
+[To top](#api)
+
+### TableFlags
+```lua
+ImGui.ImGuiTableFlags_None
+ImGui.ImGuiTableFlags_Resizable
+ImGui.ImGuiTableFlags_Reorderable
+ImGui.ImGuiTableFlags_Hideable
+ImGui.ImGuiTableFlags_Sortable
+ImGui.ImGuiTableFlags_NoSavedSettings
+ImGui.ImGuiTableFlags_ContextMenuInBody
+ImGui.ImGuiTableFlags_RowBg
+ImGui.ImGuiTableFlags_BordersInnerH 
+ImGui.ImGuiTableFlags_BordersOuterH
+ImGui.ImGuiTableFlags_BordersInnerV
+ImGui.ImGuiTableFlags_BordersOuterV
+ImGui.ImGuiTableFlags_BordersH
+ImGui.ImGuiTableFlags_BordersV
+ImGui.ImGuiTableFlags_BordersInner
+ImGui.ImGuiTableFlags_BordersOuter
+ImGui.ImGuiTableFlags_Borders
+ImGui.ImGuiTableFlags_NoBordersInBody
+ImGui.ImGuiTableFlags_NoBordersInBodyUntilResize
+ImGui.ImGuiTableFlags_SizingFixedFit
+ImGui.ImGuiTableFlags_SizingFixedSame
+ImGui.ImGuiTableFlags_SizingStretchProp
+ImGui.ImGuiTableFlags_SizingStretchSame
+ImGui.ImGuiTableFlags_NoHostExtendX
+ImGui.ImGuiTableFlags_NoHostExtendY
+ImGui.ImGuiTableFlags_NoKeepColumnsVisible
+ImGui.ImGuiTableFlags_PreciseWidths
+ImGui.ImGuiTableFlags_NoClip
+ImGui.ImGuiTableFlags_PadOuterX
+ImGui.ImGuiTableFlags_NoPadOuterX
+ImGui.ImGuiTableFlags_NoPadInnerX
+ImGui.ImGuiTableFlags_ScrollX
+ImGui.ImGuiTableFlags_ScrollY
+ImGui.ImGuiTableFlags_SortMulti
+ImGui.ImGuiTableFlags_SortTristate
+```
+[To top](#api)
+
+### TableColumnFlags
+```lua
+ImGui.ImGuiTableColumnFlags_None
+ImGui.ImGuiTableColumnFlags_DefaultHide
+ImGui.ImGuiTableColumnFlags_DefaultSort
+ImGui.ImGuiTableColumnFlags_WidthStretch
+ImGui.ImGuiTableColumnFlags_WidthFixed
+ImGui.ImGuiTableColumnFlags_NoResize
+ImGui.ImGuiTableColumnFlags_NoReorder
+ImGui.ImGuiTableColumnFlags_NoHide
+ImGui.ImGuiTableColumnFlags_NoClip
+ImGui.ImGuiTableColumnFlags_NoSort
+ImGui.ImGuiTableColumnFlags_NoSortAscending
+ImGui.ImGuiTableColumnFlags_NoSortDescending
+ImGui.ImGuiTableColumnFlags_NoHeaderWidth
+ImGui.ImGuiTableColumnFlags_PreferSortAscending
+ImGui.ImGuiTableColumnFlags_PreferSortDescending
+ImGui.ImGuiTableColumnFlags_IndentEnable
+ImGui.ImGuiTableColumnFlags_IndentDisable
+ImGui.ImGuiTableColumnFlags_IsEnabled
+ImGui.ImGuiTableColumnFlags_IsVisible
+ImGui.ImGuiTableColumnFlags_IsSorted
+ImGui.ImGuiTableColumnFlags_IsHovered
+```
+[To top](#api)
+
+### TableRowFlags
+```lua
+ImGui.ImGuiTableRowFlags_None
+ImGui.ImGuiTableRowFlags_Headers
+```
+[To top](#api)
+
+### SortDirection
+```lua
+ImGui.ImGuiSortDirection_None
+ImGui.ImGuiSortDirection_Ascending
+ImGui.ImGuiSortDirection_Descending
+```
+[To top](#api)
 ## DRAW LISTS
 
 ### Window draw list
@@ -1419,7 +1606,8 @@ DrawList:addText(x, y, color, text_begin, [text_end]) -- x, y (number), text_beg
 DrawList:addFontText(font, font_size, pos_x, pos_y, color, text, [wrap_with = 0, cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
 DrawList:addPolyline(pointsTable, color, closed, thickness) -- pointsTable (table), color (number), closed (bool), thickness (number)
 DrawList:addConvexPolyFilled(pointsTable, color) -- pointsTable (table), color (number)
-DrawList:addBezierCurve(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, thickness, [num_segments = 0])
+DrawList:addBezierCubic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, thickness, [num_segments = 0])
+DrawList:addBezierQuadratic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, thickness, [num_segments = 0])
 DrawList:addImage(texture, p_min_x, p_min_y, [color = 0xffffff, 1, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
 DrawList:addImageQuad(texture, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, [color = 0xffffff, 1, uv1_x, uv1_y, uv2_x, uv2_y, uv3_x, uv3_y, uv4_x, uv4_y])
 DrawList:addImageRounded(texture, p_min_x, p_min_y, color, rounding, [rounding_corners = ImGui.CornerFlags_All, uv_min_x = 0, uv_min_y = 0, uv_max_x = 1, uv_max_y = 1])
@@ -1430,7 +1618,8 @@ DrawList:pathFillConvex(color)
 DrawList:pathStroke(color, closed, [thickness = 1])
 DrawList:pathArcTo(centerX, centerY, radius, a_min, a_max, [num_segments = 10])
 DrawList:pathArcToFast(centerX, centerY, radius, a_min, a_max)
-DrawList:pathBezierCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
+DrawList:pathBezierCubicCurveTo(p2x, p2y, p3x, p3y, p4x, p4y, [num_segments = 0])
+DrawList:pathBezierQuadraticCurveTo(p2x, p2y, p3x, p3y, [num_segments = 0])
 DrawList:pathRect(minX, minY, maxX, maxY, [rounding = 0, ImDrawCornerFlags = 0])
 -- CUSTOM
 -- rotate any draw list item around its center point
