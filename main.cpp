@@ -931,6 +931,11 @@ void bindEnums(lua_State* L)
     BIND_ENUM(L, ImGuiTableRowFlags_None, "TableRowFlags_None");
     BIND_ENUM(L, ImGuiTableRowFlags_Headers, "TableRowFlags_Headers");
 
+    // ImGuiSortDirection
+    BIND_ENUM(L, ImGuiSortDirection_None, "SortDirection_None");
+    BIND_ENUM(L, ImGuiSortDirection_Ascending, "SortDirection_Ascending");
+    BIND_ENUM(L, ImGuiSortDirection_Descending, "SortDirection_Descending");
+
     lua_pop(L, 1);
 }
 
