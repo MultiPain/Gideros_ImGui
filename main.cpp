@@ -8628,6 +8628,20 @@ int DrawList_AddBezierCubic(lua_State* L)
     return 0;
 }
 
+int DrawList_AddBezierQuadratic(lua_State* L)
+{
+    ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+    ImU32 col = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
+    double thickness = luaL_checknumber(L, 10);
+    int num_segments = luaL_optinteger(L, 11, 0);
+
+    ImDrawList* list = getDrawList(L);
+    list->AddBezierQuadratic(p1, p2, p3, col, thickness, num_segments);
+    return 0;
+}
+
 int DrawList_AddImage(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
@@ -8751,6 +8765,16 @@ int DrawList_PathBezierCubicCurveTo(lua_State* L)
     int num_segments = luaL_optinteger(L, 8, 0);
     ImDrawList* list = getDrawList(L);
     list->PathBezierCubicCurveTo(p2, p3, p4, num_segments);
+    return 0;
+}
+
+int DrawList_PathBezierQuadraticCurveTo(lua_State* L)
+{
+    ImDrawList* list = getDrawList(L);
+    ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+    ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    int num_segments = luaL_optinteger(L, 6, 0);
+    list->PathBezierQuadraticCurveTo(p2, p3, num_segments);
     return 0;
 }
 
@@ -10471,7 +10495,8 @@ int loader(lua_State* L)
         {"addFontText", DrawList_AddFontText},
         {"addPolyline", DrawList_AddPolyline},
         {"addConvexPolyFilled", DrawList_AddConvexPolyFilled},
-        {"addBezierCurve", DrawList_AddBezierCubic},
+        {"addBezierCubic", DrawList_AddBezierCubic},
+        {"addBezierQuadratic", DrawList_AddBezierQuadratic},
 
         {"addImage", DrawList_AddImage},
         {"addImageQuad", DrawList_AddImageQuad},
@@ -10483,7 +10508,8 @@ int loader(lua_State* L)
         {"pathStroke", DrawList_PathStroke},
         {"pathArcTo", DrawList_PathArcTo},
         {"pathArcToFast", DrawList_PathArcToFast},
-        {"pathBezierCurveTo", DrawList_PathBezierCubicCurveTo},
+        {"pathBezierCubicCurveTo", DrawList_PathBezierCubicCurveTo},
+        {"pathBezierQuadraticCurveTo", DrawList_PathBezierQuadraticCurveTo},
         {"pathRect", DrawList_PathRect},
 
         {"rotateBegin", DrawList_RotateStart},
