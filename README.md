@@ -600,7 +600,7 @@ ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight =
 ImGui:tableSetupScrollFreeze(cols, rows)
 ImGui:tableHeadersRow()
 ImGui:tableHeader(label)
-ImGui:tableGetSortSpecs()
+-- ImGui:tableGetSortSpecs() W.I.P.
 ImGui:tableGetColumnCount()
 ImGui:tableGetColumnIndex()
 ImGui:tableGetRowIndex()
