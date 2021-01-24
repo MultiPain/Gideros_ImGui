@@ -17,7 +17,6 @@
 * [Windows scroll](#windows-scrolling)
 * [Parameters stacks](#parameters-stacks-shared)
 * [Cursor / layout](#cursor--layout)
-* [Tables](#tables)
 * [ID](#id-stackscopes)
 * [[Widgets] Text](#widgets-text)
 * [[Widgets] Main](#widgets-main)
@@ -34,6 +33,7 @@
 * [[Widgets] Value helper](#widgets-value-helpers)
 * [[Widgets] Menus](#widgets-menus)
 * [Popups / Modals](#popups-modals)
+* [Tables](#tables)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
 * [Logging/Capture](#loggingcapture)
@@ -589,26 +589,6 @@ frameH = ImGui:getFrameHeight()
 frameH = ImGui:getFrameHeightWithSpacing()
 ```
 [To top](#api)
-## Tables
-```lua
-flag = ImGui:beginTable(str_id, column, [ImGuiTableFlags = 0, outer_w = 0, outer_h = 0, inner_width = 0])
-ImGui:endTable()
-ImGui:tableNextRow([ImGuiTableRowFlags = 0, min_row_height = 0])
-flag = ImGui:tableNextColumn()
-flag = ImGui:tableSetColumnIndex(column_n)
-ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight = 0, user_id = 0])
-ImGui:tableSetupScrollFreeze(cols, rows)
-ImGui:tableHeadersRow()
-ImGui:tableHeader(label)
--- ImGui:tableGetSortSpecs() W.I.P.
-number = ImGui:tableGetColumnCount()
-number = ImGui:tableGetColumnIndex()
-number = ImGui:tableGetRowIndex()
-string = ImGui:tableGetColumnName([column_n = -1])
-ImGuiTableColumnFlags = ImGui:tableGetColumnFlags([column_n = -1])
-ImGui:tableSetBgColor(ImGuiTableBgTarget, color, [column_n = -1])
-```
-[To top](#api)
 ## ID stack/scopes
 ```lua
 ImGui:pushID(anyValue) 
@@ -803,6 +783,26 @@ result? = ImGui:beginPopupContextItem(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:beginPopupContextWindow(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:beginPopupContextVoid(str_id, [ImGuiPopupFlags = 0])
 result? = ImGui:isPopupOpen(str_id, [ImGuiPopupFlags = 0])
+```
+[To top](#api)
+## Tables
+```lua
+flag = ImGui:beginTable(str_id, column, [ImGuiTableFlags = 0, outer_w = 0, outer_h = 0, inner_width = 0])
+ImGui:endTable()
+ImGui:tableNextRow([ImGuiTableRowFlags = 0, min_row_height = 0])
+flag = ImGui:tableNextColumn()
+flag = ImGui:tableSetColumnIndex(column_n)
+ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight = 0, user_id = 0])
+ImGui:tableSetupScrollFreeze(cols, rows)
+ImGui:tableHeadersRow()
+ImGui:tableHeader(label)
+-- ImGui:tableGetSortSpecs() W.I.P.
+number = ImGui:tableGetColumnCount()
+number = ImGui:tableGetColumnIndex()
+number = ImGui:tableGetRowIndex()
+string = ImGui:tableGetColumnName([column_n = -1])
+ImGuiTableColumnFlags = ImGui:tableGetColumnFlags([column_n = -1])
+ImGui:tableSetBgColor(ImGuiTableBgTarget, color, [column_n = -1])
 ```
 [To top](#api)
 ## Columns
