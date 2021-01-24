@@ -19,6 +19,7 @@ SOURCES += \
     imgui_src/imgui_demo.cpp \
     imgui_src/imgui_draw.cpp \
     imgui_src/imgui_widgets.cpp \
+    imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
     ../../Src/2dsg/bitmapdata.cpp \
     ../../Src/2dsg/Matrices.cpp \

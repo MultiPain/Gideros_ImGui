@@ -559,6 +559,7 @@ void bindEnums(lua_State* L)
     BIND_ENUM(L, ImGuiStyleVar_SelectableTextAlign, "StyleVar_SelectableTextAlign");
     BIND_ENUM(L, ImGuiStyleVar_PopupRounding, "StyleVar_PopupRounding");
     BIND_ENUM(L, ImGuiStyleVar_ButtonTextAlign, "StyleVar_ButtonTextAlign");
+    BIND_ENUM(L, ImGuiStyleVar_CellPadding, "StyleVar_CellPadding");
 
     //ImGuiCol
     BIND_ENUM(L, ImGuiCol_PlotHistogram, "Col_PlotHistogram");
@@ -609,6 +610,11 @@ void bindEnums(lua_State* L)
     BIND_ENUM(L, ImGuiCol_FrameBgHovered, "Col_FrameBgHovered");
     BIND_ENUM(L, ImGuiCol_TextDisabled, "Col_TextDisabled");
     BIND_ENUM(L, ImGuiCol_ResizeGrip, "Col_ResizeGrip");
+    BIND_ENUM(L, ImGuiCol_TableHeaderBg, "Col_TableHeaderBg");
+    BIND_ENUM(L, ImGuiCol_TableBorderStrong, "Col_TableBorderStrong");
+    BIND_ENUM(L, ImGuiCol_TableBorderLight, "Col_TableBorderLight");
+    BIND_ENUM(L, ImGuiCol_TableRowBg, "Col_TableRowBg");
+    BIND_ENUM(L, ImGuiCol_TableRowBgAlt, "Col_TableRowBgAlt");
 #ifdef IS_BETA_BUILD
     BIND_ENUM(L, ImGuiCol_DockingPreview, "Col_DockingPreview");
     BIND_ENUM(L, ImGuiCol_DockingEmptyBg, "Col_DockingEmptyBg");
@@ -831,6 +837,99 @@ void bindEnums(lua_State* L)
     BIND_ENUM(L, ImGuiNavInput_DpadUp, "NavInput_DpadUp");
     BIND_ENUM(L, ImGuiNavInput_Menu, "NavInput_Menu");
     BIND_ENUM(L, ImGuiNavInput_Cancel, "NavInput_Cancel");
+
+    // ImGuiTableBgTarget
+    BIND_ENUM(L, ImGuiTableBgTarget_None, "TableBgTarget_None");
+    BIND_ENUM(L, ImGuiTableBgTarget_RowBg0, "TableBgTarget_RowBg0");
+    BIND_ENUM(L, ImGuiTableBgTarget_RowBg1, "TableBgTarget_RowBg1");
+    BIND_ENUM(L, ImGuiTableBgTarget_CellBg, "TableBgTarget_CellBg");
+
+    // ImGuiTableColumnFlags
+    BIND_ENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
+    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
+    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
+    BIND_ENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
+    BIND_ENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
+    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
+
+    // ImGuiTableFlags
+    BIND_ENUM(L, ImGuiTableFlags_None, "TableFlags_None");
+    BIND_ENUM(L, ImGuiTableFlags_Resizable, "TableFlags_Resizable");
+    BIND_ENUM(L, ImGuiTableFlags_Reorderable, "TableFlags_Reorderable");
+    BIND_ENUM(L, ImGuiTableFlags_Hideable, "TableFlags_Hideable");
+    BIND_ENUM(L, ImGuiTableFlags_Sortable, "TableFlags_Sortable");
+    BIND_ENUM(L, ImGuiTableFlags_NoSavedSettings, "TableFlags_NoSavedSettings");
+    BIND_ENUM(L, ImGuiTableFlags_ContextMenuInBody, "TableFlags_ContextMenuInBody");
+    BIND_ENUM(L, ImGuiTableFlags_RowBg, "TableFlags_RowBg");
+    BIND_ENUM(L, ImGuiTableFlags_BordersInnerH , "TableFlags_BordersInnerH ");
+    BIND_ENUM(L, ImGuiTableFlags_BordersOuterH, "TableFlags_BordersOuterH");
+    BIND_ENUM(L, ImGuiTableFlags_BordersInnerV, "TableFlags_BordersInnerV");
+    BIND_ENUM(L, ImGuiTableFlags_BordersOuterV, "TableFlags_BordersOuterV");
+    BIND_ENUM(L, ImGuiTableFlags_BordersH, "TableFlags_BordersH");
+    BIND_ENUM(L, ImGuiTableFlags_BordersV, "TableFlags_BordersV");
+    BIND_ENUM(L, ImGuiTableFlags_BordersInner, "TableFlags_BordersInner");
+    BIND_ENUM(L, ImGuiTableFlags_BordersOuter, "TableFlags_BordersOuter");
+    BIND_ENUM(L, ImGuiTableFlags_Borders, "TableFlags_Borders");
+    BIND_ENUM(L, ImGuiTableFlags_NoBordersInBody, "TableFlags_NoBordersInBody");
+    BIND_ENUM(L, ImGuiTableFlags_NoBordersInBodyUntilResize, "TableFlags_NoBordersInBodyUntilResize");
+    BIND_ENUM(L, ImGuiTableFlags_SizingFixedFit, "TableFlags_SizingFixedFit");
+    BIND_ENUM(L, ImGuiTableFlags_SizingFixedSame, "TableFlags_SizingFixedSame");
+    BIND_ENUM(L, ImGuiTableFlags_SizingStretchProp, "TableFlags_SizingStretchProp");
+    BIND_ENUM(L, ImGuiTableFlags_SizingStretchSame, "TableFlags_SizingStretchSame");
+    BIND_ENUM(L, ImGuiTableFlags_NoHostExtendX, "TableFlags_NoHostExtendX");
+    BIND_ENUM(L, ImGuiTableFlags_NoHostExtendY, "TableFlags_NoHostExtendY");
+    BIND_ENUM(L, ImGuiTableFlags_NoKeepColumnsVisible, "TableFlags_NoKeepColumnsVisible");
+    BIND_ENUM(L, ImGuiTableFlags_PreciseWidths, "TableFlags_PreciseWidths");
+    BIND_ENUM(L, ImGuiTableFlags_NoClip, "TableFlags_NoClip");
+    BIND_ENUM(L, ImGuiTableFlags_PadOuterX, "TableFlags_PadOuterX");
+    BIND_ENUM(L, ImGuiTableFlags_NoPadOuterX, "TableFlags_NoPadOuterX");
+    BIND_ENUM(L, ImGuiTableFlags_NoPadInnerX, "TableFlags_NoPadInnerX");
+    BIND_ENUM(L, ImGuiTableFlags_ScrollX, "TableFlags_ScrollX");
+    BIND_ENUM(L, ImGuiTableFlags_ScrollY, "TableFlags_ScrollY");
+    BIND_ENUM(L, ImGuiTableFlags_SortMulti, "TableFlags_SortMulti");
+    BIND_ENUM(L, ImGuiTableFlags_SortTristate, "TableFlags_SortTristate");
+
+    // ImGuiTableColumnFlags
+    BIND_ENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
+    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
+    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
+    BIND_ENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
+    BIND_ENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
+    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
+    BIND_ENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
+
+    // ImGuiTableRowFlags
+    BIND_ENUM(L, ImGuiTableRowFlags_None, "TableRowFlags_None");
+    BIND_ENUM(L, ImGuiTableRowFlags_Headers, "TableRowFlags_Headers");
 
     lua_pop(L, 1);
 }
@@ -4288,6 +4387,205 @@ int IsPopupOpen(lua_State* L)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
+/// NEW TABLES
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int BeginTable(lua_State* L)
+{
+    const char* str_id = luaL_checkstring(L, 2);
+    int column = luaL_checkinteger(L, 3);
+    ImGuiTableFlags flags = luaL_optinteger(L, 4, 0);
+    ImVec2 outer_size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
+    float inner_width = luaL_optnumber(L, 7, 0.0f);
+    bool flag = ImGui::BeginTable(str_id, column, flags, outer_size, inner_width);
+    lua_pushboolean(L, flag);
+    return 1;
+}
+
+int EndTable(lua_State* L)
+{
+    ImGui::EndTable();
+    return 0;
+}
+
+int TableNextRow(lua_State* L)
+{
+    ImGuiTableRowFlags row_flags = luaL_optinteger(L, 2, 0);
+    float min_row_height = luaL_optnumber(L, 3, 0.0f);
+    ImGui::TableNextRow(row_flags, min_row_height);
+    return 0;
+}
+
+int TableNextColumn(lua_State* L)
+{
+    bool flag = ImGui::TableNextColumn();
+    lua_pushboolean(L, flag);
+    return 1;
+}
+
+int TableSetColumnIndex(lua_State* L)
+{
+    int column_n = luaL_checkinteger(L, 2);
+    bool flag = ImGui::TableSetColumnIndex(column_n);
+    lua_pushboolean(L, flag);
+    return 1;
+}
+
+int TableSetupColumn(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    ImGuiTableColumnFlags flags = luaL_optinteger(L, 3, 0);
+    float init_width_or_weight = luaL_optnumber(L, 4, 0.0f);
+    ImU32 user_id = luaL_optinteger(L, 5, 0);
+    ImGui::TableSetupColumn(label, flags, init_width_or_weight, user_id);
+    return 0;
+}
+
+int TableSetupScrollFreeze(lua_State* L)
+{
+    int cols = luaL_checkinteger(L, 2);
+    int rows = luaL_checkinteger(L, 2);
+    ImGui::TableSetupScrollFreeze(cols, rows);
+    return 0;
+}
+
+int TableHeadersRow(lua_State* L)
+{
+    ImGui::TableHeadersRow();
+    return 0;
+}
+
+int TableHeader(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    ImGui::TableHeader(label);
+    return 0;
+}
+
+/* TODO
+int TableGetSortSpecs(lua_State* L)
+{
+    ImGui::TableGetSortSpecs();
+    return 0;
+}
+*/
+
+int TableGetColumnCount(lua_State* L)
+{
+    int n = ImGui::TableGetColumnCount();
+    lua_pushinteger(L, n);
+    return 1;
+}
+
+int TableGetColumnIndex(lua_State* L)
+{
+    int n = ImGui::TableGetColumnIndex();
+    lua_pushinteger(L, n);
+    return 1;
+}
+
+int TableGetRowIndex(lua_State* L)
+{
+    int i = ImGui::TableGetRowIndex();
+    lua_pushinteger(L, i);
+    return 1;
+}
+
+int TableGetColumnName(lua_State* L)
+{
+    int column_n = luaL_optinteger(L, 2, -1);
+    const char* name = ImGui::TableGetColumnName(column_n);
+    lua_pushstring(L, name);
+    return 1;
+}
+
+int TableGetColumnFlags(lua_State* L)
+{
+    int column_n = luaL_optinteger(L, 2, -1);
+    ImGuiTableColumnFlags flags = ImGui::TableGetColumnFlags(column_n);
+    lua_pushinteger(L, flags);
+    return 1;
+}
+
+int TableSetBgColor(lua_State* L)
+{
+    ImGuiTableBgTarget target = luaL_checkinteger(L, 2);
+    ImU32 color = GColor::toU32(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
+    int column_n = luaL_optinteger(L, 5, -1);
+    ImGui::TableSetBgColor(target, color, column_n);
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// ListClipper
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+ImGuiListClipper* getClipper(lua_State* L, int index = 1)
+{
+    return static_cast<ImGuiListClipper*>(g_getInstance(L, "ImGuiListClipper", index));
+}
+
+int initImGuiListClipper(lua_State* L)
+{
+    ImGuiListClipper clipper;
+    g_pushInstance(L, "ImGuiListClipper", &clipper);
+
+    luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
+    lua_pushvalue(L, -2);
+    luaL_rawsetptr(L, -2, &clipper);
+    lua_pop(L, 1);
+
+    return 1;
+}
+
+int destroyImGuiListClipper(lua_State* L)
+{
+    return 0;
+}
+
+int Clipper_Begin(lua_State* L)
+{
+    ImGuiListClipper* clipper = getClipper(L);
+    int items_count = luaL_checkinteger(L, 2);
+    float items_height = luaL_optnumber(L, 3, 1.0f);
+    clipper->Begin(items_count, items_height);
+    return 0;
+}
+
+int Clipper_End(lua_State* L)
+{
+    ImGuiListClipper* clipper = getClipper(L);
+    clipper->End();
+    return 0;
+}
+
+int Clipper_Step(lua_State* L)
+{
+    ImGuiListClipper* clipper = getClipper(L);
+    bool flag = clipper->Step();
+    lua_pushboolean(L, flag);
+    return 1;
+}
+
+int Clipper_GetDisplayStart(lua_State* L)
+{
+    ImGuiListClipper* clipper = getClipper(L);
+    lua_pushinteger(L, clipper->DisplayStart);
+    return 1;
+}
+
+int Clipper_GetDisplayEnd(lua_State* L)
+{
+    ImGuiListClipper* clipper = getClipper(L);
+    lua_pushinteger(L, clipper->DisplayEnd);
+    return 1;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
 /// Columns
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -7469,19 +7767,19 @@ int IO_SetConfigWindowsMoveFromTitleBarOnly(lua_State* L)
     return 0;
 }
 
-int IO_GetConfigWindowsMemoryCompactTimer(lua_State* L)
+int IO_GetConfigMemoryCompactTimer(lua_State* L)
 {
     ImGuiIO& io = getIO(L);
-    lua_pushnumber(L, io.ConfigWindowsMemoryCompactTimer);
+    lua_pushnumber(L, io.ConfigMemoryCompactTimer);
     return 1;
 }
 
-int IO_SetConfigWindowsMemoryCompactTimer(lua_State* L)
+int IO_SetConfigMemoryCompactTimer(lua_State* L)
 {
     double t = luaL_optnumber(L, 2, -1.0f);
 
     ImGuiIO& io = getIO(L);
-    io.ConfigWindowsMemoryCompactTimer = t;
+    io.ConfigMemoryCompactTimer = t;
     return 0;
 }
 
@@ -8296,7 +8594,7 @@ int DrawList_AddConvexPolyFilled(lua_State* L)
     return  0;
 }
 
-int DrawList_AddBezierCurve(lua_State* L)
+int DrawList_AddBezierCubic(lua_State* L)
 {
     ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
@@ -8307,7 +8605,7 @@ int DrawList_AddBezierCurve(lua_State* L)
     int num_segments = luaL_optinteger(L, 13, 0);
 
     ImDrawList* list = getDrawList(L);
-    list->AddBezierCurve(p1, p2, p3, p4, col, thickness, num_segments);
+    list->AddBezierCubic(p1, p2, p3, p4, col, thickness, num_segments);
     return 0;
 }
 
@@ -8426,14 +8724,14 @@ int DrawList_PathArcToFast(lua_State* L)
 
 }
 
-int DrawList_PathBezierCurveTo(lua_State* L)
+int DrawList_PathBezierCubicCurveTo(lua_State* L)
 {
     ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImVec2 p4 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
     int num_segments = luaL_optinteger(L, 8, 0);
     ImDrawList* list = getDrawList(L);
-    list->PathBezierCurveTo(p2, p3, p4, num_segments);
+    list->PathBezierCubicCurveTo(p2, p3, p4, num_segments);
     return 0;
 }
 
@@ -10154,7 +10452,7 @@ int loader(lua_State* L)
         {"addFontText", DrawList_AddFontText},
         {"addPolyline", DrawList_AddPolyline},
         {"addConvexPolyFilled", DrawList_AddConvexPolyFilled},
-        {"addBezierCurve", DrawList_AddBezierCurve},
+        {"addBezierCurve", DrawList_AddBezierCubic},
 
         {"addImage", DrawList_AddImage},
         {"addImageQuad", DrawList_AddImageQuad},
@@ -10166,7 +10464,7 @@ int loader(lua_State* L)
         {"pathStroke", DrawList_PathStroke},
         {"pathArcTo", DrawList_PathArcTo},
         {"pathArcToFast", DrawList_PathArcToFast},
-        {"pathBezierCurveTo", DrawList_PathBezierCurveTo},
+        {"pathBezierCurveTo", DrawList_PathBezierCubicCurveTo},
         {"pathRect", DrawList_PathRect},
 
         {"rotateBegin", DrawList_RotateStart},
@@ -10268,8 +10566,8 @@ int loader(lua_State* L)
         {"setConfigWindowsResizeFromEdges", IO_SetConfigWindowsResizeFromEdges},
         {"getConfigWindowsMoveFromTitleBarOnly", IO_GetConfigWindowsMoveFromTitleBarOnly},
         {"setConfigWindowsMoveFromTitleBarOnly", IO_SetConfigWindowsMoveFromTitleBarOnly},
-        {"getConfigWindowsMemoryCompactTimer", IO_GetConfigWindowsMemoryCompactTimer},
-        {"setConfigWindowsMemoryCompactTimer", IO_SetConfigWindowsMemoryCompactTimer},
+        {"getConfigWindowsMemoryCompactTimer", IO_GetConfigMemoryCompactTimer},
+        {"setConfigWindowsMemoryCompactTimer", IO_SetConfigMemoryCompactTimer},
 
         {"getBackendPlatformName", IO_GetBackendPlatformName},
         {"getBackendRendererName", IO_GetBackendRendererName},
@@ -10573,6 +10871,7 @@ int loader(lua_State* L)
     binder.createClass("ImGuiEDStyle", 0, NULL, NULL, imguiEDStyleFunctionsList);
 
 #endif
+
     const luaL_Reg imguiPayloadFunctionsList[] = {
         {"getNumData", Payload_GetNumberData},
         {"getStrData", Payload_GetStringData},
@@ -10584,6 +10883,16 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGuiPayload", 0, NULL, NULL, imguiPayloadFunctionsList);
+
+    const luaL_Reg clipperFunctionList[] = {
+        {"begin", Clipper_Begin},
+        {"end", Clipper_End},
+        {"step", Clipper_Step},
+        {"getDisplayStart", Clipper_GetDisplayStart},
+        {"getDisplayEnd", Clipper_GetDisplayEnd},
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiListClipper", 0, initImGuiListClipper, destroyImGuiListClipper, clipperFunctionList);
 
     const luaL_Reg imguiFunctionList[] =
     {
@@ -10987,6 +11296,29 @@ int loader(lua_State* L)
         {"acceptDragDropPayload", AcceptDragDropPayload},
         {"endDragDropTarget", EndDragDropTarget},
         {"getDragDropPayload", GetDragDropPayload},
+
+
+        // TABLES
+
+        {"beginTable", BeginTable},
+        {"endTable", EndTable},
+        {"tableNextRow", TableNextRow},
+        {"tableNextColumn", TableNextColumn},
+        {"tableSetColumnIndex", TableSetColumnIndex},
+
+        {"tableSetupColumn", TableSetupColumn},
+        {"tableSetupScrollFreeze", TableSetupScrollFreeze},
+        {"tableHeadersRow", TableHeadersRow},
+        {"tableHeader", TableHeader},
+
+        //{"tableGetSortSpecs", TableGetSortSpecs}, TODO
+
+        {"tableGetColumnCount", TableGetColumnCount},
+        {"tableGetColumnIndex", TableGetColumnIndex},
+        {"tableGetRowIndex", TableGetRowIndex},
+        {"tableGetColumnName", TableGetColumnName},
+        {"tableGetColumnFlags", TableGetColumnFlags},
+        {"tableSetBgColor", TableSetBgColor},
 
 #ifdef IS_BETA_BUILD
         {"dockSpace", DockSpace},
