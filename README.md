@@ -2,7 +2,7 @@
 [Dear ImGui](https://github.com/ocornut/imgui)
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
-* [Fonts](#fonts) ([example](#minimal-example))
+* [Fonts](#fonts) ([example](#minimal-example), [glyphs example](#glyphs-example))
 * [Inputs](#inputs) ([example](#usage-example))
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
@@ -182,6 +182,45 @@ function enterFrame(e)
 	UI:render()
 	UI:endFrame()
 end
+```
+### Glyphs example:
+```lua
+local fonts = io:getFonts()
+fonts:addFont(font_path, font_size, {
+	glyphs = {
+		ranges = {
+			{
+				0x2590,0x2593, -- range1
+				0x2660,0x266B  -- range2
+				-- ...
+			},
+			ImGui.GlyphRanges_Cyrillic,
+			{
+				0x01C0, 0x01C3 -- range3
+			},
+			ImGui.GlyphRanges_Korean
+		},
+ 
+		-- same structure:
+		ranges = {
+			{
+				0x2590,0x2593, -- range1
+				0x2660,0x266B, -- range2
+				0x01C0,0x01C3  -- range3
+				-- ...
+			}, 
+			ImGui.GlyphRanges_Cyrillic, 
+			ImGui.GlyphRanges_Korean
+		}
+	},
+	mergeMode = true, -- merge into previous font
+})
+fonts:build()
+ 
+-- To use specific icons:
+local icon = utf8.char(0x2590)
+ 
+ImGui:text("My icon >>" .. icon .. " << !!!")
 ```
 [To top](#api)
 ## INPUTS
