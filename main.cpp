@@ -8054,6 +8054,16 @@ int PopFont(lua_State* _UNUSED(L))
     return 0;
 }
 
+ImFont* addFont(lua_State *L, ImFontAtlas* atlas, const char* file_name, double size_pixels, bool setupConfig = false, int idx = -1)
+{
+    ImFontConfig cfg = ImFontConfig();
+    if (setupConfig)
+    {
+        loadFontConfig(L, idx, cfg, atlas);
+    }
+    return atlas->AddFontFromFileTTF(file_name, size_pixels, &cfg);
+}
+
 int FontAtlas_AddFont(lua_State *L)
 {
     ImFontAtlas* atlas = getFontAtlas(L);
@@ -8061,17 +8071,51 @@ int FontAtlas_AddFont(lua_State *L)
     const char* file_name = luaL_checkstring(L, 2);
     double size_pixels = luaL_checknumber(L, 3);
 
-    ImFontConfig cfg = ImFontConfig();
-    if (lua_gettop(L) > 3)
-    {
-        loadFontConfig(L, 4, cfg, atlas);
-    }
-
-    ImFont* font = atlas->AddFontFromFileTTF(file_name, size_pixels, &cfg);
+    ImFont* font = addFont(L, atlas, file_name, size_pixels, lua_gettop(L) > 3, 4);
 
     g_pushInstance(L, "ImFont", font);
+    //
+    //ImFontConfig cfg = ImFontConfig();
+    //if (lua_gettop(L) > 3)
+    //{
+    //    loadFontConfig(L, 4, cfg, atlas);
+    //}
+    //
+    //ImFont* font = atlas->AddFontFromFileTTF(file_name, size_pixels, &cfg);
+    //
+    //g_pushInstance(L, "ImFont", font);
+    //
+    //return 1;
+}
 
-    return 1;
+int FontAtlas_AddFonts(lua_State *L)
+{
+    ImFontAtlas* atlas = getFontAtlas(L);
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+    int len = luaL_getn(L, 2);
+
+    for (int i = 0; i < len; i++)
+    {
+        lua_rawgeti(L, 2, i + 1);
+
+        lua_rawgeti(L, 3, 1);
+        const char* file_name = luaL_checkstring(L, -1);
+        lua_pop(L, 1);
+
+        lua_rawgeti(L, 3, 2);
+        double size_pixels = luaL_checknumber(L, -1);
+        lua_pop(L, 1);
+
+        // options table
+        lua_rawgeti(L, 3, 3);
+        ImFont* font = addFont(L, atlas, file_name, size_pixels, !lua_isnil(L, -1), -1);
+        lua_pop(L, 1);
+
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    return 0;
 }
 
 int FontAtlas_Build(lua_State* L)
@@ -10626,7 +10670,7 @@ int loader(lua_State* L)
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
         {"addFont", FontAtlas_AddFont},
-        //{"addFonts", FontAtlas_AddFonts},
+        {"addFonts", FontAtlas_AddFonts},
         {"getFont", FontAtlas_GetFontByIndex},
         {"getFontsCount", FontAtlas_GetFontsSize},
         {"getCurrentFont", FontAtlas_GetCurrentFont},
