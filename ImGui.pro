@@ -25,7 +25,6 @@ SOURCES += \
     ../../Src/2dsg/mouseevent.cpp \
     ../../Src/2dsg/touchevent.cpp \
     ../../Src/2dsg/keyboardevent.cpp \
-    ../../Src/luabinding/binder.cpp \
     main.cpp
 
 HEADERS += \
