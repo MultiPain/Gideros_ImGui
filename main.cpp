@@ -7358,8 +7358,6 @@ int IO_GetNavInputsDownDurationPrev(lua_State *L)
 {
     ImGuiIO& io = getIO(L);
     int index = getNavButtonIndex(L);
-    //io.NavActive
-    //ImGuiKey_Nav
     lua_pushboolean(L, io.NavInputsDownDurationPrev[index]);
     return 1;
 }
@@ -7716,6 +7714,22 @@ int IO_SetConfigMacOSXBehaviors(lua_State* L)
 
     ImGuiIO& io = getIO(L);
     io.ConfigMacOSXBehaviors = flag;
+    return 0;
+}
+
+int IO_GetConfigDragClickToInputText(lua_State* L)
+{
+    ImGuiIO& io = getIO(L);
+    lua_pushboolean(L, io.ConfigDragClickToInputText);
+    return 1;
+}
+
+int IO_SetConfigDragClickToInputText(lua_State* L)
+{
+    bool flag = lua_toboolean(L, 2) > 0;
+
+    ImGuiIO& io = getIO(L);
+    io.ConfigDragClickToInputText = flag;
     return 0;
 }
 
@@ -10562,6 +10576,8 @@ int loader(lua_State* L)
         {"setConfigMacOSXBehaviors", IO_SetConfigMacOSXBehaviors},
         {"getConfigInputTextCursorBlink", IO_GetConfigInputTextCursorBlink},
         {"setConfigInputTextCursorBlink", IO_SetConfigInputTextCursorBlink},
+        {"getConfigDragClickToInputText", IO_GetConfigDragClickToInputText},
+        {"setConfigDragClickToInputText", IO_SetConfigDragClickToInputText},
         {"getConfigWindowsResizeFromEdges", IO_GetConfigWindowsResizeFromEdges},
         {"setConfigWindowsResizeFromEdges", IO_SetConfigWindowsResizeFromEdges},
         {"getConfigWindowsMoveFromTitleBarOnly", IO_GetConfigWindowsMoveFromTitleBarOnly},
