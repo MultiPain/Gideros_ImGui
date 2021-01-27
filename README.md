@@ -825,7 +825,7 @@ number = item:getColumnIndex() -- 0 based
 number = item:getSortOrder() -- used in multi sorted tables
 number = item:getSortDirection() -- ImGui.SortDirection_Ascending OR ImGui.SortDirection_Descending
 ```
-Example: https://github.com/MultiPain/Gideros_examples/blob/master/ImGuiTablesDemo/assets/TablesDemo.lua
+Example: https://github.com/MultiPain/Gideros_examples/blob/master/ImGuiTablesDemo/assets/TablesDemo.lua</br>
 [To top](#api)
 ## Columns
 ```lua
