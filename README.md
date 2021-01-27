@@ -611,13 +611,14 @@ ImGui:bulletText(text)
 [To top](#api)
 ## Widgets: Main
 ```lua
-pressFlag = ImGui:button(text, [w = 0, h = 0])
-pressFlag = ImGui:smallButton(text)
-pressFlag = ImGui:invisibleButton(stringID, [w = 0, h = 0])
-pressFlag = ImGui:arrowButton(stringID, [ImGuiDir = 0])
-pressFlag = ImGui:checkbox(text, flag)
-ImGui:checkboxFlags(label, ) -- TODO
-pressFlag = ImGui:radioButton(text, flag)
+flag = ImGui:button(text, [w = 0, h = 0])
+flag = ImGui:smallButton(text)
+flag = ImGui:invisibleButton(stringID, [w = 0, h = 0])
+flag = ImGui:arrowButton(stringID, [ImGuiDir = 0])
+flag = ImGui:checkbox(text, flag)
+flags, isChanged = ImGui:checkboxFlags(label, [flags = 0, falgs_value = 0])
+number, isChanged = ImGui:radioButton(text, number, number)
+isChanged = ImGui:radioButton(text, flag)
 ImGui:progressBar(fraction, [anchorX = -1, anchorY = 0, overlayString = nil])
 ImGui:bullet()
 ```
