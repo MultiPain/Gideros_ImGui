@@ -34,6 +34,8 @@
 * [[Widgets] Menus](#widgets-menus)
 * [Popups / Modals](#popups-modals)
 * [Tables](#tables)
+* [Table sort specs](#table-sort-specs)
+* [Table column sort specs](#table-column-sort-specs)
 * [Columns](#columns)
 * [Tabs](#tab-bars-tabs)
 * [Logging/Capture](#loggingcapture)
@@ -796,8 +798,7 @@ flag = ImGui:tableSetColumnIndex(column_n)
 ImGui:tableSetupColumn(label, [ImGuiTableColumnFlags = 0, init_width_or_weight = 0, user_id = 0])
 ImGui:tableSetupScrollFreeze(cols, rows)
 ImGui:tableHeadersRow()
-ImGui:tableHeader(label)
--- ImGui:tableGetSortSpecs() W.I.P.
+TableSortSpecs = ImGui:tableGetSortSpecs() -- see below
 number = ImGui:tableGetColumnCount()
 number = ImGui:tableGetColumnIndex()
 number = ImGui:tableGetRowIndex()
@@ -805,6 +806,26 @@ string = ImGui:tableGetColumnName([column_n = -1])
 ImGuiTableColumnFlags = ImGui:tableGetColumnFlags([column_n = -1])
 ImGui:tableSetBgColor(ImGuiTableBgTarget, color, [column_n = -1])
 ```
+[To top](#api)
+## Table sort specs
+```lua
+-- TableSortSpecs = ImGui:tableGetSortSpecs()
+number = TableSortSpecs:getSpecsCount()
+flag = TableSortSpecs:isSpecsDirty()
+TableSortSpecs:setSpecsDirty(flag)
+table = TableSortSpecs:getColumnSortSpecs() -- see below
+```
+[To top](#api)
+## Table column sort specs
+```lua
+-- table = TableSortSpecs:getColumnSortSpecs()
+-- each value of this table is an object that have this functions:
+number = item:getColumnUserID() 
+number = item:getColumnIndex() -- 0 based
+number = item:getSortOrder() -- used in multi sorted tables
+number = item:getSortDirection() -- ImGui.SortDirection_Ascending OR ImGui.SortDirection_Descending
+```
+Example: https://github.com/MultiPain/Gideros_examples/blob/master/ImGuiTablesDemo/assets/TablesDemo.lua
 [To top](#api)
 ## Columns
 ```lua
