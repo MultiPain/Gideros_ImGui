@@ -1529,32 +1529,32 @@ void*   ImFileLoadToMemory(const char* filename, const char* mode, size_t* out_f
         *out_file_size = 0;
 
     ImFileHandle f;
-    if ((f = ImFileOpen(filename, mode)) == NULL)
+    if ((f = ImGui::ImFileOpen(filename, mode)) == NULL)
         return NULL;
 
-    size_t file_size = (size_t)ImFileGetSize(f);
+    size_t file_size = (size_t)ImGui::ImFileGetSize(f);
     if (file_size == (size_t)-1)
     {
-        ImFileClose(f);
+        ImGui::ImFileClose(f);
         return NULL;
     }
 
     void* file_data = IM_ALLOC(file_size + padding_bytes);
     if (file_data == NULL)
     {
-        ImFileClose(f);
+        ImGui::ImFileClose(f);
         return NULL;
     }
-    if (ImFileRead(file_data, 1, file_size, f) != file_size)
+    if (ImGui::ImFileRead(file_data, 1, file_size, f) != file_size)
     {
-        ImFileClose(f);
+        ImGui::ImFileClose(f);
         IM_FREE(file_data);
         return NULL;
     }
     if (padding_bytes > 0)
         memset((void*)(((char*)file_data) + file_size), 0, (size_t)padding_bytes);
 
-    ImFileClose(f);
+    ImGui::ImFileClose(f);
     if (out_file_size)
         *out_file_size = file_size;
 

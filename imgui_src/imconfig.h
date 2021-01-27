@@ -116,20 +116,20 @@ typedef G_FILE* ImFileHandle;
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
 
 //static void* ImFileLoadToMemory(const char* filename, const char* mode, size_t* out_file_size, int padding_bytes = 0);
-/*
 
+#include "gstdio.h"
 namespace ImGui
 {
 
-static ImFileHandle ImFileFileOpen(const char* filename, const char* mode);
+static ImFileHandle ImFileOpen(const char* filename, const char* mode) { return g_fopen(filename, mode); }
 
-static bool ImFileClose(ImFileHandle f);
+static bool ImFileClose(ImFileHandle f) { return g_fclose(f) == 0; }
 
-static size_t ImFileGetSize(ImFileHandle f);
+static size_t ImFileGetSize(ImFileHandle f) { long off = 0; long sz = 0; return ((off = g_ftell(f)) != -1 && !g_fseek(f, 0, SEEK_END) && (sz = g_ftell(f)) != -1 && !g_fseek(f, off, SEEK_SET)) ? (size_t)sz : (size_t)-1; }
 
-static size_t ImFileRead(void* data, size_t sz, size_t count, ImFileHandle f);
+static size_t ImFileRead(void* data, size_t sz, size_t count, ImFileHandle f) { return g_fread(data, (size_t)sz, (size_t)count, f); }
 
-static size_t ImFileWrite(const void* data, size_t sz, size_t count, ImFileHandle f);
+static size_t ImFileWrite(const void* data, size_t sz, size_t count, ImFileHandle f) { return g_fwrite(data, (size_t)sz, (size_t)count, f); }
 
 }
-*/
+

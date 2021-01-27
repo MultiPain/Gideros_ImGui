@@ -4757,7 +4757,7 @@ static void ShowDemoWindowTables()
         ImGui::SameLine(); HelpMarker("When sorting is enabled: allow no sorting, disable default sorting. TableGetSortSpecs() may return specs where (SpecsCount == 0).");
         PopStyleCompact();
 
-        if (ImGui::BeginTable("table_sorting", 4, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 15), 0.0f))
+        if (ImGui::BeginTable("table_sorting", 5, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 15), 0.0f))
         {
             // Declare columns
             // We use the "user_id" parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
@@ -4770,6 +4770,7 @@ static void ShowDemoWindowTables()
             ImGui::TableSetupColumn("Name",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Name);
             ImGui::TableSetupColumn("Action",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Action);
             ImGui::TableSetupColumn("Quantity", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, MyItemColumnID_Quantity);
+            ImGui::TableSetupColumn("Range",    ImGuiTableColumnFlags_NoSort);
             ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
             ImGui::TableHeadersRow();
 
@@ -4788,7 +4789,10 @@ static void ShowDemoWindowTables()
             ImGuiListClipper clipper;
             clipper.Begin(items.Size);
             while (clipper.Step())
-                for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++)
+            {
+                int a = clipper.DisplayStart;
+                int b = clipper.DisplayEnd;
+                for (int row_n = a; row_n < b; row_n++)
                 {
                     // Display a data item
                     MyItem* item = &items[row_n];
@@ -4802,8 +4806,11 @@ static void ShowDemoWindowTables()
                     ImGui::SmallButton("None");
                     ImGui::TableNextColumn();
                     ImGui::Text("%d", item->Quantity);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d -> %d", a, b - 1);
                     ImGui::PopID();
                 }
+            }
             ImGui::EndTable();
         }
         ImGui::TreePop();
