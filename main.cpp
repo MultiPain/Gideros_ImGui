@@ -2746,19 +2746,20 @@ int CheckboxFlags(lua_State* L)
 int RadioButton(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    if (lua_gettop(L) == 4)
-    {
-        int v = luaL_checkinteger(L, 3);
-        int v_button = luaL_checkinteger(L, 4);
-        lua_pushboolean(L, ImGui::RadioButton(label, &v, v_button));
-        lua_pushinteger(L, v);
-        return 2;
-    }
-    else
+    if (lua_gettop(L) < 4)
     {
         bool active = lua_toboolean2(L, 3) > 0;
         lua_pushboolean(L, ImGui::RadioButton(label, active));
         return 1;
+    }
+    else
+    {
+        int v = luaL_checkinteger(L, 3);
+        int v_button = luaL_checkinteger(L, 4);
+        bool flag = ImGui::RadioButton(label, &v, v_button);
+        lua_pushinteger(L, v);
+        lua_pushboolean(L, flag);
+        return 2;
     }
 }
 
@@ -4470,13 +4471,12 @@ int TableHeader(lua_State* L)
     return 0;
 }
 
-/* TODO
 int TableGetSortSpecs(lua_State* L)
 {
-    ImGui::TableGetSortSpecs();
-    return 0;
+    ImGuiTableSortSpecs* specs = ImGui::TableGetSortSpecs();
+    g_pushInstance(L, "ImGuiTableSortSpecs", specs);
+    return 1;
 }
-*/
 
 int TableGetColumnCount(lua_State* L)
 {
@@ -4522,6 +4522,104 @@ int TableSetBgColor(lua_State* L)
     int column_n = luaL_optinteger(L, 5, -1);
     ImGui::TableSetBgColor(target, color, column_n);
     return 0;
+}
+
+ImGuiTableSortSpecs* getSortSpecs(lua_State* L, int idx = 1)
+{
+    return static_cast<ImGuiTableSortSpecs*>(g_getInstance(L, "ImGuiTableSortSpecs", idx));
+}
+
+int TableSortSpecs_GetColumnSortSpecs(lua_State* L)
+{
+    ImGuiTableSortSpecs* specs = getSortSpecs(L);
+    if (!specs->Specs)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    lua_createtable(L, 0, specs->SpecsCount);
+
+    for (int i = 0; i < specs->SpecsCount; i++)
+    {
+        const ImGuiTableColumnSortSpecs* sort_spec = &specs->Specs[i];
+
+        lua_pushnumber(L, i + 1);
+        g_pushInstance(L, "ImGuiTableColumnSortSpecs", const_cast<ImGuiTableColumnSortSpecs*>(sort_spec));
+        lua_settable(L, -3);
+    }
+
+    return 1;
+}
+
+int TEST123(lua_State* L)
+{
+    int n = luaL_checkinteger(L, 2);
+
+    lua_createtable(L, 0, n);
+
+    for (int i = 0; i < n; i++)
+    {
+        lua_pushnumber(L, i + 1);
+        lua_pushnumber(L, (i + 1) * 10);
+        lua_settable(L, -3);
+    }
+
+    return 1;
+}
+
+int TableSortSpecs_GetSpecsCount(lua_State* L)
+{
+    ImGuiTableSortSpecs* specs = getSortSpecs(L);
+    lua_pushinteger(L, specs->SpecsCount);
+    return 1;
+}
+
+int TableSortSpecs_GetSpecsDirty(lua_State* L)
+{
+    ImGuiTableSortSpecs* specs = getSortSpecs(L);
+    lua_pushboolean(L, specs->SpecsDirty);
+    return 1;
+}
+
+int TableSortSpecs_SetSpecsDirty(lua_State* L)
+{
+    ImGuiTableSortSpecs* specs = getSortSpecs(L);
+    specs->SpecsDirty = lua_toboolean(L, 2);
+    return 0;
+}
+
+ImGuiTableColumnSortSpecs* getColumnSortSpecs(lua_State* L, int idx = 1)
+{
+    return static_cast<ImGuiTableColumnSortSpecs*>(g_getInstance(L, "ImGuiTableColumnSortSpecs", idx));
+}
+
+int TableColumnSortSpecs_GetColumnUserID(lua_State* L)
+{
+    ImGuiTableColumnSortSpecs* sort_spec = getColumnSortSpecs(L);
+    lua_pushinteger(L, sort_spec->ColumnUserID);
+    return 1;
+}
+
+int TableColumnSortSpecs_GetColumnIndex(lua_State* L)
+{
+    ImGuiTableColumnSortSpecs* sort_spec = getColumnSortSpecs(L);
+    lua_pushinteger(L, sort_spec->ColumnIndex);
+    return 1;
+}
+
+int TableColumnSortSpecs_GetSortOrder(lua_State* L)
+{
+    ImGuiTableColumnSortSpecs* sort_spec = getColumnSortSpecs(L);
+    lua_pushinteger(L, sort_spec->SortOrder);
+    return 1;
+}
+
+int TableColumnSortSpecs_GetSortDirection(lua_State* L)
+{
+    ImGuiTableColumnSortSpecs* sort_spec = getColumnSortSpecs(L);
+    lua_pushinteger(L, sort_spec->SortDirection);
+    return 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -10979,8 +11077,27 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImGuiListClipper", 0, initImGuiListClipper, destroyImGuiListClipper, clipperFunctionList);
 
+    const luaL_Reg imguiTableSortSpecsFunctionList[] = {
+        {"getColumnSortSpecs", TableSortSpecs_GetColumnSortSpecs},
+        {"getSpecsCount", TableSortSpecs_GetSpecsCount},
+        {"isSpecsDirty", TableSortSpecs_GetSpecsDirty},
+        {"setSpecsDirty", TableSortSpecs_SetSpecsDirty},
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiTableSortSpecs", NULL, NULL, NULL, imguiTableSortSpecsFunctionList);
+
+    const luaL_Reg imguiTableColumnSortSpecsFunctionList[] = {
+        {"getColumnUserID", TableColumnSortSpecs_GetColumnUserID},
+        {"getColumnIndex", TableColumnSortSpecs_GetColumnIndex},
+        {"getSortOrder", TableColumnSortSpecs_GetSortOrder},
+        {"getSortDirection", TableColumnSortSpecs_GetSortDirection},
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiTableColumnSortSpecs", NULL, NULL, NULL, imguiTableColumnSortSpecsFunctionList);
+
     const luaL_Reg imguiFunctionList[] =
     {
+        {"testT", TEST123},
 #ifdef IS_BETA_BUILD
         {"setCurrentEditor", ED_SetCurrentEditor},
 #endif
@@ -11396,7 +11513,7 @@ int loader(lua_State* L)
         {"tableHeadersRow", TableHeadersRow},
         {"tableHeader", TableHeader},
 
-        //{"tableGetSortSpecs", TableGetSortSpecs}, TODO
+        {"tableGetSortSpecs", TableGetSortSpecs},
 
         {"tableGetColumnCount", TableGetColumnCount},
         {"tableGetColumnIndex", TableGetColumnIndex},
