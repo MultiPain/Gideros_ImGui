@@ -19,13 +19,13 @@ SOURCES += \
     imgui_src/imgui_demo.cpp \
     imgui_src/imgui_draw.cpp \
     imgui_src/imgui_widgets.cpp \
+    imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
     ../../Src/2dsg/bitmapdata.cpp \
     ../../Src/2dsg/Matrices.cpp \
     ../../Src/2dsg/mouseevent.cpp \
     ../../Src/2dsg/touchevent.cpp \
     ../../Src/2dsg/keyboardevent.cpp \
-    ../../Src/luabinding/binder.cpp \
     imgui-node-editor/crude_json.cpp \
     imgui-node-editor/imgui_canvas.cpp \
     imgui-node-editor/imgui_node_editor.cpp \
@@ -34,7 +34,6 @@ SOURCES += \
 
 HEADERS += \
     ../../Src/2dsg/bitmapdata.h \
-    ../../Src/luabinding/binder.h \
     ../../Src/2dsg/mouseevent.h \
     ../../Src/2dsg/touchevent.h \
     ../../Src/2dsg/keyboardevent.h \
