@@ -1475,36 +1475,36 @@ ImGui.ItemFlags_ButtonRepeat
 [To top](#api)
 ### TableBgTarget
 ```lua
-ImGui.ImGuiTableBgTarget_None
-ImGui.ImGuiTableBgTarget_RowBg0
-ImGui.ImGuiTableBgTarget_RowBg1
-ImGui.ImGuiTableBgTarget_CellBg
+ImGui.TableBgTarget_None
+ImGui.TableBgTarget_RowBg0
+ImGui.TableBgTarget_RowBg1
+ImGui.TableBgTarget_CellBg
 ```
 [To top](#api)
 
 ### TableColumnFlags
 ```lua
-ImGui.ImGuiTableColumnFlags_None
-ImGui.ImGuiTableColumnFlags_DefaultHide
-ImGui.ImGuiTableColumnFlags_DefaultSort
-ImGui.ImGuiTableColumnFlags_WidthStretch
-ImGui.ImGuiTableColumnFlags_WidthFixed
-ImGui.ImGuiTableColumnFlags_NoResize
-ImGui.ImGuiTableColumnFlags_NoReorder
-ImGui.ImGuiTableColumnFlags_NoHide
-ImGui.ImGuiTableColumnFlags_NoClip
-ImGui.ImGuiTableColumnFlags_NoSort
-ImGui.ImGuiTableColumnFlags_NoSortAscending
-ImGui.ImGuiTableColumnFlags_NoSortDescending
-ImGui.ImGuiTableColumnFlags_NoHeaderWidth
-ImGui.ImGuiTableColumnFlags_PreferSortAscending
-ImGui.ImGuiTableColumnFlags_PreferSortDescending
-ImGui.ImGuiTableColumnFlags_IndentEnable
-ImGui.ImGuiTableColumnFlags_IndentDisable
-ImGui.ImGuiTableColumnFlags_IsEnabled
-ImGui.ImGuiTableColumnFlags_IsVisible
-ImGui.ImGuiTableColumnFlags_IsSorted
-ImGui.ImGuiTableColumnFlags_IsHovered
+ImGui.TableColumnFlags_None
+ImGui.TableColumnFlags_DefaultHide
+ImGui.TableColumnFlags_DefaultSort
+ImGui.TableColumnFlags_WidthStretch
+ImGui.TableColumnFlags_WidthFixed
+ImGui.TableColumnFlags_NoResize
+ImGui.TableColumnFlags_NoReorder
+ImGui.TableColumnFlags_NoHide
+ImGui.TableColumnFlags_NoClip
+ImGui.TableColumnFlags_NoSort
+ImGui.TableColumnFlags_NoSortAscending
+ImGui.TableColumnFlags_NoSortDescending
+ImGui.TableColumnFlags_NoHeaderWidth
+ImGui.TableColumnFlags_PreferSortAscending
+ImGui.TableColumnFlags_PreferSortDescending
+ImGui.TableColumnFlags_IndentEnable
+ImGui.TableColumnFlags_IndentDisable
+ImGui.TableColumnFlags_IsEnabled
+ImGui.TableColumnFlags_IsVisible
+ImGui.TableColumnFlags_IsSorted
+ImGui.TableColumnFlags_IsHovered
 ```
 [To top](#api)
 
@@ -1583,9 +1583,9 @@ ImGui.TableRowFlags_Headers
 
 ### SortDirection
 ```lua
-ImGui.ImGuiSortDirection_None
-ImGui.ImGuiSortDirection_Ascending
-ImGui.ImGuiSortDirection_Descending
+ImGui.SortDirection_None
+ImGui.SortDirection_Ascending
+ImGui.SortDirection_Descending
 ```
 [To top](#api)
 ## DRAW LISTS
