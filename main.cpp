@@ -28,8 +28,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui_src/imgui.h"
-#include "imgui_src/imgui_internal.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #ifdef IS_BETA_BUILD
 #define PLUGIN_NAME "ImGui_beta"
@@ -38,7 +38,8 @@
 #endif
 
 #ifdef IS_BETA_BUILD
-#include "imgui-node-editor/imgui_node_editor.h" // https://github.com/thedmd/imgui-node-editor
+#include "custom/TextEditor.h" // https://github.com/BalazsJako/ImGuiColorTextEdit
+#include "custom/node-editor/imgui_node_editor.h" // https://github.com/thedmd/imgui-node-editor
 #define ED ax::NodeEditor
 #endif
 
@@ -347,8 +348,7 @@ static int luaL_optboolean(lua_State* L, int narg, int def)
 
 static lua_Number getfield(lua_State* L, const char* key)
 {
-    lua_pushstring(L, key);
-    lua_gettable(L, -2);
+    lua_getfield(L, -1, key);
     lua_Number result = lua_tonumber(L, -1);
     lua_pop(L, 1);
     return result;
@@ -356,10 +356,8 @@ static lua_Number getfield(lua_State* L, const char* key)
 
 static lua_Number getsubfield(lua_State* L, const char* field, const char* key)
 {
-    lua_pushstring(L, field);
-    lua_gettable(L, -2);
-    lua_pushstring(L, key);
-    lua_gettable(L, -2);
+    lua_getfield(L, -1, field);
+    lua_getfield(L, -1, key);
     lua_Number result = lua_tonumber(L, -1);
     lua_pop(L, 2);
     return result;
@@ -2873,7 +2871,7 @@ int DragFloat(lua_State* L)
     float v_min = luaL_optnumber(L, 5, 0.0f);
     float v_max = luaL_optnumber(L, 6, 0.0f);
     const char* format = luaL_optstring(L, 7, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
+    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
     bool result = ImGui::DragFloat(label, &v, v_speed, v_min, v_max, format, sliderFlag);
 
@@ -2886,9 +2884,9 @@ int DragFloat(lua_State* L)
 int DragFloat2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec2f[4];
-    vec2f[0] = luaL_checkinteger(L, 3);
-    vec2f[1] = luaL_checkinteger(L, 4);
+    float vec2f[2];
+    vec2f[0] = luaL_checknumber(L, 3);
+    vec2f[1] = luaL_checknumber(L, 4);
     float v_speed = luaL_optnumber(L, 5, 1.0f);
     float v_min = luaL_optnumber(L, 6, 0.0f);
     float v_max = luaL_optnumber(L, 7, 0.0f);
@@ -2905,10 +2903,10 @@ int DragFloat2(lua_State* L)
 int DragFloat3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec3f[4];
-    vec3f[0] = luaL_checkinteger(L, 3);
-    vec3f[1] = luaL_checkinteger(L, 4);
-    vec3f[2] = luaL_checkinteger(L, 5);
+    float vec3f[4];
+    vec3f[0] = luaL_checknumber(L, 3);
+    vec3f[1] = luaL_checknumber(L, 4);
+    vec3f[2] = luaL_checknumber(L, 5);
     float v_speed = luaL_optnumber(L, 6, 1.0f);
     float v_min = luaL_optnumber(L, 7, 0.0f);
     float v_max = luaL_optnumber(L, 8, 0.0f);
@@ -2926,11 +2924,11 @@ int DragFloat3(lua_State* L)
 int DragFloat4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec4f[4];
-    vec4f[0] = luaL_checkinteger(L, 3);
-    vec4f[1] = luaL_checkinteger(L, 4);
-    vec4f[2] = luaL_checkinteger(L, 5);
-    vec4f[2] = luaL_checkinteger(L, 6);
+    float vec4f[4];
+    vec4f[0] = luaL_checknumber(L, 3);
+    vec4f[1] = luaL_checknumber(L, 4);
+    vec4f[2] = luaL_checknumber(L, 5);
+    vec4f[2] = luaL_checknumber(L, 6);
 
     float v_speed = luaL_optnumber(L, 7, 1.0f);
     float v_min = luaL_optnumber(L, 8, 0.0f);
@@ -2987,7 +2985,7 @@ int DragInt(lua_State* L)
 int DragInt2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec2i[2];
+    int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 3);
     vec2i[1] = luaL_checkinteger(L, 4);
 
@@ -3008,7 +3006,7 @@ int DragInt2(lua_State* L)
 int DragInt3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec3i[3];
+    int vec3i[3];
     vec3i[0] = luaL_checkinteger(L, 3);
     vec3i[1] = luaL_checkinteger(L, 4);
     vec3i[2] = luaL_checkinteger(L, 5);
@@ -3031,7 +3029,7 @@ int DragInt3(lua_State* L)
 int DragInt4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec4i[4];
+    int vec4i[4];
     vec4i[0] = luaL_checkinteger(L, 3);
     vec4i[1] = luaL_checkinteger(L, 4);
     vec4i[2] = luaL_checkinteger(L, 5);
@@ -3116,7 +3114,7 @@ int SliderFloat(lua_State* L)
 int SliderFloat2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec2f[3];
+    float vec2f[2];
     vec2f[0] = luaL_checknumber(L, 3);
     vec2f[1] = luaL_checknumber(L, 4);
     float v_min = luaL_checknumber(L, 5);
@@ -3135,7 +3133,7 @@ int SliderFloat2(lua_State* L)
 int SliderFloat3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec3f[3];
+    float vec3f[3];
     vec3f[0] = luaL_checknumber(L, 3);
     vec3f[1] = luaL_checknumber(L, 4);
     vec3f[2] = luaL_checknumber(L, 5);
@@ -3156,7 +3154,7 @@ int SliderFloat3(lua_State* L)
 int SliderFloat4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec4f[4];
+    float vec4f[4];
     vec4f[0] = luaL_checknumber(L, 3);
     vec4f[1] = luaL_checknumber(L, 4);
     vec4f[2] = luaL_checknumber(L, 5);
@@ -3210,7 +3208,7 @@ int SliderInt(lua_State* L)
 int SliderInt2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec2i[4];
+    int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 3);
     vec2i[1] = luaL_checkinteger(L, 4);
     int v_min = luaL_optinteger(L, 5, 0);
@@ -3229,7 +3227,7 @@ int SliderInt2(lua_State* L)
 int SliderInt3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec3i[3];
+    int vec3i[3];
     vec3i[0] = luaL_checkinteger(L, 3);
     vec3i[1] = luaL_checkinteger(L, 4);
     vec3i[2] = luaL_checkinteger(L, 5);
@@ -3250,7 +3248,7 @@ int SliderInt3(lua_State* L)
 int SliderInt4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec4i[4];
+    int vec4i[4];
     vec4i[0] = luaL_checkinteger(L, 3);
     vec4i[1] = luaL_checkinteger(L, 4);
     vec4i[2] = luaL_checkinteger(L, 5);
@@ -3367,7 +3365,7 @@ int FilledSliderFloat2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static float vec2f[3];
+    float vec2f[2];
     vec2f[0] = luaL_checknumber(L, 4);
     vec2f[1] = luaL_checknumber(L, 5);
     float v_min = luaL_checknumber(L, 6);
@@ -3387,7 +3385,7 @@ int FilledSliderFloat3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static float vec4f[3];
+    float vec4f[3];
     vec4f[0] = luaL_checknumber(L, 4);
     vec4f[1] = luaL_checknumber(L, 5);
     vec4f[2] = luaL_checknumber(L, 6);
@@ -3409,7 +3407,7 @@ int FilledSliderFloat4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static float vec4f[4];
+    float vec4f[4];
     vec4f[0] = luaL_checknumber(L, 4);
     vec4f[1] = luaL_checknumber(L, 5);
     vec4f[2] = luaL_checknumber(L, 6);
@@ -3467,7 +3465,7 @@ int FilledSliderInt2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static int vec2i[4];
+    int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 4);
     vec2i[1] = luaL_checkinteger(L, 5);
     int v_min = luaL_optinteger(L, 6, 0);
@@ -3487,7 +3485,7 @@ int FilledSliderInt3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static int vec3i[3];
+    int vec3i[3];
     vec3i[0] = luaL_checkinteger(L, 4);
     vec3i[1] = luaL_checkinteger(L, 5);
     vec3i[2] = luaL_checkinteger(L, 6);
@@ -3509,7 +3507,7 @@ int FilledSliderInt4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
-    static int vec4i[4];
+    int vec4i[4];
     vec4i[0] = luaL_checkinteger(L, 4);
     vec4i[1] = luaL_checkinteger(L, 5);
     vec4i[2] = luaL_checkinteger(L, 6);
@@ -3689,7 +3687,7 @@ int InputFloat(lua_State* L)
 int InputFloat2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec2f[2];
+    float vec2f[2];
     vec2f[0] = luaL_checknumber(L, 3);
     vec2f[1] = luaL_checknumber(L, 4);
     const char* format = luaL_optstring(L, 5, "%.3f");
@@ -3705,7 +3703,7 @@ int InputFloat2(lua_State* L)
 int InputFloat3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec3f[3];
+    float vec3f[3];
     vec3f[0] = luaL_checknumber(L, 3);
     vec3f[1] = luaL_checknumber(L, 4);
     vec3f[2] = luaL_checknumber(L, 5);
@@ -3723,7 +3721,7 @@ int InputFloat3(lua_State* L)
 int InputFloat4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static float vec4f[4];
+    float vec4f[4];
     vec4f[0] = luaL_checknumber(L, 3);
     vec4f[1] = luaL_checknumber(L, 4);
     vec4f[2] = luaL_checknumber(L, 5);
@@ -3757,7 +3755,7 @@ int InputInt(lua_State* L)
 int InputInt2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec2i[2];
+    int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 3);
     vec2i[1] = luaL_checkinteger(L, 4);
     ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
@@ -3772,7 +3770,7 @@ int InputInt2(lua_State* L)
 int InputInt3(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec3i[3];
+    int vec3i[3];
     vec3i[0] = luaL_checkinteger(L, 3);
     vec3i[1] = luaL_checkinteger(L, 4);
     vec3i[2] = luaL_checkinteger(L, 5);
@@ -3789,7 +3787,7 @@ int InputInt3(lua_State* L)
 int InputInt4(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int vec4i[4];
+    int vec4i[4];
     vec4i[0] = luaL_checkinteger(L, 3);
     vec4i[1] = luaL_checkinteger(L, 4);
     vec4i[2] = luaL_checkinteger(L, 5);
@@ -4037,7 +4035,7 @@ int Selectable(lua_State* L)
 int ListBox(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    static int current_item = luaL_checkinteger(L, 3);
+    int current_item = luaL_checkinteger(L, 3);
     luaL_checktype(L, 4, LUA_TTABLE);
     int maxItems = luaL_optinteger(L, 5, -1);
 
@@ -4552,22 +4550,6 @@ int TableSortSpecs_GetColumnSortSpecs(lua_State* L)
     return 1;
 }
 
-int TEST123(lua_State* L)
-{
-    int n = luaL_checkinteger(L, 2);
-
-    lua_createtable(L, 0, n);
-
-    for (int i = 0; i < n; i++)
-    {
-        lua_pushnumber(L, i + 1);
-        lua_pushnumber(L, (i + 1) * 10);
-        lua_settable(L, -3);
-    }
-
-    return 1;
-}
-
 int TableSortSpecs_GetSpecsCount(lua_State* L)
 {
     ImGuiTableSortSpecs* specs = getSortSpecs(L);
@@ -4635,12 +4617,12 @@ ImGuiListClipper* getClipper(lua_State* L, int index = 1)
 
 int initImGuiListClipper(lua_State* L)
 {
-    ImGuiListClipper clipper;
-    g_pushInstance(L, "ImGuiListClipper", &clipper);
+    ImGuiListClipper* clipper = new ImGuiListClipper();
+    g_pushInstance(L, "ImGuiListClipper", clipper);
 
     luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
     lua_pushvalue(L, -2);
-    luaL_rawsetptr(L, -2, &clipper);
+    luaL_rawsetptr(L, -2, clipper);
     lua_pop(L, 1);
 
     return 1;
@@ -4655,7 +4637,7 @@ int Clipper_Begin(lua_State* L)
 {
     ImGuiListClipper* clipper = getClipper(L);
     int items_count = luaL_checkinteger(L, 2);
-    float items_height = luaL_optnumber(L, 3, 1.0f);
+    float items_height = luaL_optnumber(L, 3, -1.0f);
     clipper->Begin(items_count, items_height);
     return 0;
 }
@@ -6528,18 +6510,26 @@ int ShowDemoWindow(lua_State* L)
 {
     bool* p_open = getPopen(L, 2, 1);
     ImGui::ShowDemoWindow(p_open);
-    lua_pushboolean(L, *p_open);
-    delete p_open;
-    return 1;
+    if (p_open != NULL)
+    {
+        lua_pushboolean(L, *p_open);
+        delete p_open;
+        return 1;
+    }
+    return 0;
 }
 
 int ShowAboutWindow(lua_State* L)
 {
     bool* p_open = getPopen(L, 2, 1);
     ImGui::ShowAboutWindow(p_open);
-    lua_pushboolean(L, *p_open);
-    delete p_open;
-    return 1;
+    if (p_open != NULL)
+    {
+        lua_pushboolean(L, *p_open);
+        delete p_open;
+        return 1;
+    }
+    return 0;
 }
 
 int ShowStyleEditor(lua_State* _UNUSED(L))
@@ -6559,9 +6549,13 @@ int ShowMetricsWindow(lua_State* L)
 {
     bool* p_open = getPopen(L, 2, 1);
     ImGui::ShowMetricsWindow(p_open);
-    lua_pushboolean(L, *p_open);
-    delete p_open;
-    return 1;
+    if (p_open != NULL)
+    {
+        lua_pushboolean(L, *p_open);
+        delete p_open;
+        return 1;
+    }
+    return 0;
 }
 
 int ShowStyleSelector(lua_State* L)
@@ -7206,8 +7200,7 @@ ImFont* getFont(lua_State* L, int index = 1)
 
 ImGuiIO& getIO(lua_State* L, int index = 1)
 {
-    ImGuiIO &io = *(static_cast<ImGuiIO*>(g_getInstance(L, "ImGuiIO", index)));
-    return io;
+    return *(static_cast<ImGuiIO*>(g_getInstance(L, "ImGuiIO", index)));
 }
 
 int GetIO(lua_State* L)
@@ -10514,10 +10507,560 @@ int ED_StyleSetColor(lua_State* L)
     return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// TextEditor
+///
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+template<class T>
+T* getObjectInstance(lua_State* L, const char* name, int idx)
+{
+    return static_cast<T*>(g_getInstance(L, name, idx));
+}
+
+template<class T>
+T& getObjectRInstance(lua_State* L, const char* name, int idx)
+{
+    return *(static_cast<T*>(g_getInstance(L, name, idx)));
+}
+
+int initTextEditor(lua_State* L)
+{
+    TextEditor* editor = new TextEditor();
+    editor->L = L;
+    g_pushInstance(L, "ImGuiTextEditor", editor);
+
+    luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
+    lua_pushvalue(L, -2);
+    luaL_rawsetptr(L, -2, editor);
+    lua_pop(L, 1);
+
+    return 1;
+}
+
+int destroyTextEditor(lua_State* L)
+{
+    return 0;
+}
+
+int TE_SetLanguageDefinition(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+
+    TextEditor::LanguageDefinition& lang = getObjectRInstance<TextEditor::LanguageDefinition>(L,"TextEditorLanguageDefinition", 2);
+    editor->SetLanguageDefinition(lang);
+    return 0;
+}
+
+int TE_GetLanguageDefinition_CPP(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::CPlusPlus()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_GLSL(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::GLSL()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_HLSL(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::HLSL()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_C(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::C()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_SQL(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::SQL()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_AngelScript(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::AngelScript()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition_Lua(lua_State* L)
+{
+    TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::Lua()));
+    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    return 1;
+}
+
+int TE_GetLanguageDefinition(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    g_pushInstance(L, "TextEditorLanguageDefinition", const_cast<TextEditor::LanguageDefinition*>(&(editor->GetLanguageDefinition())));
+    return 1;
+}
+
+int TE_GetPalette_Dark(lua_State* L)
+{
+    const TextEditor::Palette& palette = TextEditor::GetDarkPalette();
+    TextEditor::Palette* ptr = const_cast<TextEditor::Palette*>(&palette);
+    g_pushInstance(L, "TextEditorPalette", ptr);
+    return 1;
+}
+
+int TE_GetPalette_Light(lua_State* L)
+{
+    TextEditor::Palette* palette = const_cast<TextEditor::Palette*>(&(TextEditor::GetLightPalette()));
+    g_pushInstance(L, "TextEditorPalette", palette);
+    return 1;
+}
+
+int TE_GetPalette_Retro(lua_State* L)
+{
+    TextEditor::Palette* palette = const_cast<TextEditor::Palette*>(&(TextEditor::GetRetroBluePalette()));
+    g_pushInstance(L, "TextEditorPalette", palette);
+    return 1;
+}
+
+int TE_SetPalette(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    TextEditor::Palette& palette = getObjectRInstance<TextEditor::Palette>(L, "TextEditorPalette", 2);
+    editor->SetPalette(palette);
+    return 0;
+}
+
+int TE_GetPalette(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    g_pushInstance(L, "TextEditorPalette", const_cast<TextEditor::Palette*>(&(editor->GetPalette())));
+
+    return 1;
+}
+
+/* TODO
+int TE_SetErrorMarkers(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetErrorMarkers();
+    return 0;
+}
+
+int TE_SetBreakpoints(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetBreakpoints();
+    return 0;
+}
+*/
+
+int TE_Render(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    const char* title = luaL_checkstring(L, 2);
+    ImVec2 size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+    bool border = luaL_optboolean(L, 5, 0);
+    editor->Render(title, size, border);
+    return 0;
+}
+
+int TE_SetText(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    const char* buf = luaL_checkstring(L, 2);
+    std::string text(buf);
+    editor->SetText(text);
+    return 0;
+}
+
+int TE_GetText(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    std::string text = editor->GetText();
+    lua_pushlstring(L, text.c_str(), text.size());
+    return 1;
+}
+
+/* TODO
+int TE_SetTextLines(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetTextLines();
+    return 0;
+}
+
+int TE_GetTextLines(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->GetTextLines();
+    return 0;
+}
+*/
+
+int TE_GetSelectedText(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    std::string text = editor->GetSelectedText();
+    lua_pushlstring(L, text.c_str(), text.size());
+    return 1;
+}
+
+int TE_GetCurrentLineText(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    std::string text = editor->GetCurrentLineText();
+    lua_pushlstring(L, text.c_str(), text.size());
+    return 1;
+}
+
+int TE_GetTotalLines(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushinteger(L, editor->GetTotalLines());
+    return 1;
+}
+
+int TE_IsOverwrite(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsOverwrite());
+    return 1;
+}
+
+int TE_SetReadOnly(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetReadOnly(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_IsReadOnly(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsReadOnly());
+    return 1;
+}
+
+int TE_IsTextChanged(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsTextChanged());
+    return 1;
+}
+
+int TE_IsCursorPositionChanged(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsCursorPositionChanged());
+    return 1;
+}
+
+int TE_IsColorizerEnabled(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsColorizerEnabled());
+    return 1;
+}
+
+int TE_SetColorizerEnable(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetColorizerEnable(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_GetCursorPosition(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    TextEditor::Coordinates coord = editor->GetCursorPosition();
+    lua_pushinteger(L, coord.mLine);
+    lua_pushinteger(L, coord.mColumn);
+    return 2;
+}
+
+int TE_SetCursorPosition(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int line = luaL_checkinteger(L, 2);
+    int column = luaL_checkinteger(L, 3);
+    TextEditor::Coordinates coord(line, column);
+    editor->SetCursorPosition(coord);
+    return 0;
+}
+
+int TE_SetHandleMouseInputs(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetHandleMouseInputs(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_IsHandleMouseInputsEnabled(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsHandleMouseInputsEnabled());
+    return 1;
+}
+
+int TE_SetHandleKeyboardInputs(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetHandleKeyboardInputs(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_IsHandleKeyboardInputsEnabled(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsHandleKeyboardInputsEnabled());
+    return 1;
+}
+
+int TE_SetImGuiChildIgnored(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetImGuiChildIgnored(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_IsImGuiChildIgnored(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsImGuiChildIgnored());
+    return 1;
+}
+
+int TE_SetShowWhitespaces(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SetShowWhitespaces(lua_toboolean(L, 2));
+    return 0;
+}
+
+int TE_IsShowingWhitespaces(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->IsShowingWhitespaces());
+    return 1;
+}
+
+int TE_SetTabSize(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int size = luaL_checknumber(L, 2);
+    editor->SetTabSize(size);
+    return 0;
+}
+
+int TE_GetTabSize(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushnumber(L, editor->GetTabSize());
+    return 1;
+}
+
+int TE_InsertText(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    const char* text = luaL_checkstring(L, 2);
+    editor->InsertText(text);
+    return 0;
+}
+
+int TE_MoveUp(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int amount = luaL_optinteger(L, 2, 1);
+    bool select = luaL_optboolean(L, 3, 0);
+    editor->MoveUp(amount, select);
+    return 0;
+}
+
+int TE_MoveDown(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int amount = luaL_optinteger(L, 2, 1);
+    bool select = luaL_optboolean(L, 3, 0);
+    editor->MoveDown(amount, select);
+    return 0;
+}
+
+int TE_MoveLeft(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int amount = luaL_optinteger(L, 2, 1);
+    bool select = luaL_optboolean(L, 3, 0);
+    editor->MoveLeft(amount, select);
+    return 0;
+}
+
+int TE_MoveRight(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int amount = luaL_optinteger(L, 2, 1);
+    bool select = luaL_optboolean(L, 3, 0);
+    editor->MoveRight(amount, select);
+    return 0;
+}
+
+int TE_MoveTop(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    bool select = luaL_optboolean(L, 2, 0);
+    editor->MoveTop(select);
+    return 0;
+}
+
+int TE_MoveBottom(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    bool select = luaL_optboolean(L, 2, 0);
+    editor->MoveBottom(select);
+    return 0;
+}
+
+int TE_MoveHome(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    bool select = luaL_optboolean(L, 2, 0);
+    editor->MoveHome(select);
+    return 0;
+}
+
+int TE_MoveEnd(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    bool select = luaL_optboolean(L, 2, 0);
+    editor->MoveEnd(select);
+    return 0;
+}
+
+int TE_SetSelectionStart(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int line = luaL_checkinteger(L, 2);
+    int column = luaL_checkinteger(L, 3);
+    TextEditor::Coordinates pos(line, column);
+    editor->SetSelectionStart(pos);
+    return 0;
+}
+
+int TE_SetSelectionEnd(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int line = luaL_checkinteger(L, 2);
+    int column = luaL_checkinteger(L, 3);
+    TextEditor::Coordinates pos(line, column);
+    editor->SetSelectionEnd(pos);
+    return 0;
+}
+
+int TE_SetSelection(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    TextEditor::Coordinates posStart(luaL_checkinteger(L, 2), luaL_checkinteger(L, 3));
+    TextEditor::Coordinates posEnd(luaL_checkinteger(L, 4), luaL_checkinteger(L, 5));
+    TextEditor::SelectionMode mode = (TextEditor::SelectionMode)luaL_optinteger(L, 6, 0);
+    editor->SetSelection(posStart, posEnd, mode);
+    return 0;
+}
+
+int TE_SelectWordUnderCursor(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SelectWordUnderCursor();
+    return 0;
+}
+
+int TE_SelectAll(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->SelectAll();
+    return 0;
+}
+
+int TE_HasSelection(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->HasSelection());
+    return 1;
+}
+
+int TE_Copy(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->Copy();
+    return 0;
+}
+
+int TE_Cut(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->Cut();
+    return 0;
+}
+
+int TE_Paste(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->Paste();
+    return 0;
+}
+
+int TE_Delete(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    editor->Delete();
+    return 0;
+}
+
+int TE_CanUndo(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->CanUndo());
+    return 1;
+}
+
+int TE_CanRedo(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    lua_pushboolean(L, editor->CanRedo());
+    return 1;
+}
+
+int TE_Undo(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int steps = luaL_optinteger(L, 2, 1);
+    editor->Undo(steps);
+    return 0;
+}
+
+int TE_Redo(lua_State* L)
+{
+    TextEditor* editor = getObjectInstance<TextEditor>(L, "ImGuiTextEditor", 1);
+    int steps = luaL_optinteger(L, 2, 1);
+    editor->Redo(steps);
+    return 0;
+}
+
 #endif
 
 int loader(lua_State* L)
 {
+    const luaL_Reg imguiEmptyFunctionsList[] = {
+        {NULL, NULL}
+    };
+
     const luaL_Reg imguiStylesFunctionList[] =
     {
         {"setColor", Style_SetColor},
@@ -10781,10 +11324,7 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImFontAtlas", 0, NULL, NULL, imguiFontAtlasFunctionList);
 
-    const luaL_Reg imguiFontFunctionList[] = {
-        {NULL, NULL}
-    };
-    g_createClass(L, "ImFont", 0, NULL, NULL, imguiFontFunctionList);
+    g_createClass(L, "ImFont", 0, NULL, NULL, imguiEmptyFunctionsList);
 
 #ifdef IS_BETA_BUILD
     const luaL_Reg imguiDockNodeFunctionList[] = {
@@ -10897,8 +11437,7 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGuiTabItem", 0, NULL, NULL, imguiTabItemFunctionList);
-#endif
-#ifdef IS_BETA_BUILD
+
     const luaL_Reg imguiNodeEditorFunctionList[] = {
         //{"getCurrentEditor", ED_GetCurrentEditor},
         //{"createEditor", ED_CreateEditor},
@@ -11053,6 +11592,101 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImGuiEDStyle", 0, NULL, NULL, imguiEDStyleFunctionsList);
 
+    const luaL_Reg imguiTextEditorFunctionsList[] = {
+        {"setLanguageDefinition", TE_SetLanguageDefinition},
+        {"getLanguageDefinition", TE_GetLanguageDefinition},
+
+        {"getLanguageCPP", TE_GetLanguageDefinition_CPP},
+        {"getLanguageGLSL", TE_GetLanguageDefinition_GLSL},
+        {"getLanguageHLSL", TE_GetLanguageDefinition_HLSL},
+        {"getLanguageC", TE_GetLanguageDefinition_C},
+        {"getLanguageSQL", TE_GetLanguageDefinition_SQL},
+        {"getLanguageAngelScript", TE_GetLanguageDefinition_AngelScript},
+        {"getLanguageLua", TE_GetLanguageDefinition_Lua},
+
+        {"getPaletteDark", TE_GetPalette_Dark},
+        {"getPaletteLight", TE_GetPalette_Light},
+        {"getPaletteRetro", TE_GetPalette_Retro},
+
+        {"setPalette", TE_SetPalette},
+        {"getPalette", TE_GetPalette},
+
+        //{"setErrorMarkers", TE_SetErrorMarkers},
+        //{"setBreakpoints", TE_SetBreakpoints},
+
+        {"render", TE_Render},
+
+        {"setText", TE_SetText},
+        {"getText", TE_GetText},
+        //{"setTextLines", TE_SetTextLines},
+        //{"getTextLines", TE_GetTextLines},
+
+        {"getSelectedText", TE_GetSelectedText},
+        {"getCurrentLineText", TE_GetCurrentLineText},
+
+        {"getTotalLines", TE_GetTotalLines},
+        {"isOverwrite", TE_IsOverwrite},
+
+        {"setReadOnly", TE_SetReadOnly},
+        {"isReadOnly", TE_IsReadOnly},
+        {"isTextChanged", TE_IsTextChanged},
+        {"isCursorPositionChanged", TE_IsCursorPositionChanged},
+
+        {"isColorizerEnabled", TE_IsColorizerEnabled},
+        {"setColorizerEnable", TE_SetColorizerEnable},
+
+        {"getCursorPosition", TE_GetCursorPosition},
+        {"setCursorPosition", TE_SetCursorPosition},
+
+        {"setHandleMouseInputs", TE_SetHandleMouseInputs},
+        {"isHandleMouseInputsEnabled", TE_IsHandleMouseInputsEnabled},
+
+        {"setHandleKeyboardInputs", TE_SetHandleKeyboardInputs},
+        {"isHandleKeyboardInputsEnabled", TE_IsHandleKeyboardInputsEnabled},
+
+        {"setImGuiChildIgnored", TE_SetImGuiChildIgnored},
+        {"isImGuiChildIgnored", TE_IsImGuiChildIgnored},
+
+        {"setShowWhitespaces", TE_SetShowWhitespaces},
+        {"isShowingWhitespaces", TE_IsShowingWhitespaces},
+
+        {"setTabSize", TE_SetTabSize},
+        {"getTabSize", TE_GetTabSize},
+
+        {"insertText", TE_InsertText},
+
+        {"moveUp", TE_MoveUp},
+        {"moveDown", TE_MoveDown},
+        {"moveLeft", TE_MoveLeft},
+        {"moveRight", TE_MoveRight},
+        {"moveTop", TE_MoveTop},
+        {"moveBottom", TE_MoveBottom},
+        {"moveHome", TE_MoveHome},
+        {"moveEnd", TE_MoveEnd},
+
+        {"setSelectionStart", TE_SetSelectionStart},
+        {"setSelectionEnd", TE_SetSelectionEnd},
+        {"setSelection", TE_SetSelection},
+        {"selectWordUnderCursor", TE_SelectWordUnderCursor},
+        {"selectAll", TE_SelectAll},
+        {"hasSelection", TE_HasSelection},
+
+        {"copy", TE_Copy},
+        {"cut", TE_Cut},
+        {"paste", TE_Paste},
+        {"delete", TE_Delete},
+
+        {"canUndo", TE_CanUndo},
+        {"canRedo", TE_CanRedo},
+        {"undo", TE_Undo},
+        {"redo", TE_Redo},
+
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiTextEditor", 0, initTextEditor, destroyTextEditor, imguiTextEditorFunctionsList);
+
+    g_createClass(L, "TextEditorPalette", 0, NULL, NULL, imguiEmptyFunctionsList);
+    g_createClass(L, "TextEditorLanguageDefinition", 0, NULL, NULL, imguiEmptyFunctionsList);
 #endif
 
     const luaL_Reg imguiPayloadFunctionsList[] = {
@@ -11097,7 +11731,6 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiFunctionList[] =
     {
-        {"testT", TEST123},
 #ifdef IS_BETA_BUILD
         {"setCurrentEditor", ED_SetCurrentEditor},
 #endif
