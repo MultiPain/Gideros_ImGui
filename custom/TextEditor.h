@@ -8,15 +8,11 @@
 #include <unordered_map>
 #include <map>
 #include <regex>
-#include "imgui/imgui.h"
-
-#include "lua.hpp"
+#include "imgui_src/imgui.h"
 
 class TextEditor
 {
 public:
-    lua_State* L;
-
 	enum class PaletteIndex
 	{
 		Default,
@@ -129,7 +125,7 @@ public:
 		std::string mDeclaration;
 	};
 
-	typedef std::string String;
+    typedef std::string String;
 	typedef std::unordered_map<std::string, Identifier> Identifiers;
 	typedef std::unordered_set<std::string> Keywords;
 	typedef std::map<int, std::string> ErrorMarkers;
@@ -149,6 +145,7 @@ public:
 			mComment(false), mMultiLineComment(false), mPreprocessor(false) {}
 	};
 
+    typedef std::vector<Glyph, std::allocator<Glyph>> ALine;
 	typedef std::vector<Glyph> Line;
 	typedef std::vector<Line> Lines;
 
@@ -194,6 +191,7 @@ public:
 
 	const Palette& GetPalette() const { return mPaletteBase; }
 	void SetPalette(const Palette& aValue);
+    void SetPaletteColor(unsigned int index, ImU32 color);
 
 	void SetErrorMarkers(const ErrorMarkers& aMarkers) { mErrorMarkers = aMarkers; }
 	void SetBreakpoints(const Breakpoints& aMarkers) { mBreakpoints = aMarkers; }

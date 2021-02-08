@@ -1,4 +1,4 @@
-#include "imgui/imgui.h"
+#include "imgui_src/imgui.h"
 //#include "imgui_src/imgui_internal.h"
 
 enum ImGuiWindowFlags_Extended
@@ -21,24 +21,6 @@ enum ImGuiGlyphRanges
     ImGuiGlyphRanges_Cyrillic,
     ImGuiGlyphRanges_Thai,
     ImGuiGlyphRanges_Vietnamese,
-};
-
-enum TextEditorLanguage
-{
-    TextEditorLanguage_CPP,
-    TextEditorLanguage_HLSL,
-    TextEditorLanguage_GLSL,
-    TextEditorLanguage_C,
-    TextEditorLanguage_SQL,
-    TextEditorLanguage_AngelScript,
-    TextEditorLanguage_LUA
-};
-
-enum TextEditorPalette
-{
-    TextEditorLanguage_Light,
-    TextEditorLanguage_Dark,
-    TextEditorLanguage_Retro
 };
 
 namespace ImGui

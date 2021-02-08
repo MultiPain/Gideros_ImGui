@@ -15,11 +15,11 @@ INCLUDEPATH += ../../Src/luabinding
 INCLUDEPATH += ../../Src/lua/src
 
 SOURCES += \
-    imgui/imgui.cpp \
-    imgui/imgui_demo.cpp \
-    imgui/imgui_draw.cpp \
-    imgui/imgui_widgets.cpp \
-    imgui/imgui_tables.cpp \
+    imgui_src/imgui.cpp \
+    imgui_src/imgui_demo.cpp \
+    imgui_src/imgui_draw.cpp \
+    imgui_src/imgui_widgets.cpp \
+    imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
     custom/TextEditor.cpp \
     custom/node-editor/crude_json.cpp \
@@ -34,12 +34,12 @@ SOURCES += \
     main.cpp
 
 HEADERS += \
-    imgui/imconfig.h \
-    imgui/imgui.h \
-    imgui/imgui_internal.h \
-    imgui/imstb_rectpack.h \
-    imgui/imstb_textedit.h \
-    imgui/imstb_truetype.h \
+    imgui_src/imconfig.h \
+    imgui_src/imgui.h \
+    imgui_src/imgui_internal.h \
+    imgui_src/imstb_rectpack.h \
+    imgui_src/imstb_textedit.h \
+    imgui_src/imstb_truetype.h \
     imgui_user.h \
     custom/TextEditor.h \
     custom/node-editor/imgui_node_editor_internal.inl \

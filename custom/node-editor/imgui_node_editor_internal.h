@@ -17,9 +17,9 @@
 
 
 //------------------------------------------------------------------------------
-# include "imgui/imgui.h"
+# include "imgui_src/imgui.h"
 # define IMGUI_DEFINE_MATH_OPERATORS
-# include "imgui/imgui_internal.h"
+# include "imgui_src/imgui_internal.h"
 # include "imgui_extra_math.h"
 # include "imgui_bezier_math.h"
 # include "imgui_canvas.h"
