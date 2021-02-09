@@ -56,7 +56,8 @@ static std::map<int, const char*> giderosCursorMap;
 #define LUA_PRINTF(FMT, ...) lua_getglobal(L, "print"); lua_pushfstring(L, FMT, __VA_ARGS__); lua_call(L, 1, 0);
 #define LUA_PRINT(MSG) lua_getglobal(L, "print"); lua_pushstring(L, MSG); lua_call(L, 1, 0);
 
-#define BIND_ENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
+#define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
+#define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
 
 namespace ImGui_impl
 {
@@ -437,571 +438,574 @@ void bindEnums(lua_State* L)
 #ifdef IS_BETA_BUILD
     lua_getglobal(L, "ImGuiNodeEditor");
 
-    BIND_ENUM(L, (int)ED::PinKind::Input, "Input");
-    BIND_ENUM(L, (int)ED::PinKind::Output, "Output");
-    BIND_ENUM(L, ED::StyleColor_Bg, "StyleColor_Bg");
-    BIND_ENUM(L, ED::StyleColor_Grid, "StyleColor_Grid");
-    BIND_ENUM(L, ED::StyleColor_NodeBg, "StyleColor_NodeBg");
-    BIND_ENUM(L, ED::StyleColor_NodeBorder, "StyleColor_NodeBorder");
-    BIND_ENUM(L, ED::StyleColor_HovNodeBorder, "StyleColor_HovNodeBorder");
-    BIND_ENUM(L, ED::StyleColor_SelNodeBorder, "StyleColor_SelNodeBorder");
-    BIND_ENUM(L, ED::StyleColor_NodeSelRect, "StyleColor_NodeSelRect");
-    BIND_ENUM(L, ED::StyleColor_NodeSelRectBorder, "StyleColor_NodeSelRectBorder");
-    BIND_ENUM(L, ED::StyleColor_HovLinkBorder, "StyleColor_HovLinkBorder");
-    BIND_ENUM(L, ED::StyleColor_SelLinkBorder, "StyleColor_SelLinkBorder");
-    BIND_ENUM(L, ED::StyleColor_LinkSelRect, "StyleColor_LinkSelRect");
-    BIND_ENUM(L, ED::StyleColor_LinkSelRectBorder, "StyleColor_LinkSelRectBorder");
-    BIND_ENUM(L, ED::StyleColor_PinRect, "StyleColor_PinRect");
-    BIND_ENUM(L, ED::StyleColor_PinRectBorder, "StyleColor_PinRectBorder");
-    BIND_ENUM(L, ED::StyleColor_Flow, "StyleColor_Flow");
-    BIND_ENUM(L, ED::StyleColor_FlowMarker, "StyleColor_FlowMarker");
-    BIND_ENUM(L, ED::StyleColor_GroupBg, "StyleColor_GroupBg");
-    BIND_ENUM(L, ED::StyleColor_GroupBorder, "StyleColor_GroupBorder");
+    BIND_IENUM(L, (int)ED::PinKind::Input, "Input");
+    BIND_IENUM(L, (int)ED::PinKind::Output, "Output");
+    BIND_IENUM(L, ED::StyleColor_Bg, "StyleColor_Bg");
+    BIND_IENUM(L, ED::StyleColor_Grid, "StyleColor_Grid");
+    BIND_IENUM(L, ED::StyleColor_NodeBg, "StyleColor_NodeBg");
+    BIND_IENUM(L, ED::StyleColor_NodeBorder, "StyleColor_NodeBorder");
+    BIND_IENUM(L, ED::StyleColor_HovNodeBorder, "StyleColor_HovNodeBorder");
+    BIND_IENUM(L, ED::StyleColor_SelNodeBorder, "StyleColor_SelNodeBorder");
+    BIND_IENUM(L, ED::StyleColor_NodeSelRect, "StyleColor_NodeSelRect");
+    BIND_IENUM(L, ED::StyleColor_NodeSelRectBorder, "StyleColor_NodeSelRectBorder");
+    BIND_IENUM(L, ED::StyleColor_HovLinkBorder, "StyleColor_HovLinkBorder");
+    BIND_IENUM(L, ED::StyleColor_SelLinkBorder, "StyleColor_SelLinkBorder");
+    BIND_IENUM(L, ED::StyleColor_LinkSelRect, "StyleColor_LinkSelRect");
+    BIND_IENUM(L, ED::StyleColor_LinkSelRectBorder, "StyleColor_LinkSelRectBorder");
+    BIND_IENUM(L, ED::StyleColor_PinRect, "StyleColor_PinRect");
+    BIND_IENUM(L, ED::StyleColor_PinRectBorder, "StyleColor_PinRectBorder");
+    BIND_IENUM(L, ED::StyleColor_Flow, "StyleColor_Flow");
+    BIND_IENUM(L, ED::StyleColor_FlowMarker, "StyleColor_FlowMarker");
+    BIND_IENUM(L, ED::StyleColor_GroupBg, "StyleColor_GroupBg");
+    BIND_IENUM(L, ED::StyleColor_GroupBorder, "StyleColor_GroupBorder");
 
-    BIND_ENUM(L, ED::StyleVar_NodePadding, "StyleVar_NodePadding");
-    BIND_ENUM(L, ED::StyleVar_NodeRounding, "StyleVar_NodeRounding");
-    BIND_ENUM(L, ED::StyleVar_NodeBorderWidth, "StyleVar_NodeBorderWidth");
-    BIND_ENUM(L, ED::StyleVar_HoveredNodeBorderWidth, "StyleVar_HoveredNodeBorderWidth");
-    BIND_ENUM(L, ED::StyleVar_SelectedNodeBorderWidth, "StyleVar_SelectedNodeBorderWidth");
-    BIND_ENUM(L, ED::StyleVar_PinRounding, "StyleVar_PinRounding");
-    BIND_ENUM(L, ED::StyleVar_PinBorderWidth, "StyleVar_PinBorderWidth");
-    BIND_ENUM(L, ED::StyleVar_LinkStrength, "StyleVar_LinkStrength");
-    BIND_ENUM(L, ED::StyleVar_SourceDirection, "StyleVar_SourceDirection");
-    BIND_ENUM(L, ED::StyleVar_TargetDirection, "StyleVar_TargetDirection");
-    BIND_ENUM(L, ED::StyleVar_ScrollDuration, "StyleVar_ScrollDuration");
-    BIND_ENUM(L, ED::StyleVar_FlowMarkerDistance, "StyleVar_FlowMarkerDistance");
-    BIND_ENUM(L, ED::StyleVar_FlowSpeed, "StyleVar_FlowSpeed");
-    BIND_ENUM(L, ED::StyleVar_FlowDuration, "StyleVar_FlowDuration");
-    BIND_ENUM(L, ED::StyleVar_PivotAlignment, "StyleVar_PivotAlignment");
-    BIND_ENUM(L, ED::StyleVar_PivotSize, "StyleVar_PivotSize");
-    BIND_ENUM(L, ED::StyleVar_PivotScale, "StyleVar_PivotScale");
-    BIND_ENUM(L, ED::StyleVar_PinCorners, "StyleVar_PinCorners");
-    BIND_ENUM(L, ED::StyleVar_PinRadius, "StyleVar_PinRadius");
-    BIND_ENUM(L, ED::StyleVar_PinArrowSize, "StyleVar_PinArrowSize");
-    BIND_ENUM(L, ED::StyleVar_PinArrowWidth, "StyleVar_PinArrowWidth");
-    BIND_ENUM(L, ED::StyleVar_GroupRounding, "StyleVar_GroupRounding");
-    BIND_ENUM(L, ED::StyleVar_GroupBorderWidth, "StyleVar_GroupBorderWidth");
+    BIND_IENUM(L, ED::StyleVar_NodePadding, "StyleVar_NodePadding");
+    BIND_IENUM(L, ED::StyleVar_NodeRounding, "StyleVar_NodeRounding");
+    BIND_IENUM(L, ED::StyleVar_NodeBorderWidth, "StyleVar_NodeBorderWidth");
+    BIND_IENUM(L, ED::StyleVar_HoveredNodeBorderWidth, "StyleVar_HoveredNodeBorderWidth");
+    BIND_IENUM(L, ED::StyleVar_SelectedNodeBorderWidth, "StyleVar_SelectedNodeBorderWidth");
+    BIND_IENUM(L, ED::StyleVar_PinRounding, "StyleVar_PinRounding");
+    BIND_IENUM(L, ED::StyleVar_PinBorderWidth, "StyleVar_PinBorderWidth");
+    BIND_IENUM(L, ED::StyleVar_LinkStrength, "StyleVar_LinkStrength");
+    BIND_IENUM(L, ED::StyleVar_SourceDirection, "StyleVar_SourceDirection");
+    BIND_IENUM(L, ED::StyleVar_TargetDirection, "StyleVar_TargetDirection");
+    BIND_IENUM(L, ED::StyleVar_ScrollDuration, "StyleVar_ScrollDuration");
+    BIND_IENUM(L, ED::StyleVar_FlowMarkerDistance, "StyleVar_FlowMarkerDistance");
+    BIND_IENUM(L, ED::StyleVar_FlowSpeed, "StyleVar_FlowSpeed");
+    BIND_IENUM(L, ED::StyleVar_FlowDuration, "StyleVar_FlowDuration");
+    BIND_IENUM(L, ED::StyleVar_PivotAlignment, "StyleVar_PivotAlignment");
+    BIND_IENUM(L, ED::StyleVar_PivotSize, "StyleVar_PivotSize");
+    BIND_IENUM(L, ED::StyleVar_PivotScale, "StyleVar_PivotScale");
+    BIND_IENUM(L, ED::StyleVar_PinCorners, "StyleVar_PinCorners");
+    BIND_IENUM(L, ED::StyleVar_PinRadius, "StyleVar_PinRadius");
+    BIND_IENUM(L, ED::StyleVar_PinArrowSize, "StyleVar_PinArrowSize");
+    BIND_IENUM(L, ED::StyleVar_PinArrowWidth, "StyleVar_PinArrowWidth");
+    BIND_IENUM(L, ED::StyleVar_GroupRounding, "StyleVar_GroupRounding");
+    BIND_IENUM(L, ED::StyleVar_GroupBorderWidth, "StyleVar_GroupBorderWidth");
 
     lua_pop(L, 1);
 #endif
 
     lua_getglobal(L, "ImGui");
     //BackendFlags
-    BIND_ENUM(L, ImGuiBackendFlags_None, "BackendFlags_None");
-    BIND_ENUM(L, ImGuiBackendFlags_HasGamepad, "BackendFlags_HasGamepad");
-    BIND_ENUM(L, ImGuiBackendFlags_HasMouseCursors, "BackendFlags_HasMouseCursors");
-    BIND_ENUM(L, ImGuiBackendFlags_HasSetMousePos, "BackendFlags_HasSetMousePos");
-    BIND_ENUM(L, ImGuiBackendFlags_RendererHasVtxOffset, "BackendFlags_RendererHasVtxOffset");
+    BIND_IENUM(L, ImGuiBackendFlags_None, "BackendFlags_None");
+    BIND_IENUM(L, ImGuiBackendFlags_HasGamepad, "BackendFlags_HasGamepad");
+    BIND_IENUM(L, ImGuiBackendFlags_HasMouseCursors, "BackendFlags_HasMouseCursors");
+    BIND_IENUM(L, ImGuiBackendFlags_HasSetMousePos, "BackendFlags_HasSetMousePos");
+    BIND_IENUM(L, ImGuiBackendFlags_RendererHasVtxOffset, "BackendFlags_RendererHasVtxOffset");
 
     //ImGuiFocusedFlags
-    BIND_ENUM(L, ImGuiFocusedFlags_ChildWindows, "FocusedFlags_ChildWindows");
-    BIND_ENUM(L, ImGuiFocusedFlags_AnyWindow, "FocusedFlags_AnyWindow");
-    BIND_ENUM(L, ImGuiFocusedFlags_RootWindow, "FocusedFlags_RootWindow");
-    BIND_ENUM(L, ImGuiFocusedFlags_RootAndChildWindows, "FocusedFlags_RootAndChildWindows");
-    BIND_ENUM(L, ImGuiFocusedFlags_None, "FocusedFlags_None");
+    BIND_IENUM(L, ImGuiFocusedFlags_ChildWindows, "FocusedFlags_ChildWindows");
+    BIND_IENUM(L, ImGuiFocusedFlags_AnyWindow, "FocusedFlags_AnyWindow");
+    BIND_IENUM(L, ImGuiFocusedFlags_RootWindow, "FocusedFlags_RootWindow");
+    BIND_IENUM(L, ImGuiFocusedFlags_RootAndChildWindows, "FocusedFlags_RootAndChildWindows");
+    BIND_IENUM(L, ImGuiFocusedFlags_None, "FocusedFlags_None");
 
     //ImGuiPopupFlags
-    BIND_ENUM(L, ImGuiPopupFlags_NoOpenOverExistingPopup, "PopupFlags_NoOpenOverExistingPopup");
-    BIND_ENUM(L, ImGuiPopupFlags_MouseButtonLeft, "PopupFlags_MouseButtonLeft");
-    BIND_ENUM(L, ImGuiPopupFlags_MouseButtonMask_, "PopupFlags_MouseButtonMask");
-    BIND_ENUM(L, ImGuiPopupFlags_MouseButtonRight, "PopupFlags_MouseButtonRight");
-    BIND_ENUM(L, ImGuiPopupFlags_AnyPopupId, "PopupFlags_AnyPopupId");
-    BIND_ENUM(L, ImGuiPopupFlags_MouseButtonDefault_, "PopupFlags_MouseButtonDefault");
-    BIND_ENUM(L, ImGuiPopupFlags_MouseButtonMiddle, "PopupFlags_MouseButtonMiddle");
-    BIND_ENUM(L, ImGuiPopupFlags_None, "PopupFlags_None");
-    BIND_ENUM(L, ImGuiPopupFlags_AnyPopup, "PopupFlags_AnyPopup");
-    BIND_ENUM(L, ImGuiPopupFlags_AnyPopupLevel, "PopupFlags_AnyPopupLevel");
-    BIND_ENUM(L, ImGuiPopupFlags_NoOpenOverItems, "PopupFlags_NoOpenOverItems");
+    BIND_IENUM(L, ImGuiPopupFlags_NoOpenOverExistingPopup, "PopupFlags_NoOpenOverExistingPopup");
+    BIND_IENUM(L, ImGuiPopupFlags_MouseButtonLeft, "PopupFlags_MouseButtonLeft");
+    BIND_IENUM(L, ImGuiPopupFlags_MouseButtonMask_, "PopupFlags_MouseButtonMask");
+    BIND_IENUM(L, ImGuiPopupFlags_MouseButtonRight, "PopupFlags_MouseButtonRight");
+    BIND_IENUM(L, ImGuiPopupFlags_AnyPopupId, "PopupFlags_AnyPopupId");
+    BIND_IENUM(L, ImGuiPopupFlags_MouseButtonDefault_, "PopupFlags_MouseButtonDefault");
+    BIND_IENUM(L, ImGuiPopupFlags_MouseButtonMiddle, "PopupFlags_MouseButtonMiddle");
+    BIND_IENUM(L, ImGuiPopupFlags_None, "PopupFlags_None");
+    BIND_IENUM(L, ImGuiPopupFlags_AnyPopup, "PopupFlags_AnyPopup");
+    BIND_IENUM(L, ImGuiPopupFlags_AnyPopupLevel, "PopupFlags_AnyPopupLevel");
+    BIND_IENUM(L, ImGuiPopupFlags_NoOpenOverItems, "PopupFlags_NoOpenOverItems");
 
     //ImGuiHoveredFlags
-    BIND_ENUM(L, ImGuiHoveredFlags_None, "HoveredFlags_None");
-    BIND_ENUM(L, ImGuiHoveredFlags_RootAndChildWindows, "HoveredFlags_RootAndChildWindows");
-    BIND_ENUM(L, ImGuiHoveredFlags_AllowWhenBlockedByPopup, "HoveredFlags_AllowWhenBlockedByPopup");
-    BIND_ENUM(L, ImGuiHoveredFlags_AllowWhenBlockedByActiveItem, "HoveredFlags_AllowWhenBlockedByActiveItem");
-    BIND_ENUM(L, ImGuiHoveredFlags_ChildWindows, "HoveredFlags_ChildWindows");
-    BIND_ENUM(L, ImGuiHoveredFlags_RectOnly, "HoveredFlags_RectOnly");
-    BIND_ENUM(L, ImGuiHoveredFlags_AllowWhenDisabled, "HoveredFlags_AllowWhenDisabled");
-    BIND_ENUM(L, ImGuiHoveredFlags_AllowWhenOverlapped, "HoveredFlags_AllowWhenOverlapped");
-    BIND_ENUM(L, ImGuiHoveredFlags_AnyWindow, "HoveredFlags_AnyWindow");
-    BIND_ENUM(L, ImGuiHoveredFlags_RootWindow, "HoveredFlags_RootWindow");
+    BIND_IENUM(L, ImGuiHoveredFlags_None, "HoveredFlags_None");
+    BIND_IENUM(L, ImGuiHoveredFlags_RootAndChildWindows, "HoveredFlags_RootAndChildWindows");
+    BIND_IENUM(L, ImGuiHoveredFlags_AllowWhenBlockedByPopup, "HoveredFlags_AllowWhenBlockedByPopup");
+    BIND_IENUM(L, ImGuiHoveredFlags_AllowWhenBlockedByActiveItem, "HoveredFlags_AllowWhenBlockedByActiveItem");
+    BIND_IENUM(L, ImGuiHoveredFlags_ChildWindows, "HoveredFlags_ChildWindows");
+    BIND_IENUM(L, ImGuiHoveredFlags_RectOnly, "HoveredFlags_RectOnly");
+    BIND_IENUM(L, ImGuiHoveredFlags_AllowWhenDisabled, "HoveredFlags_AllowWhenDisabled");
+    BIND_IENUM(L, ImGuiHoveredFlags_AllowWhenOverlapped, "HoveredFlags_AllowWhenOverlapped");
+    BIND_IENUM(L, ImGuiHoveredFlags_AnyWindow, "HoveredFlags_AnyWindow");
+    BIND_IENUM(L, ImGuiHoveredFlags_RootWindow, "HoveredFlags_RootWindow");
 
     //ImGuiInputTextFlags
-    BIND_ENUM(L, ImGuiInputTextFlags_EnterReturnsTrue, "InputTextFlags_EnterReturnsTrue");
-    BIND_ENUM(L, ImGuiInputTextFlags_CallbackCompletion, "InputTextFlags_CallbackCompletion");
-    BIND_ENUM(L, ImGuiInputTextFlags_None, "InputTextFlags_None");
-    BIND_ENUM(L, ImGuiInputTextFlags_CallbackResize, "InputTextFlags_CallbackResize");
-    BIND_ENUM(L, ImGuiInputTextFlags_ReadOnly, "InputTextFlags_ReadOnly");
-    BIND_ENUM(L, ImGuiInputTextFlags_AutoSelectAll, "InputTextFlags_AutoSelectAll");
-    BIND_ENUM(L, ImGuiInputTextFlags_AllowTabInput, "InputTextFlags_AllowTabInput");
-    BIND_ENUM(L, ImGuiInputTextFlags_CharsScientific, "InputTextFlags_CharsScientific");
-    BIND_ENUM(L, ImGuiInputTextFlags_CallbackAlways, "InputTextFlags_CallbackAlways");
-    BIND_ENUM(L, ImGuiInputTextFlags_CharsDecimal, "InputTextFlags_CharsDecimal");
-    BIND_ENUM(L, ImGuiInputTextFlags_NoUndoRedo, "InputTextFlags_NoUndoRedo");
-    BIND_ENUM(L, ImGuiInputTextFlags_CallbackHistory, "InputTextFlags_CallbackHistory");
-    BIND_ENUM(L, ImGuiInputTextFlags_CtrlEnterForNewLine, "InputTextFlags_CtrlEnterForNewLine");
-    BIND_ENUM(L, ImGuiInputTextFlags_CharsHexadecimal, "InputTextFlags_CharsHexadecimal");
-    BIND_ENUM(L, ImGuiInputTextFlags_CharsNoBlank, "InputTextFlags_CharsNoBlank");
-    BIND_ENUM(L, ImGuiInputTextFlags_Password, "InputTextFlags_Password");
-    BIND_ENUM(L, ImGuiInputTextFlags_CallbackCharFilter, "InputTextFlags_CallbackCharFilter");
-    BIND_ENUM(L, ImGuiInputTextFlags_NoHorizontalScroll, "InputTextFlags_NoHorizontalScroll");
-    BIND_ENUM(L, ImGuiInputTextFlags_AlwaysInsertMode, "InputTextFlags_AlwaysInsertMode");
-    BIND_ENUM(L, ImGuiInputTextFlags_CharsUppercase, "InputTextFlags_CharsUppercase");
-    BIND_ENUM(L, ImGuiInputTextFlags_NoBackground, "InputTextFlags_NoBackground");
+    BIND_IENUM(L, ImGuiInputTextFlags_EnterReturnsTrue, "InputTextFlags_EnterReturnsTrue");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackCompletion, "InputTextFlags_CallbackCompletion");
+    BIND_IENUM(L, ImGuiInputTextFlags_None, "InputTextFlags_None");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackResize, "InputTextFlags_CallbackResize");
+    BIND_IENUM(L, ImGuiInputTextFlags_ReadOnly, "InputTextFlags_ReadOnly");
+    BIND_IENUM(L, ImGuiInputTextFlags_AutoSelectAll, "InputTextFlags_AutoSelectAll");
+    BIND_IENUM(L, ImGuiInputTextFlags_AllowTabInput, "InputTextFlags_AllowTabInput");
+    BIND_IENUM(L, ImGuiInputTextFlags_CharsScientific, "InputTextFlags_CharsScientific");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackAlways, "InputTextFlags_CallbackAlways");
+    BIND_IENUM(L, ImGuiInputTextFlags_CharsDecimal, "InputTextFlags_CharsDecimal");
+    BIND_IENUM(L, ImGuiInputTextFlags_NoUndoRedo, "InputTextFlags_NoUndoRedo");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackHistory, "InputTextFlags_CallbackHistory");
+    BIND_IENUM(L, ImGuiInputTextFlags_CtrlEnterForNewLine, "InputTextFlags_CtrlEnterForNewLine");
+    BIND_IENUM(L, ImGuiInputTextFlags_CharsHexadecimal, "InputTextFlags_CharsHexadecimal");
+    BIND_IENUM(L, ImGuiInputTextFlags_CharsNoBlank, "InputTextFlags_CharsNoBlank");
+    BIND_IENUM(L, ImGuiInputTextFlags_Password, "InputTextFlags_Password");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackCharFilter, "InputTextFlags_CallbackCharFilter");
+    BIND_IENUM(L, ImGuiInputTextFlags_NoHorizontalScroll, "InputTextFlags_NoHorizontalScroll");
+    BIND_IENUM(L, ImGuiInputTextFlags_AlwaysInsertMode, "InputTextFlags_AlwaysInsertMode");
+    BIND_IENUM(L, ImGuiInputTextFlags_CharsUppercase, "InputTextFlags_CharsUppercase");
+    BIND_IENUM(L, ImGuiInputTextFlags_NoBackground, "InputTextFlags_NoBackground");
 
     //ImGuiTabBarFlags
-    BIND_ENUM(L, ImGuiTabBarFlags_AutoSelectNewTabs, "TabBarFlags_AutoSelectNewTabs");
-    BIND_ENUM(L, ImGuiTabBarFlags_NoCloseWithMiddleMouseButton, "TabBarFlags_NoCloseWithMiddleMouseButton");
-    BIND_ENUM(L, ImGuiTabBarFlags_TabListPopupButton, "TabBarFlags_TabListPopupButton");
-    BIND_ENUM(L, ImGuiTabBarFlags_NoTooltip, "TabBarFlags_NoTooltip");
-    BIND_ENUM(L, ImGuiTabBarFlags_FittingPolicyMask_, "TabBarFlags_FittingPolicyMask");
-    BIND_ENUM(L, ImGuiTabBarFlags_Reorderable, "TabBarFlags_Reorderable");
-    BIND_ENUM(L, ImGuiTabBarFlags_FittingPolicyDefault_, "TabBarFlags_FittingPolicyDefault");
-    BIND_ENUM(L, ImGuiTabBarFlags_FittingPolicyScroll, "TabBarFlags_FittingPolicyScroll");
-    BIND_ENUM(L, ImGuiTabBarFlags_FittingPolicyResizeDown, "TabBarFlags_FittingPolicyResizeDown");
-    BIND_ENUM(L, ImGuiTabBarFlags_None, "TabBarFlags_None");
-    BIND_ENUM(L, ImGuiTabBarFlags_NoTabListScrollingButtons, "TabBarFlags_NoTabListScrollingButtons");
+    BIND_IENUM(L, ImGuiTabBarFlags_AutoSelectNewTabs, "TabBarFlags_AutoSelectNewTabs");
+    BIND_IENUM(L, ImGuiTabBarFlags_NoCloseWithMiddleMouseButton, "TabBarFlags_NoCloseWithMiddleMouseButton");
+    BIND_IENUM(L, ImGuiTabBarFlags_TabListPopupButton, "TabBarFlags_TabListPopupButton");
+    BIND_IENUM(L, ImGuiTabBarFlags_NoTooltip, "TabBarFlags_NoTooltip");
+    BIND_IENUM(L, ImGuiTabBarFlags_FittingPolicyMask_, "TabBarFlags_FittingPolicyMask");
+    BIND_IENUM(L, ImGuiTabBarFlags_Reorderable, "TabBarFlags_Reorderable");
+    BIND_IENUM(L, ImGuiTabBarFlags_FittingPolicyDefault_, "TabBarFlags_FittingPolicyDefault");
+    BIND_IENUM(L, ImGuiTabBarFlags_FittingPolicyScroll, "TabBarFlags_FittingPolicyScroll");
+    BIND_IENUM(L, ImGuiTabBarFlags_FittingPolicyResizeDown, "TabBarFlags_FittingPolicyResizeDown");
+    BIND_IENUM(L, ImGuiTabBarFlags_None, "TabBarFlags_None");
+    BIND_IENUM(L, ImGuiTabBarFlags_NoTabListScrollingButtons, "TabBarFlags_NoTabListScrollingButtons");
 
     //ImGuiTreeNodeFlags
-    BIND_ENUM(L, ImGuiTreeNodeFlags_Bullet, "TreeNodeFlags_Bullet");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_None, "TreeNodeFlags_None");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_CollapsingHeader, "TreeNodeFlags_CollapsingHeader");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_NavLeftJumpsBackHere, "TreeNodeFlags_NavLeftJumpsBackHere");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_Framed, "TreeNodeFlags_Framed");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_FramePadding, "TreeNodeFlags_FramePadding");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_AllowItemOverlap, "TreeNodeFlags_AllowItemOverlap");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_OpenOnArrow, "TreeNodeFlags_OpenOnArrow");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_SpanFullWidth, "TreeNodeFlags_SpanFullWidth");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_NoAutoOpenOnLog, "TreeNodeFlags_NoAutoOpenOnLog");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_Leaf, "TreeNodeFlags_Leaf");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_NoTreePushOnOpen, "TreeNodeFlags_NoTreePushOnOpen");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_Selected, "TreeNodeFlags_Selected");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_SpanAvailWidth, "TreeNodeFlags_SpanAvailWidth");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_OpenOnDoubleClick, "TreeNodeFlags_OpenOnDoubleClick");
-    BIND_ENUM(L, ImGuiTreeNodeFlags_DefaultOpen, "TreeNodeFlags_DefaultOpen");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_Bullet, "TreeNodeFlags_Bullet");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_None, "TreeNodeFlags_None");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_CollapsingHeader, "TreeNodeFlags_CollapsingHeader");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_NavLeftJumpsBackHere, "TreeNodeFlags_NavLeftJumpsBackHere");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_Framed, "TreeNodeFlags_Framed");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_FramePadding, "TreeNodeFlags_FramePadding");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_AllowItemOverlap, "TreeNodeFlags_AllowItemOverlap");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_OpenOnArrow, "TreeNodeFlags_OpenOnArrow");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_SpanFullWidth, "TreeNodeFlags_SpanFullWidth");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_NoAutoOpenOnLog, "TreeNodeFlags_NoAutoOpenOnLog");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_Leaf, "TreeNodeFlags_Leaf");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_NoTreePushOnOpen, "TreeNodeFlags_NoTreePushOnOpen");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_Selected, "TreeNodeFlags_Selected");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_SpanAvailWidth, "TreeNodeFlags_SpanAvailWidth");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_OpenOnDoubleClick, "TreeNodeFlags_OpenOnDoubleClick");
+    BIND_IENUM(L, ImGuiTreeNodeFlags_DefaultOpen, "TreeNodeFlags_DefaultOpen");
 
     //ImGuiStyleVar
-    BIND_ENUM(L, ImGuiStyleVar_GrabRounding, "StyleVar_GrabRounding");
-    BIND_ENUM(L, ImGuiStyleVar_Alpha, "StyleVar_Alpha");
-    BIND_ENUM(L, ImGuiStyleVar_WindowMinSize, "StyleVar_WindowMinSize");
-    BIND_ENUM(L, ImGuiStyleVar_PopupBorderSize, "StyleVar_PopupBorderSize");
-    BIND_ENUM(L, ImGuiStyleVar_WindowBorderSize, "StyleVar_WindowBorderSize");
-    BIND_ENUM(L, ImGuiStyleVar_FrameBorderSize, "StyleVar_FrameBorderSize");
-    BIND_ENUM(L, ImGuiStyleVar_ItemSpacing, "StyleVar_ItemSpacing");
-    BIND_ENUM(L, ImGuiStyleVar_IndentSpacing, "StyleVar_IndentSpacing");
-    BIND_ENUM(L, ImGuiStyleVar_FramePadding, "StyleVar_FramePadding");
-    BIND_ENUM(L, ImGuiStyleVar_WindowPadding, "StyleVar_WindowPadding");
-    BIND_ENUM(L, ImGuiStyleVar_ChildRounding, "StyleVar_ChildRounding");
-    BIND_ENUM(L, ImGuiStyleVar_ItemInnerSpacing, "StyleVar_ItemInnerSpacing");
-    BIND_ENUM(L, ImGuiStyleVar_WindowRounding, "StyleVar_WindowRounding");
-    BIND_ENUM(L, ImGuiStyleVar_FrameRounding, "StyleVar_FrameRounding");
-    BIND_ENUM(L, ImGuiStyleVar_TabRounding, "StyleVar_TabRounding");
-    BIND_ENUM(L, ImGuiStyleVar_ChildBorderSize, "StyleVar_ChildBorderSize");
-    BIND_ENUM(L, ImGuiStyleVar_GrabMinSize, "StyleVar_GrabMinSize");
-    BIND_ENUM(L, ImGuiStyleVar_ScrollbarRounding, "StyleVar_ScrollbarRounding");
-    BIND_ENUM(L, ImGuiStyleVar_ScrollbarSize, "StyleVar_ScrollbarSize");
-    BIND_ENUM(L, ImGuiStyleVar_WindowTitleAlign, "StyleVar_WindowTitleAlign");
-    BIND_ENUM(L, ImGuiStyleVar_SelectableTextAlign, "StyleVar_SelectableTextAlign");
-    BIND_ENUM(L, ImGuiStyleVar_PopupRounding, "StyleVar_PopupRounding");
-    BIND_ENUM(L, ImGuiStyleVar_ButtonTextAlign, "StyleVar_ButtonTextAlign");
-    BIND_ENUM(L, ImGuiStyleVar_CellPadding, "StyleVar_CellPadding");
+    BIND_IENUM(L, ImGuiStyleVar_GrabRounding, "StyleVar_GrabRounding");
+    BIND_IENUM(L, ImGuiStyleVar_Alpha, "StyleVar_Alpha");
+    BIND_IENUM(L, ImGuiStyleVar_WindowMinSize, "StyleVar_WindowMinSize");
+    BIND_IENUM(L, ImGuiStyleVar_PopupBorderSize, "StyleVar_PopupBorderSize");
+    BIND_IENUM(L, ImGuiStyleVar_WindowBorderSize, "StyleVar_WindowBorderSize");
+    BIND_IENUM(L, ImGuiStyleVar_FrameBorderSize, "StyleVar_FrameBorderSize");
+    BIND_IENUM(L, ImGuiStyleVar_ItemSpacing, "StyleVar_ItemSpacing");
+    BIND_IENUM(L, ImGuiStyleVar_IndentSpacing, "StyleVar_IndentSpacing");
+    BIND_IENUM(L, ImGuiStyleVar_FramePadding, "StyleVar_FramePadding");
+    BIND_IENUM(L, ImGuiStyleVar_WindowPadding, "StyleVar_WindowPadding");
+    BIND_IENUM(L, ImGuiStyleVar_ChildRounding, "StyleVar_ChildRounding");
+    BIND_IENUM(L, ImGuiStyleVar_ItemInnerSpacing, "StyleVar_ItemInnerSpacing");
+    BIND_IENUM(L, ImGuiStyleVar_WindowRounding, "StyleVar_WindowRounding");
+    BIND_IENUM(L, ImGuiStyleVar_FrameRounding, "StyleVar_FrameRounding");
+    BIND_IENUM(L, ImGuiStyleVar_TabRounding, "StyleVar_TabRounding");
+    BIND_IENUM(L, ImGuiStyleVar_ChildBorderSize, "StyleVar_ChildBorderSize");
+    BIND_IENUM(L, ImGuiStyleVar_GrabMinSize, "StyleVar_GrabMinSize");
+    BIND_IENUM(L, ImGuiStyleVar_ScrollbarRounding, "StyleVar_ScrollbarRounding");
+    BIND_IENUM(L, ImGuiStyleVar_ScrollbarSize, "StyleVar_ScrollbarSize");
+    BIND_IENUM(L, ImGuiStyleVar_WindowTitleAlign, "StyleVar_WindowTitleAlign");
+    BIND_IENUM(L, ImGuiStyleVar_SelectableTextAlign, "StyleVar_SelectableTextAlign");
+    BIND_IENUM(L, ImGuiStyleVar_PopupRounding, "StyleVar_PopupRounding");
+    BIND_IENUM(L, ImGuiStyleVar_ButtonTextAlign, "StyleVar_ButtonTextAlign");
+    BIND_IENUM(L, ImGuiStyleVar_CellPadding, "StyleVar_CellPadding");
 
     //ImGuiCol
-    BIND_ENUM(L, ImGuiCol_PlotHistogram, "Col_PlotHistogram");
-    BIND_ENUM(L, ImGuiCol_TitleBg, "Col_TitleBg");
-    BIND_ENUM(L, ImGuiCol_Separator, "Col_Separator");
-    BIND_ENUM(L, ImGuiCol_HeaderActive, "Col_HeaderActive");
-    BIND_ENUM(L, ImGuiCol_HeaderHovered, "Col_HeaderHovered");
-    BIND_ENUM(L, ImGuiCol_ButtonHovered, "Col_ButtonHovered");
-    BIND_ENUM(L, ImGuiCol_NavWindowingHighlight, "Col_NavWindowingHighlight");
-    BIND_ENUM(L, ImGuiCol_ScrollbarGrab, "Col_ScrollbarGrab");
-    BIND_ENUM(L, ImGuiCol_FrameBg, "Col_FrameBg");
-    BIND_ENUM(L, ImGuiCol_TextSelectedBg, "Col_TextSelectedBg");
-    BIND_ENUM(L, ImGuiCol_ScrollbarGrabActive, "Col_ScrollbarGrabActive");
-    BIND_ENUM(L, ImGuiCol_TitleBgCollapsed, "Col_TitleBgCollapsed");
-    BIND_ENUM(L, ImGuiCol_ModalWindowDimBg, "Col_ModalWindowDimBg");
-    BIND_ENUM(L, ImGuiCol_ResizeGripActive, "Col_ResizeGripActive");
-    BIND_ENUM(L, ImGuiCol_SeparatorHovered, "Col_SeparatorHovered");
-    BIND_ENUM(L, ImGuiCol_ScrollbarGrabHovered, "Col_ScrollbarGrabHovered");
-    BIND_ENUM(L, ImGuiCol_TabUnfocused, "Col_TabUnfocused");
-    BIND_ENUM(L, ImGuiCol_ScrollbarBg, "Col_ScrollbarBg");
-    BIND_ENUM(L, ImGuiCol_ChildBg, "Col_ChildBg");
-    BIND_ENUM(L, ImGuiCol_Header, "Col_Header");
-    BIND_ENUM(L, ImGuiCol_NavWindowingDimBg, "Col_NavWindowingDimBg");
-    BIND_ENUM(L, ImGuiCol_CheckMark, "Col_CheckMark");
-    BIND_ENUM(L, ImGuiCol_Button, "Col_Button");
-    BIND_ENUM(L, ImGuiCol_BorderShadow, "Col_BorderShadow");
-    BIND_ENUM(L, ImGuiCol_DragDropTarget, "Col_DragDropTarget");
-    BIND_ENUM(L, ImGuiCol_MenuBarBg, "Col_MenuBarBg");
-    BIND_ENUM(L, ImGuiCol_TitleBgActive, "Col_TitleBgActive");
-    BIND_ENUM(L, ImGuiCol_SeparatorActive, "Col_SeparatorActive");
-    BIND_ENUM(L, ImGuiCol_Text, "Col_Text");
-    BIND_ENUM(L, ImGuiCol_PlotLinesHovered, "Col_PlotLinesHovered");
-    BIND_ENUM(L, ImGuiCol_Border, "Col_Border");
-    BIND_ENUM(L, ImGuiCol_TabUnfocusedActive, "Col_TabUnfocusedActive");
-    BIND_ENUM(L, ImGuiCol_PlotLines, "Col_PlotLines");
-    BIND_ENUM(L, ImGuiCol_PlotHistogramHovered, "Col_PlotHistogramHovered");
-    BIND_ENUM(L, ImGuiCol_ResizeGripHovered, "Col_ResizeGripHovered");
-    BIND_ENUM(L, ImGuiCol_Tab, "Col_Tab");
-    BIND_ENUM(L, ImGuiCol_TabHovered, "Col_TabHovered");
-    BIND_ENUM(L, ImGuiCol_PopupBg, "Col_PopupBg");
-    BIND_ENUM(L, ImGuiCol_TabActive, "Col_TabActive");
-    BIND_ENUM(L, ImGuiCol_FrameBgActive, "Col_FrameBgActive");
-    BIND_ENUM(L, ImGuiCol_ButtonActive, "Col_ButtonActive");
-    BIND_ENUM(L, ImGuiCol_WindowBg, "Col_WindowBg");
-    BIND_ENUM(L, ImGuiCol_SliderGrabActive, "Col_SliderGrabActive");
-    BIND_ENUM(L, ImGuiCol_SliderGrab, "Col_SliderGrab");
-    BIND_ENUM(L, ImGuiCol_NavHighlight, "Col_NavHighlight");
-    BIND_ENUM(L, ImGuiCol_FrameBgHovered, "Col_FrameBgHovered");
-    BIND_ENUM(L, ImGuiCol_TextDisabled, "Col_TextDisabled");
-    BIND_ENUM(L, ImGuiCol_ResizeGrip, "Col_ResizeGrip");
-    BIND_ENUM(L, ImGuiCol_TableHeaderBg, "Col_TableHeaderBg");
-    BIND_ENUM(L, ImGuiCol_TableBorderStrong, "Col_TableBorderStrong");
-    BIND_ENUM(L, ImGuiCol_TableBorderLight, "Col_TableBorderLight");
-    BIND_ENUM(L, ImGuiCol_TableRowBg, "Col_TableRowBg");
-    BIND_ENUM(L, ImGuiCol_TableRowBgAlt, "Col_TableRowBgAlt");
+    BIND_IENUM(L, ImGuiCol_PlotHistogram, "Col_PlotHistogram");
+    BIND_IENUM(L, ImGuiCol_TitleBg, "Col_TitleBg");
+    BIND_IENUM(L, ImGuiCol_Separator, "Col_Separator");
+    BIND_IENUM(L, ImGuiCol_HeaderActive, "Col_HeaderActive");
+    BIND_IENUM(L, ImGuiCol_HeaderHovered, "Col_HeaderHovered");
+    BIND_IENUM(L, ImGuiCol_ButtonHovered, "Col_ButtonHovered");
+    BIND_IENUM(L, ImGuiCol_NavWindowingHighlight, "Col_NavWindowingHighlight");
+    BIND_IENUM(L, ImGuiCol_ScrollbarGrab, "Col_ScrollbarGrab");
+    BIND_IENUM(L, ImGuiCol_FrameBg, "Col_FrameBg");
+    BIND_IENUM(L, ImGuiCol_TextSelectedBg, "Col_TextSelectedBg");
+    BIND_IENUM(L, ImGuiCol_ScrollbarGrabActive, "Col_ScrollbarGrabActive");
+    BIND_IENUM(L, ImGuiCol_TitleBgCollapsed, "Col_TitleBgCollapsed");
+    BIND_IENUM(L, ImGuiCol_ModalWindowDimBg, "Col_ModalWindowDimBg");
+    BIND_IENUM(L, ImGuiCol_ResizeGripActive, "Col_ResizeGripActive");
+    BIND_IENUM(L, ImGuiCol_SeparatorHovered, "Col_SeparatorHovered");
+    BIND_IENUM(L, ImGuiCol_ScrollbarGrabHovered, "Col_ScrollbarGrabHovered");
+    BIND_IENUM(L, ImGuiCol_TabUnfocused, "Col_TabUnfocused");
+    BIND_IENUM(L, ImGuiCol_ScrollbarBg, "Col_ScrollbarBg");
+    BIND_IENUM(L, ImGuiCol_ChildBg, "Col_ChildBg");
+    BIND_IENUM(L, ImGuiCol_Header, "Col_Header");
+    BIND_IENUM(L, ImGuiCol_NavWindowingDimBg, "Col_NavWindowingDimBg");
+    BIND_IENUM(L, ImGuiCol_CheckMark, "Col_CheckMark");
+    BIND_IENUM(L, ImGuiCol_Button, "Col_Button");
+    BIND_IENUM(L, ImGuiCol_BorderShadow, "Col_BorderShadow");
+    BIND_IENUM(L, ImGuiCol_DragDropTarget, "Col_DragDropTarget");
+    BIND_IENUM(L, ImGuiCol_MenuBarBg, "Col_MenuBarBg");
+    BIND_IENUM(L, ImGuiCol_TitleBgActive, "Col_TitleBgActive");
+    BIND_IENUM(L, ImGuiCol_SeparatorActive, "Col_SeparatorActive");
+    BIND_IENUM(L, ImGuiCol_Text, "Col_Text");
+    BIND_IENUM(L, ImGuiCol_PlotLinesHovered, "Col_PlotLinesHovered");
+    BIND_IENUM(L, ImGuiCol_Border, "Col_Border");
+    BIND_IENUM(L, ImGuiCol_TabUnfocusedActive, "Col_TabUnfocusedActive");
+    BIND_IENUM(L, ImGuiCol_PlotLines, "Col_PlotLines");
+    BIND_IENUM(L, ImGuiCol_PlotHistogramHovered, "Col_PlotHistogramHovered");
+    BIND_IENUM(L, ImGuiCol_ResizeGripHovered, "Col_ResizeGripHovered");
+    BIND_IENUM(L, ImGuiCol_Tab, "Col_Tab");
+    BIND_IENUM(L, ImGuiCol_TabHovered, "Col_TabHovered");
+    BIND_IENUM(L, ImGuiCol_PopupBg, "Col_PopupBg");
+    BIND_IENUM(L, ImGuiCol_TabActive, "Col_TabActive");
+    BIND_IENUM(L, ImGuiCol_FrameBgActive, "Col_FrameBgActive");
+    BIND_IENUM(L, ImGuiCol_ButtonActive, "Col_ButtonActive");
+    BIND_IENUM(L, ImGuiCol_WindowBg, "Col_WindowBg");
+    BIND_IENUM(L, ImGuiCol_SliderGrabActive, "Col_SliderGrabActive");
+    BIND_IENUM(L, ImGuiCol_SliderGrab, "Col_SliderGrab");
+    BIND_IENUM(L, ImGuiCol_NavHighlight, "Col_NavHighlight");
+    BIND_IENUM(L, ImGuiCol_FrameBgHovered, "Col_FrameBgHovered");
+    BIND_IENUM(L, ImGuiCol_TextDisabled, "Col_TextDisabled");
+    BIND_IENUM(L, ImGuiCol_ResizeGrip, "Col_ResizeGrip");
+    BIND_IENUM(L, ImGuiCol_TableHeaderBg, "Col_TableHeaderBg");
+    BIND_IENUM(L, ImGuiCol_TableBorderStrong, "Col_TableBorderStrong");
+    BIND_IENUM(L, ImGuiCol_TableBorderLight, "Col_TableBorderLight");
+    BIND_IENUM(L, ImGuiCol_TableRowBg, "Col_TableRowBg");
+    BIND_IENUM(L, ImGuiCol_TableRowBgAlt, "Col_TableRowBgAlt");
 #ifdef IS_BETA_BUILD
-    BIND_ENUM(L, ImGuiCol_DockingPreview, "Col_DockingPreview");
-    BIND_ENUM(L, ImGuiCol_DockingEmptyBg, "Col_DockingEmptyBg");
+    BIND_IENUM(L, ImGuiCol_DockingPreview, "Col_DockingPreview");
+    BIND_IENUM(L, ImGuiCol_DockingEmptyBg, "Col_DockingEmptyBg");
 #endif
 
     // TextEditor
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Default, "TE_Default");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Keyword, "TE_Keyword");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Number, "TE_Number");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::String, "TE_String");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::CharLiteral, "TE_CharLiteral");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Punctuation, "TE_Punctuation");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Preprocessor, "TE_Preprocessor");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Identifier, "TE_Identifier");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::KnownIdentifier, "TE_KnownIdentifier");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::PreprocIdentifier, "TE_PreprocIdentifier");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Comment, "TE_Comment");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::MultiLineComment, "TE_MultiLineComment");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Background, "TE_Background");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Cursor, "TE_Cursor");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Selection, "TE_Selection");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::ErrorMarker, "TE_ErrorMarker");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::Breakpoint, "TE_Breakpoint");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::LineNumber, "TE_LineNumber");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::CurrentLineFill, "TE_CurrentLineFill");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::CurrentLineFillInactive, "TE_CurrentLineFillInactive");
-    BIND_ENUM(L, (int)TextEditor::PaletteIndex::CurrentLineEdge, "TE_CurrentLineEdge");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Default, "TE_Default");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Keyword, "TE_Keyword");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Number, "TE_Number");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::String, "TE_String");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::CharLiteral, "TE_CharLiteral");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Punctuation, "TE_Punctuation");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Preprocessor, "TE_Preprocessor");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Identifier, "TE_Identifier");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::KnownIdentifier, "TE_KnownIdentifier");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::PreprocIdentifier, "TE_PreprocIdentifier");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Comment, "TE_Comment");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::MultiLineComment, "TE_MultiLineComment");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Background, "TE_Background");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Cursor, "TE_Cursor");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Selection, "TE_Selection");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::ErrorMarker, "TE_ErrorMarker");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::Breakpoint, "TE_Breakpoint");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::LineNumber, "TE_LineNumber");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::CurrentLineFill, "TE_CurrentLineFill");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::CurrentLineFillInactive, "TE_CurrentLineFillInactive");
+    BIND_IENUM(L, (int)TextEditor::PaletteIndex::CurrentLineEdge, "TE_CurrentLineEdge");
 
     //ImGuiDataType
-    BIND_ENUM(L, ImGuiDataType_U8, "DataType_U8");
-    BIND_ENUM(L, ImGuiDataType_S64, "DataType_S64");
-    BIND_ENUM(L, ImGuiDataType_Float, "DataType_Float");
-    BIND_ENUM(L, ImGuiDataType_S16, "DataType_S16");
-    BIND_ENUM(L, ImGuiDataType_U16, "DataType_U16");
-    BIND_ENUM(L, ImGuiDataType_Double, "DataType_Double");
-    BIND_ENUM(L, ImGuiDataType_S8, "DataType_S8");
-    BIND_ENUM(L, ImGuiDataType_U32, "DataType_U32");
-    BIND_ENUM(L, ImGuiDataType_S32, "DataType_S32");
-    BIND_ENUM(L, ImGuiDataType_U64, "DataType_U64");
+    BIND_IENUM(L, ImGuiDataType_U8, "DataType_U8");
+    BIND_IENUM(L, ImGuiDataType_S64, "DataType_S64");
+    BIND_IENUM(L, ImGuiDataType_Float, "DataType_Float");
+    BIND_IENUM(L, ImGuiDataType_S16, "DataType_S16");
+    BIND_IENUM(L, ImGuiDataType_U16, "DataType_U16");
+    BIND_IENUM(L, ImGuiDataType_Double, "DataType_Double");
+    BIND_IENUM(L, ImGuiDataType_S8, "DataType_S8");
+    BIND_IENUM(L, ImGuiDataType_U32, "DataType_U32");
+    BIND_IENUM(L, ImGuiDataType_S32, "DataType_S32");
+    BIND_IENUM(L, ImGuiDataType_U64, "DataType_U64");
 
     //ImGuiDir
-    BIND_ENUM(L, ImGuiDir_None, "Dir_None");
-    BIND_ENUM(L, ImGuiDir_Left, "Dir_Left");
-    BIND_ENUM(L, ImGuiDir_Up, "Dir_Up");
-    BIND_ENUM(L, ImGuiDir_Down, "Dir_Down");
-    BIND_ENUM(L, ImGuiDir_Right, "Dir_Right");
+    BIND_IENUM(L, ImGuiDir_None, "Dir_None");
+    BIND_IENUM(L, ImGuiDir_Left, "Dir_Left");
+    BIND_IENUM(L, ImGuiDir_Up, "Dir_Up");
+    BIND_IENUM(L, ImGuiDir_Down, "Dir_Down");
+    BIND_IENUM(L, ImGuiDir_Right, "Dir_Right");
 
     //ImGuiWindowFlags
-    BIND_ENUM(L, ImGuiWindowFlags_NoScrollWithMouse, "WindowFlags_NoScrollWithMouse");
-    BIND_ENUM(L, ImGuiWindowFlags_None, "WindowFlags_None");
-    BIND_ENUM(L, ImGuiWindowFlags_NoScrollbar, "WindowFlags_NoScrollbar");
-    BIND_ENUM(L, ImGuiWindowFlags_HorizontalScrollbar, "WindowFlags_HorizontalScrollbar");
-    BIND_ENUM(L, ImGuiWindowFlags_NoFocusOnAppearing, "WindowFlags_NoFocusOnAppearing");
-    BIND_ENUM(L, ImGuiWindowFlags_NoBringToFrontOnFocus, "WindowFlags_NoBringToFrontOnFocus");
-    BIND_ENUM(L, ImGuiWindowFlags_NoDecoration, "WindowFlags_NoDecoration");
-    BIND_ENUM(L, ImGuiWindowFlags_NoCollapse, "WindowFlags_NoCollapse");
-    BIND_ENUM(L, ImGuiWindowFlags_NoTitleBar, "WindowFlags_NoTitleBar");
-    BIND_ENUM(L, ImGuiWindowFlags_NoMove, "WindowFlags_NoMove");
-    BIND_ENUM(L, ImGuiWindowFlags_NoInputs, "WindowFlags_NoInputs");
-    BIND_ENUM(L, ImGuiWindowFlags_NoMouseInputs, "WindowFlags_NoMouseInputs");
-    BIND_ENUM(L, ImGuiWindowFlags_NoSavedSettings, "WindowFlags_NoSavedSettings");
-    BIND_ENUM(L, ImGuiWindowFlags_NoNav, "WindowFlags_NoNav");
-    BIND_ENUM(L, ImGuiWindowFlags_UnsavedDocument, "WindowFlags_UnsavedDocument");
-    BIND_ENUM(L, ImGuiWindowFlags_NoNavFocus, "WindowFlags_NoNavFocus");
-    BIND_ENUM(L, ImGuiWindowFlags_AlwaysHorizontalScrollbar, "WindowFlags_AlwaysHorizontalScrollbar");
-    BIND_ENUM(L, ImGuiWindowFlags_AlwaysUseWindowPadding, "WindowFlags_AlwaysUseWindowPadding");
-    BIND_ENUM(L, ImGuiWindowFlags_NoNavInputs, "WindowFlags_NoNavInputs");
-    BIND_ENUM(L, ImGuiWindowFlags_NoResize, "WindowFlags_NoResize");
-    BIND_ENUM(L, ImGuiWindowFlags_AlwaysVerticalScrollbar, "WindowFlags_AlwaysVerticalScrollbar");
-    BIND_ENUM(L, ImGuiWindowFlags_MenuBar, "WindowFlags_MenuBar");
-    BIND_ENUM(L, ImGuiWindowFlags_NoBackground, "WindowFlags_NoBackground");
-    BIND_ENUM(L, ImGuiWindowFlags_AlwaysAutoResize, "WindowFlags_AlwaysAutoResize");
+    BIND_IENUM(L, ImGuiWindowFlags_NoScrollWithMouse, "WindowFlags_NoScrollWithMouse");
+    BIND_IENUM(L, ImGuiWindowFlags_None, "WindowFlags_None");
+    BIND_IENUM(L, ImGuiWindowFlags_NoScrollbar, "WindowFlags_NoScrollbar");
+    BIND_IENUM(L, ImGuiWindowFlags_HorizontalScrollbar, "WindowFlags_HorizontalScrollbar");
+    BIND_IENUM(L, ImGuiWindowFlags_NoFocusOnAppearing, "WindowFlags_NoFocusOnAppearing");
+    BIND_IENUM(L, ImGuiWindowFlags_NoBringToFrontOnFocus, "WindowFlags_NoBringToFrontOnFocus");
+    BIND_IENUM(L, ImGuiWindowFlags_NoDecoration, "WindowFlags_NoDecoration");
+    BIND_IENUM(L, ImGuiWindowFlags_NoCollapse, "WindowFlags_NoCollapse");
+    BIND_IENUM(L, ImGuiWindowFlags_NoTitleBar, "WindowFlags_NoTitleBar");
+    BIND_IENUM(L, ImGuiWindowFlags_NoMove, "WindowFlags_NoMove");
+    BIND_IENUM(L, ImGuiWindowFlags_NoInputs, "WindowFlags_NoInputs");
+    BIND_IENUM(L, ImGuiWindowFlags_NoMouseInputs, "WindowFlags_NoMouseInputs");
+    BIND_IENUM(L, ImGuiWindowFlags_NoSavedSettings, "WindowFlags_NoSavedSettings");
+    BIND_IENUM(L, ImGuiWindowFlags_NoNav, "WindowFlags_NoNav");
+    BIND_IENUM(L, ImGuiWindowFlags_UnsavedDocument, "WindowFlags_UnsavedDocument");
+    BIND_IENUM(L, ImGuiWindowFlags_NoNavFocus, "WindowFlags_NoNavFocus");
+    BIND_IENUM(L, ImGuiWindowFlags_AlwaysHorizontalScrollbar, "WindowFlags_AlwaysHorizontalScrollbar");
+    BIND_IENUM(L, ImGuiWindowFlags_AlwaysUseWindowPadding, "WindowFlags_AlwaysUseWindowPadding");
+    BIND_IENUM(L, ImGuiWindowFlags_NoNavInputs, "WindowFlags_NoNavInputs");
+    BIND_IENUM(L, ImGuiWindowFlags_NoResize, "WindowFlags_NoResize");
+    BIND_IENUM(L, ImGuiWindowFlags_AlwaysVerticalScrollbar, "WindowFlags_AlwaysVerticalScrollbar");
+    BIND_IENUM(L, ImGuiWindowFlags_MenuBar, "WindowFlags_MenuBar");
+    BIND_IENUM(L, ImGuiWindowFlags_NoBackground, "WindowFlags_NoBackground");
+    BIND_IENUM(L, ImGuiWindowFlags_AlwaysAutoResize, "WindowFlags_AlwaysAutoResize");
 #ifdef IS_BETA_BUILD
-    BIND_ENUM(L, ImGuiWindowFlags_NoDocking, "WindowFlags_NoDocking");
+    BIND_IENUM(L, ImGuiWindowFlags_NoDocking, "WindowFlags_NoDocking");
 #endif
     //@MultiPain
-    BIND_ENUM(L, ImGuiWindowFlags_FullScreen, "WindowFlags_FullScreen");
+    BIND_IENUM(L, ImGuiWindowFlags_FullScreen, "WindowFlags_FullScreen");
 
     //ImGuiTabItemFlags
-    BIND_ENUM(L, ImGuiTabItemFlags_SetSelected, "TabItemFlags_SetSelected");
-    BIND_ENUM(L, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton, "TabItemFlags_NoCloseWithMiddleMouseButton");
-    BIND_ENUM(L, ImGuiTabItemFlags_NoTooltip, "TabItemFlags_NoTooltip");
-    BIND_ENUM(L, ImGuiTabItemFlags_None, "TabItemFlags_None");
-    BIND_ENUM(L, ImGuiTabItemFlags_NoPushId, "TabItemFlags_NoPushId");
-    BIND_ENUM(L, ImGuiTabItemFlags_UnsavedDocument, "TabItemFlags_UnsavedDocument");
-    BIND_ENUM(L, ImGuiTabItemFlags_Leading, "TabItemFlags_Leading");
-    BIND_ENUM(L, ImGuiTabItemFlags_Trailing, "TabItemFlags_Trailing");
-    BIND_ENUM(L, ImGuiTabItemFlags_NoReorder, "TabItemFlags_NoReorder");
+    BIND_IENUM(L, ImGuiTabItemFlags_SetSelected, "TabItemFlags_SetSelected");
+    BIND_IENUM(L, ImGuiTabItemFlags_NoCloseWithMiddleMouseButton, "TabItemFlags_NoCloseWithMiddleMouseButton");
+    BIND_IENUM(L, ImGuiTabItemFlags_NoTooltip, "TabItemFlags_NoTooltip");
+    BIND_IENUM(L, ImGuiTabItemFlags_None, "TabItemFlags_None");
+    BIND_IENUM(L, ImGuiTabItemFlags_NoPushId, "TabItemFlags_NoPushId");
+    BIND_IENUM(L, ImGuiTabItemFlags_UnsavedDocument, "TabItemFlags_UnsavedDocument");
+    BIND_IENUM(L, ImGuiTabItemFlags_Leading, "TabItemFlags_Leading");
+    BIND_IENUM(L, ImGuiTabItemFlags_Trailing, "TabItemFlags_Trailing");
+    BIND_IENUM(L, ImGuiTabItemFlags_NoReorder, "TabItemFlags_NoReorder");
 
     //ImGuiComboFlags
-    BIND_ENUM(L, ImGuiComboFlags_HeightSmall, "ComboFlags_HeightSmall");
-    BIND_ENUM(L, ImGuiComboFlags_HeightLarge, "ComboFlags_HeightLarge");
-    BIND_ENUM(L, ImGuiComboFlags_PopupAlignLeft, "ComboFlags_PopupAlignLeft");
-    BIND_ENUM(L, ImGuiComboFlags_None, "ComboFlags_None");
-    BIND_ENUM(L, ImGuiComboFlags_NoPreview, "ComboFlags_NoPreview");
-    BIND_ENUM(L, ImGuiComboFlags_HeightRegular, "ComboFlags_HeightRegular");
-    BIND_ENUM(L, ImGuiComboFlags_HeightMask_, "ComboFlags_HeightMask");
-    BIND_ENUM(L, ImGuiComboFlags_NoArrowButton, "ComboFlags_NoArrowButton");
-    BIND_ENUM(L, ImGuiComboFlags_HeightLargest, "ComboFlags_HeightLargest");
+    BIND_IENUM(L, ImGuiComboFlags_HeightSmall, "ComboFlags_HeightSmall");
+    BIND_IENUM(L, ImGuiComboFlags_HeightLarge, "ComboFlags_HeightLarge");
+    BIND_IENUM(L, ImGuiComboFlags_PopupAlignLeft, "ComboFlags_PopupAlignLeft");
+    BIND_IENUM(L, ImGuiComboFlags_None, "ComboFlags_None");
+    BIND_IENUM(L, ImGuiComboFlags_NoPreview, "ComboFlags_NoPreview");
+    BIND_IENUM(L, ImGuiComboFlags_HeightRegular, "ComboFlags_HeightRegular");
+    BIND_IENUM(L, ImGuiComboFlags_HeightMask_, "ComboFlags_HeightMask");
+    BIND_IENUM(L, ImGuiComboFlags_NoArrowButton, "ComboFlags_NoArrowButton");
+    BIND_IENUM(L, ImGuiComboFlags_HeightLargest, "ComboFlags_HeightLargest");
 
     //ImGuiCond
-    BIND_ENUM(L, ImGuiCond_Appearing, "Cond_Appearing");
-    BIND_ENUM(L, ImGuiCond_None, "Cond_None");
-    BIND_ENUM(L, ImGuiCond_Always, "Cond_Always");
-    BIND_ENUM(L, ImGuiCond_FirstUseEver, "Cond_FirstUseEver");
-    BIND_ENUM(L, ImGuiCond_Once, "Cond_Once");
+    BIND_IENUM(L, ImGuiCond_Appearing, "Cond_Appearing");
+    BIND_IENUM(L, ImGuiCond_None, "Cond_None");
+    BIND_IENUM(L, ImGuiCond_Always, "Cond_Always");
+    BIND_IENUM(L, ImGuiCond_FirstUseEver, "Cond_FirstUseEver");
+    BIND_IENUM(L, ImGuiCond_Once, "Cond_Once");
 
     //ImGuiSelectableFlags
-    BIND_ENUM(L, ImGuiSelectableFlags_None, "SelectableFlags_None");
-    BIND_ENUM(L, ImGuiSelectableFlags_SpanAllColumns, "SelectableFlags_SpanAllColumns");
-    BIND_ENUM(L, ImGuiSelectableFlags_AllowItemOverlap, "SelectableFlags_AllowItemOverlap");
-    BIND_ENUM(L, ImGuiSelectableFlags_DontClosePopups, "SelectableFlags_DontClosePopups");
-    BIND_ENUM(L, ImGuiSelectableFlags_AllowDoubleClick, "SelectableFlags_AllowDoubleClick");
-    BIND_ENUM(L, ImGuiSelectableFlags_Disabled, "SelectableFlags_Disabled");
+    BIND_IENUM(L, ImGuiSelectableFlags_None, "SelectableFlags_None");
+    BIND_IENUM(L, ImGuiSelectableFlags_SpanAllColumns, "SelectableFlags_SpanAllColumns");
+    BIND_IENUM(L, ImGuiSelectableFlags_AllowItemOverlap, "SelectableFlags_AllowItemOverlap");
+    BIND_IENUM(L, ImGuiSelectableFlags_DontClosePopups, "SelectableFlags_DontClosePopups");
+    BIND_IENUM(L, ImGuiSelectableFlags_AllowDoubleClick, "SelectableFlags_AllowDoubleClick");
+    BIND_IENUM(L, ImGuiSelectableFlags_Disabled, "SelectableFlags_Disabled");
 
     //ImGuiMouseCursor
-    BIND_ENUM(L, ImGuiMouseCursor_None, "MouseCursor_None");
-    BIND_ENUM(L, ImGuiMouseCursor_Arrow, "MouseCursor_Arrow");
-    BIND_ENUM(L, ImGuiMouseCursor_TextInput, "MouseCursor_TextInput");
-    BIND_ENUM(L, ImGuiMouseCursor_ResizeAll, "MouseCursor_ResizeAll");
-    BIND_ENUM(L, ImGuiMouseCursor_ResizeNS, "MouseCursor_ResizeNS");
-    BIND_ENUM(L, ImGuiMouseCursor_ResizeEW, "MouseCursor_ResizeEW");
-    BIND_ENUM(L, ImGuiMouseCursor_ResizeNESW, "MouseCursor_ResizeNESW");
-    BIND_ENUM(L, ImGuiMouseCursor_ResizeNWSE, "MouseCursor_ResizeNWSE");
-    BIND_ENUM(L, ImGuiMouseCursor_Hand, "MouseCursor_Hand");
-    BIND_ENUM(L, ImGuiMouseCursor_NotAllowed, "MouseCursor_NotAllowed");
+    BIND_IENUM(L, ImGuiMouseCursor_None, "MouseCursor_None");
+    BIND_IENUM(L, ImGuiMouseCursor_Arrow, "MouseCursor_Arrow");
+    BIND_IENUM(L, ImGuiMouseCursor_TextInput, "MouseCursor_TextInput");
+    BIND_IENUM(L, ImGuiMouseCursor_ResizeAll, "MouseCursor_ResizeAll");
+    BIND_IENUM(L, ImGuiMouseCursor_ResizeNS, "MouseCursor_ResizeNS");
+    BIND_IENUM(L, ImGuiMouseCursor_ResizeEW, "MouseCursor_ResizeEW");
+    BIND_IENUM(L, ImGuiMouseCursor_ResizeNESW, "MouseCursor_ResizeNESW");
+    BIND_IENUM(L, ImGuiMouseCursor_ResizeNWSE, "MouseCursor_ResizeNWSE");
+    BIND_IENUM(L, ImGuiMouseCursor_Hand, "MouseCursor_Hand");
+    BIND_IENUM(L, ImGuiMouseCursor_NotAllowed, "MouseCursor_NotAllowed");
 
     //ImGuiColorEditFlags
-    BIND_ENUM(L, ImGuiColorEditFlags_AlphaPreview, "ColorEditFlags_AlphaPreview");
-    BIND_ENUM(L, ImGuiColorEditFlags_DisplayRGB, "ColorEditFlags_DisplayRGB");
-    BIND_ENUM(L, ImGuiColorEditFlags_DisplayHex, "ColorEditFlags_DisplayHex");
-    BIND_ENUM(L, ImGuiColorEditFlags_InputHSV, "ColorEditFlags_InputHSV");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoSidePreview, "ColorEditFlags_NoSidePreview");
-    BIND_ENUM(L, ImGuiColorEditFlags_Uint8, "ColorEditFlags_Uint8");
-    BIND_ENUM(L, ImGuiColorEditFlags_AlphaPreviewHalf, "ColorEditFlags_AlphaPreviewHalf");
-    BIND_ENUM(L, ImGuiColorEditFlags_Float, "ColorEditFlags_Float");
-    BIND_ENUM(L, ImGuiColorEditFlags_PickerHueWheel, "ColorEditFlags_PickerHueWheel");
-    BIND_ENUM(L, ImGuiColorEditFlags__OptionsDefault, "ColorEditFlags_OptionsDefault");
-    BIND_ENUM(L, ImGuiColorEditFlags_InputRGB, "ColorEditFlags_InputRGB");
-    BIND_ENUM(L, ImGuiColorEditFlags_HDR, "ColorEditFlags_HDR");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoPicker, "ColorEditFlags_NoPicker");
-    BIND_ENUM(L, ImGuiColorEditFlags_AlphaBar, "ColorEditFlags_AlphaBar");
-    BIND_ENUM(L, ImGuiColorEditFlags_DisplayHSV, "ColorEditFlags_DisplayHSV");
-    BIND_ENUM(L, ImGuiColorEditFlags_PickerHueBar, "ColorEditFlags_PickerHueBar");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoAlpha, "ColorEditFlags_NoAlpha");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoOptions, "ColorEditFlags_NoOptions");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoDragDrop, "ColorEditFlags_NoDragDrop");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoInputs, "ColorEditFlags_NoInputs");
-    BIND_ENUM(L, ImGuiColorEditFlags_None, "ColorEditFlags_None");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoSmallPreview, "ColorEditFlags_NoSmallPreview");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoBorder, "ColorEditFlags_NoBorder");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoLabel, "ColorEditFlags_NoLabel");
-    BIND_ENUM(L, ImGuiColorEditFlags_NoTooltip, "ColorEditFlags_NoTooltip");
+    BIND_IENUM(L, ImGuiColorEditFlags_AlphaPreview, "ColorEditFlags_AlphaPreview");
+    BIND_IENUM(L, ImGuiColorEditFlags_DisplayRGB, "ColorEditFlags_DisplayRGB");
+    BIND_IENUM(L, ImGuiColorEditFlags_DisplayHex, "ColorEditFlags_DisplayHex");
+    BIND_IENUM(L, ImGuiColorEditFlags_InputHSV, "ColorEditFlags_InputHSV");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoSidePreview, "ColorEditFlags_NoSidePreview");
+    BIND_IENUM(L, ImGuiColorEditFlags_Uint8, "ColorEditFlags_Uint8");
+    BIND_IENUM(L, ImGuiColorEditFlags_AlphaPreviewHalf, "ColorEditFlags_AlphaPreviewHalf");
+    BIND_IENUM(L, ImGuiColorEditFlags_Float, "ColorEditFlags_Float");
+    BIND_IENUM(L, ImGuiColorEditFlags_PickerHueWheel, "ColorEditFlags_PickerHueWheel");
+    BIND_IENUM(L, ImGuiColorEditFlags__OptionsDefault, "ColorEditFlags_OptionsDefault");
+    BIND_IENUM(L, ImGuiColorEditFlags_InputRGB, "ColorEditFlags_InputRGB");
+    BIND_IENUM(L, ImGuiColorEditFlags_HDR, "ColorEditFlags_HDR");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoPicker, "ColorEditFlags_NoPicker");
+    BIND_IENUM(L, ImGuiColorEditFlags_AlphaBar, "ColorEditFlags_AlphaBar");
+    BIND_IENUM(L, ImGuiColorEditFlags_DisplayHSV, "ColorEditFlags_DisplayHSV");
+    BIND_IENUM(L, ImGuiColorEditFlags_PickerHueBar, "ColorEditFlags_PickerHueBar");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoAlpha, "ColorEditFlags_NoAlpha");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoOptions, "ColorEditFlags_NoOptions");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoDragDrop, "ColorEditFlags_NoDragDrop");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoInputs, "ColorEditFlags_NoInputs");
+    BIND_IENUM(L, ImGuiColorEditFlags_None, "ColorEditFlags_None");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoSmallPreview, "ColorEditFlags_NoSmallPreview");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoBorder, "ColorEditFlags_NoBorder");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoLabel, "ColorEditFlags_NoLabel");
+    BIND_IENUM(L, ImGuiColorEditFlags_NoTooltip, "ColorEditFlags_NoTooltip");
 
     //ImGuiDragDropFlags
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceNoPreviewTooltip, "DragDropFlags_SourceNoPreviewTooltip");
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceAllowNullID, "DragDropFlags_SourceAllowNullID");
-    BIND_ENUM(L, ImGuiDragDropFlags_AcceptNoDrawDefaultRect, "DragDropFlags_AcceptNoDrawDefaultRect");
-    BIND_ENUM(L, ImGuiDragDropFlags_AcceptPeekOnly, "DragDropFlags_AcceptPeekOnly");
-    BIND_ENUM(L, ImGuiDragDropFlags_AcceptBeforeDelivery, "DragDropFlags_AcceptBeforeDelivery");
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceNoHoldToOpenOthers, "DragDropFlags_SourceNoHoldToOpenOthers");
-    BIND_ENUM(L, ImGuiDragDropFlags_AcceptNoPreviewTooltip, "DragDropFlags_AcceptNoPreviewTooltip");
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceAutoExpirePayload, "DragDropFlags_SourceAutoExpirePayload");
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceExtern, "DragDropFlags_SourceExtern");
-    BIND_ENUM(L, ImGuiDragDropFlags_None, "DragDropFlags_None");
-    BIND_ENUM(L, ImGuiDragDropFlags_SourceNoDisableHover, "DragDropFlags_SourceNoDisableHover");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceNoPreviewTooltip, "DragDropFlags_SourceNoPreviewTooltip");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceAllowNullID, "DragDropFlags_SourceAllowNullID");
+    BIND_IENUM(L, ImGuiDragDropFlags_AcceptNoDrawDefaultRect, "DragDropFlags_AcceptNoDrawDefaultRect");
+    BIND_IENUM(L, ImGuiDragDropFlags_AcceptPeekOnly, "DragDropFlags_AcceptPeekOnly");
+    BIND_IENUM(L, ImGuiDragDropFlags_AcceptBeforeDelivery, "DragDropFlags_AcceptBeforeDelivery");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceNoHoldToOpenOthers, "DragDropFlags_SourceNoHoldToOpenOthers");
+    BIND_IENUM(L, ImGuiDragDropFlags_AcceptNoPreviewTooltip, "DragDropFlags_AcceptNoPreviewTooltip");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceAutoExpirePayload, "DragDropFlags_SourceAutoExpirePayload");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceExtern, "DragDropFlags_SourceExtern");
+    BIND_IENUM(L, ImGuiDragDropFlags_None, "DragDropFlags_None");
+    BIND_IENUM(L, ImGuiDragDropFlags_SourceNoDisableHover, "DragDropFlags_SourceNoDisableHover");
 
     //ImDrawCornerFlags
-    BIND_ENUM(L, ImDrawCornerFlags_None, "CornerFlags_None");
-    BIND_ENUM(L, ImDrawCornerFlags_TopLeft, "CornerFlags_TopLeft");
-    BIND_ENUM(L, ImDrawCornerFlags_TopRight, "CornerFlags_TopRight");
-    BIND_ENUM(L, ImDrawCornerFlags_BotLeft, "CornerFlags_BotLeft");
-    BIND_ENUM(L, ImDrawCornerFlags_BotRight, "CornerFlags_BotRight");
-    BIND_ENUM(L, ImDrawCornerFlags_Top, "CornerFlags_Top");
-    BIND_ENUM(L, ImDrawCornerFlags_Bot, "CornerFlags_Bot");
-    BIND_ENUM(L, ImDrawCornerFlags_Left, "CornerFlags_Left");
-    BIND_ENUM(L, ImDrawCornerFlags_Right, "CornerFlags_Right");
-    BIND_ENUM(L, ImDrawCornerFlags_All, "CornerFlags_All");
+    BIND_IENUM(L, ImDrawCornerFlags_None, "CornerFlags_None");
+    BIND_IENUM(L, ImDrawCornerFlags_TopLeft, "CornerFlags_TopLeft");
+    BIND_IENUM(L, ImDrawCornerFlags_TopRight, "CornerFlags_TopRight");
+    BIND_IENUM(L, ImDrawCornerFlags_BotLeft, "CornerFlags_BotLeft");
+    BIND_IENUM(L, ImDrawCornerFlags_BotRight, "CornerFlags_BotRight");
+    BIND_IENUM(L, ImDrawCornerFlags_Top, "CornerFlags_Top");
+    BIND_IENUM(L, ImDrawCornerFlags_Bot, "CornerFlags_Bot");
+    BIND_IENUM(L, ImDrawCornerFlags_Left, "CornerFlags_Left");
+    BIND_IENUM(L, ImDrawCornerFlags_Right, "CornerFlags_Right");
+    BIND_IENUM(L, ImDrawCornerFlags_All, "CornerFlags_All");
 
     //1.78 *NEW*
     //ImGuiSliderFlags
-    BIND_ENUM(L, ImGuiSliderFlags_None, "SliderFlags_None");
-    BIND_ENUM(L, ImGuiSliderFlags_AlwaysClamp, "SliderFlags_ClampOnInput");
-    BIND_ENUM(L, ImGuiSliderFlags_AlwaysClamp, "SliderFlags_AlwaysClamp");
-    BIND_ENUM(L, ImGuiSliderFlags_Logarithmic, "SliderFlags_Logarithmic");
-    BIND_ENUM(L, ImGuiSliderFlags_NoRoundToFormat, "SliderFlags_NoRoundToFormat");
-    BIND_ENUM(L, ImGuiSliderFlags_NoInput, "SliderFlags_NoInput");
+    BIND_IENUM(L, ImGuiSliderFlags_None, "SliderFlags_None");
+    BIND_IENUM(L, ImGuiSliderFlags_AlwaysClamp, "SliderFlags_ClampOnInput");
+    BIND_IENUM(L, ImGuiSliderFlags_AlwaysClamp, "SliderFlags_AlwaysClamp");
+    BIND_IENUM(L, ImGuiSliderFlags_Logarithmic, "SliderFlags_Logarithmic");
+    BIND_IENUM(L, ImGuiSliderFlags_NoRoundToFormat, "SliderFlags_NoRoundToFormat");
+    BIND_IENUM(L, ImGuiSliderFlags_NoInput, "SliderFlags_NoInput");
 
     //ImGuiConfigFlags
-    BIND_ENUM(L, ImGuiConfigFlags_None, "ConfigFlags_None");
-    BIND_ENUM(L, ImGuiConfigFlags_NavEnableKeyboard, "ConfigFlags_NavEnableKeyboard");
-    BIND_ENUM(L, ImGuiConfigFlags_NavEnableGamepad, "ConfigFlags_NavEnableGamepad");
-    BIND_ENUM(L, ImGuiConfigFlags_NavEnableSetMousePos, "ConfigFlags_NavEnableSetMousePos");
-    BIND_ENUM(L, ImGuiConfigFlags_NavNoCaptureKeyboard, "ConfigFlags_NavNoCaptureKeyboard");
-    BIND_ENUM(L, ImGuiConfigFlags_NoMouse, "ConfigFlags_NoMouse");
-    BIND_ENUM(L, ImGuiConfigFlags_NoMouseCursorChange, "ConfigFlags_NoMouseCursorChange");
-    BIND_ENUM(L, ImGuiConfigFlags_IsSRGB, "ConfigFlags_IsSRGB");
-    BIND_ENUM(L, ImGuiConfigFlags_IsTouchScreen, "ConfigFlags_IsTouchScreen");
+    BIND_IENUM(L, ImGuiConfigFlags_None, "ConfigFlags_None");
+    BIND_IENUM(L, ImGuiConfigFlags_NavEnableKeyboard, "ConfigFlags_NavEnableKeyboard");
+    BIND_IENUM(L, ImGuiConfigFlags_NavEnableGamepad, "ConfigFlags_NavEnableGamepad");
+    BIND_IENUM(L, ImGuiConfigFlags_NavEnableSetMousePos, "ConfigFlags_NavEnableSetMousePos");
+    BIND_IENUM(L, ImGuiConfigFlags_NavNoCaptureKeyboard, "ConfigFlags_NavNoCaptureKeyboard");
+    BIND_IENUM(L, ImGuiConfigFlags_NoMouse, "ConfigFlags_NoMouse");
+    BIND_IENUM(L, ImGuiConfigFlags_NoMouseCursorChange, "ConfigFlags_NoMouseCursorChange");
+    BIND_IENUM(L, ImGuiConfigFlags_IsSRGB, "ConfigFlags_IsSRGB");
+    BIND_IENUM(L, ImGuiConfigFlags_IsTouchScreen, "ConfigFlags_IsTouchScreen");
 #ifdef IS_BETA_BUILD
-    BIND_ENUM(L, ImGuiConfigFlags_DockingEnable, "ConfigFlags_DockingEnable");
+    BIND_IENUM(L, ImGuiConfigFlags_DockingEnable, "ConfigFlags_DockingEnable");
 
     //ImGuiDockNodeFlags
-    BIND_ENUM(L, ImGuiDockNodeFlags_None, "DockNodeFlags_None");
-    BIND_ENUM(L, ImGuiDockNodeFlags_KeepAliveOnly, "DockNodeFlags_KeepAliveOnly");
-    BIND_ENUM(L, ImGuiDockNodeFlags_NoDockingInCentralNode, "DockNodeFlags_NoDockingInCentralNode");
-    BIND_ENUM(L, ImGuiDockNodeFlags_PassthruCentralNode, "DockNodeFlags_PassthruCentralNode");
-    BIND_ENUM(L, ImGuiDockNodeFlags_NoSplit, "DockNodeFlags_NoSplit");
-    BIND_ENUM(L, ImGuiDockNodeFlags_NoResize, "DockNodeFlags_NoResize");
-    BIND_ENUM(L, ImGuiDockNodeFlags_AutoHideTabBar, "DockNodeFlags_AutoHideTabBar");
-    BIND_ENUM(L, ImGuiDockNodeFlags_NoWindowMenuButton, "DockNodeFlags_NoWindowMenuButton");
-    BIND_ENUM(L, ImGuiDockNodeFlags_NoCloseButton, "DockNodeFlags_NoCloseButton");
+    BIND_IENUM(L, ImGuiDockNodeFlags_None, "DockNodeFlags_None");
+    BIND_IENUM(L, ImGuiDockNodeFlags_KeepAliveOnly, "DockNodeFlags_KeepAliveOnly");
+    BIND_IENUM(L, ImGuiDockNodeFlags_NoDockingInCentralNode, "DockNodeFlags_NoDockingInCentralNode");
+    BIND_IENUM(L, ImGuiDockNodeFlags_PassthruCentralNode, "DockNodeFlags_PassthruCentralNode");
+    BIND_IENUM(L, ImGuiDockNodeFlags_NoSplit, "DockNodeFlags_NoSplit");
+    BIND_IENUM(L, ImGuiDockNodeFlags_NoResize, "DockNodeFlags_NoResize");
+    BIND_IENUM(L, ImGuiDockNodeFlags_AutoHideTabBar, "DockNodeFlags_AutoHideTabBar");
+    BIND_IENUM(L, ImGuiDockNodeFlags_NoWindowMenuButton, "DockNodeFlags_NoWindowMenuButton");
+    BIND_IENUM(L, ImGuiDockNodeFlags_NoCloseButton, "DockNodeFlags_NoCloseButton");
 #endif
 
     //@MultiPain
     //ImGuiGlyphRanges
-    BIND_ENUM(L, ImGuiGlyphRanges_Default, "GlyphRanges_Default");
-    BIND_ENUM(L, ImGuiGlyphRanges_Korean, "GlyphRanges_Korean");
-    BIND_ENUM(L, ImGuiGlyphRanges_ChineseFull, "GlyphRanges_ChineseFull");
-    BIND_ENUM(L, ImGuiGlyphRanges_ChineseSimplifiedCommon, "GlyphRanges_ChineseSimplifiedCommon");
-    BIND_ENUM(L, ImGuiGlyphRanges_Japanese, "GlyphRanges_Japanese");
-    BIND_ENUM(L, ImGuiGlyphRanges_Cyrillic, "GlyphRanges_Cyrillic");
-    BIND_ENUM(L, ImGuiGlyphRanges_Thai, "GlyphRanges_Thai");
-    BIND_ENUM(L, ImGuiGlyphRanges_Vietnamese, "GlyphRanges_Vietnamese");
+    BIND_IENUM(L, ImGuiGlyphRanges_Default, "GlyphRanges_Default");
+    BIND_IENUM(L, ImGuiGlyphRanges_Korean, "GlyphRanges_Korean");
+    BIND_IENUM(L, ImGuiGlyphRanges_ChineseFull, "GlyphRanges_ChineseFull");
+    BIND_IENUM(L, ImGuiGlyphRanges_ChineseSimplifiedCommon, "GlyphRanges_ChineseSimplifiedCommon");
+    BIND_IENUM(L, ImGuiGlyphRanges_Japanese, "GlyphRanges_Japanese");
+    BIND_IENUM(L, ImGuiGlyphRanges_Cyrillic, "GlyphRanges_Cyrillic");
+    BIND_IENUM(L, ImGuiGlyphRanges_Thai, "GlyphRanges_Thai");
+    BIND_IENUM(L, ImGuiGlyphRanges_Vietnamese, "GlyphRanges_Vietnamese");
 
     //ImGuiItemFlags
-    BIND_ENUM(L, ImGuiItemFlags_Disabled, "ItemFlags_Disabled");
-    BIND_ENUM(L, ImGuiItemFlags_ButtonRepeat, "ItemFlags_ButtonRepeat");
+    BIND_IENUM(L, ImGuiItemFlags_Disabled, "ItemFlags_Disabled");
+    BIND_IENUM(L, ImGuiItemFlags_ButtonRepeat, "ItemFlags_ButtonRepeat");
 
     //ImGuiNavInput
-    BIND_ENUM(L, ImGuiNavInput_FocusNext, "NavInput_FocusNext");
-    BIND_ENUM(L, ImGuiNavInput_TweakFast, "NavInput_TweakFast");
-    BIND_ENUM(L, ImGuiNavInput_Input, "NavInput_Input");
-    BIND_ENUM(L, ImGuiNavInput_DpadRight, "NavInput_DpadRight");
-    BIND_ENUM(L, ImGuiNavInput_FocusPrev, "NavInput_FocusPrev");
-    BIND_ENUM(L, ImGuiNavInput_LStickDown, "NavInput_LStickDown");
-    BIND_ENUM(L, ImGuiNavInput_LStickUp, "NavInput_LStickUp");
-    BIND_ENUM(L, ImGuiNavInput_Activate, "NavInput_Activate");
-    BIND_ENUM(L, ImGuiNavInput_LStickLeft, "NavInput_LStickLeft");
-    BIND_ENUM(L, ImGuiNavInput_LStickRight, "NavInput_LStickRight");
-    BIND_ENUM(L, ImGuiNavInput_DpadLeft, "NavInput_DpadLeft");
-    BIND_ENUM(L, ImGuiNavInput_DpadDown, "NavInput_DpadDown");
-    BIND_ENUM(L, ImGuiNavInput_TweakSlow, "NavInput_TweakSlow");
-    BIND_ENUM(L, ImGuiNavInput_DpadUp, "NavInput_DpadUp");
-    BIND_ENUM(L, ImGuiNavInput_Menu, "NavInput_Menu");
-    BIND_ENUM(L, ImGuiNavInput_Cancel, "NavInput_Cancel");
+    BIND_IENUM(L, ImGuiNavInput_FocusNext, "NavInput_FocusNext");
+    BIND_IENUM(L, ImGuiNavInput_TweakFast, "NavInput_TweakFast");
+    BIND_IENUM(L, ImGuiNavInput_Input, "NavInput_Input");
+    BIND_IENUM(L, ImGuiNavInput_DpadRight, "NavInput_DpadRight");
+    BIND_IENUM(L, ImGuiNavInput_FocusPrev, "NavInput_FocusPrev");
+    BIND_IENUM(L, ImGuiNavInput_LStickDown, "NavInput_LStickDown");
+    BIND_IENUM(L, ImGuiNavInput_LStickUp, "NavInput_LStickUp");
+    BIND_IENUM(L, ImGuiNavInput_Activate, "NavInput_Activate");
+    BIND_IENUM(L, ImGuiNavInput_LStickLeft, "NavInput_LStickLeft");
+    BIND_IENUM(L, ImGuiNavInput_LStickRight, "NavInput_LStickRight");
+    BIND_IENUM(L, ImGuiNavInput_DpadLeft, "NavInput_DpadLeft");
+    BIND_IENUM(L, ImGuiNavInput_DpadDown, "NavInput_DpadDown");
+    BIND_IENUM(L, ImGuiNavInput_TweakSlow, "NavInput_TweakSlow");
+    BIND_IENUM(L, ImGuiNavInput_DpadUp, "NavInput_DpadUp");
+    BIND_IENUM(L, ImGuiNavInput_Menu, "NavInput_Menu");
+    BIND_IENUM(L, ImGuiNavInput_Cancel, "NavInput_Cancel");
 
     // ImGuiTableBgTarget
-    BIND_ENUM(L, ImGuiTableBgTarget_None, "TableBgTarget_None");
-    BIND_ENUM(L, ImGuiTableBgTarget_RowBg0, "TableBgTarget_RowBg0");
-    BIND_ENUM(L, ImGuiTableBgTarget_RowBg1, "TableBgTarget_RowBg1");
-    BIND_ENUM(L, ImGuiTableBgTarget_CellBg, "TableBgTarget_CellBg");
+    BIND_IENUM(L, ImGuiTableBgTarget_None, "TableBgTarget_None");
+    BIND_IENUM(L, ImGuiTableBgTarget_RowBg0, "TableBgTarget_RowBg0");
+    BIND_IENUM(L, ImGuiTableBgTarget_RowBg1, "TableBgTarget_RowBg1");
+    BIND_IENUM(L, ImGuiTableBgTarget_CellBg, "TableBgTarget_CellBg");
 
     // ImGuiTableColumnFlags
-    BIND_ENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
-    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
-    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
-    BIND_ENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
-    BIND_ENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
-    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
+    BIND_IENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
+    BIND_IENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
+    BIND_IENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
+    BIND_IENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
+    BIND_IENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
+    BIND_IENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
 
     // ImGuiTableFlags
-    BIND_ENUM(L, ImGuiTableFlags_None, "TableFlags_None");
-    BIND_ENUM(L, ImGuiTableFlags_Resizable, "TableFlags_Resizable");
-    BIND_ENUM(L, ImGuiTableFlags_Reorderable, "TableFlags_Reorderable");
-    BIND_ENUM(L, ImGuiTableFlags_Hideable, "TableFlags_Hideable");
-    BIND_ENUM(L, ImGuiTableFlags_Sortable, "TableFlags_Sortable");
-    BIND_ENUM(L, ImGuiTableFlags_NoSavedSettings, "TableFlags_NoSavedSettings");
-    BIND_ENUM(L, ImGuiTableFlags_ContextMenuInBody, "TableFlags_ContextMenuInBody");
-    BIND_ENUM(L, ImGuiTableFlags_RowBg, "TableFlags_RowBg");
-    BIND_ENUM(L, ImGuiTableFlags_BordersInnerH, "TableFlags_BordersInnerH");
-    BIND_ENUM(L, ImGuiTableFlags_BordersOuterH, "TableFlags_BordersOuterH");
-    BIND_ENUM(L, ImGuiTableFlags_BordersInnerV, "TableFlags_BordersInnerV");
-    BIND_ENUM(L, ImGuiTableFlags_BordersOuterV, "TableFlags_BordersOuterV");
-    BIND_ENUM(L, ImGuiTableFlags_BordersH, "TableFlags_BordersH");
-    BIND_ENUM(L, ImGuiTableFlags_BordersV, "TableFlags_BordersV");
-    BIND_ENUM(L, ImGuiTableFlags_BordersInner, "TableFlags_BordersInner");
-    BIND_ENUM(L, ImGuiTableFlags_BordersOuter, "TableFlags_BordersOuter");
-    BIND_ENUM(L, ImGuiTableFlags_Borders, "TableFlags_Borders");
-    BIND_ENUM(L, ImGuiTableFlags_NoBordersInBody, "TableFlags_NoBordersInBody");
-    BIND_ENUM(L, ImGuiTableFlags_NoBordersInBodyUntilResize, "TableFlags_NoBordersInBodyUntilResize");
-    BIND_ENUM(L, ImGuiTableFlags_SizingFixedFit, "TableFlags_SizingFixedFit");
-    BIND_ENUM(L, ImGuiTableFlags_SizingFixedSame, "TableFlags_SizingFixedSame");
-    BIND_ENUM(L, ImGuiTableFlags_SizingStretchProp, "TableFlags_SizingStretchProp");
-    BIND_ENUM(L, ImGuiTableFlags_SizingStretchSame, "TableFlags_SizingStretchSame");
-    BIND_ENUM(L, ImGuiTableFlags_NoHostExtendX, "TableFlags_NoHostExtendX");
-    BIND_ENUM(L, ImGuiTableFlags_NoHostExtendY, "TableFlags_NoHostExtendY");
-    BIND_ENUM(L, ImGuiTableFlags_NoKeepColumnsVisible, "TableFlags_NoKeepColumnsVisible");
-    BIND_ENUM(L, ImGuiTableFlags_PreciseWidths, "TableFlags_PreciseWidths");
-    BIND_ENUM(L, ImGuiTableFlags_NoClip, "TableFlags_NoClip");
-    BIND_ENUM(L, ImGuiTableFlags_PadOuterX, "TableFlags_PadOuterX");
-    BIND_ENUM(L, ImGuiTableFlags_NoPadOuterX, "TableFlags_NoPadOuterX");
-    BIND_ENUM(L, ImGuiTableFlags_NoPadInnerX, "TableFlags_NoPadInnerX");
-    BIND_ENUM(L, ImGuiTableFlags_ScrollX, "TableFlags_ScrollX");
-    BIND_ENUM(L, ImGuiTableFlags_ScrollY, "TableFlags_ScrollY");
-    BIND_ENUM(L, ImGuiTableFlags_SortMulti, "TableFlags_SortMulti");
-    BIND_ENUM(L, ImGuiTableFlags_SortTristate, "TableFlags_SortTristate");
+    BIND_IENUM(L, ImGuiTableFlags_None, "TableFlags_None");
+    BIND_IENUM(L, ImGuiTableFlags_Resizable, "TableFlags_Resizable");
+    BIND_IENUM(L, ImGuiTableFlags_Reorderable, "TableFlags_Reorderable");
+    BIND_IENUM(L, ImGuiTableFlags_Hideable, "TableFlags_Hideable");
+    BIND_IENUM(L, ImGuiTableFlags_Sortable, "TableFlags_Sortable");
+    BIND_IENUM(L, ImGuiTableFlags_NoSavedSettings, "TableFlags_NoSavedSettings");
+    BIND_IENUM(L, ImGuiTableFlags_ContextMenuInBody, "TableFlags_ContextMenuInBody");
+    BIND_IENUM(L, ImGuiTableFlags_RowBg, "TableFlags_RowBg");
+    BIND_IENUM(L, ImGuiTableFlags_BordersInnerH, "TableFlags_BordersInnerH");
+    BIND_IENUM(L, ImGuiTableFlags_BordersOuterH, "TableFlags_BordersOuterH");
+    BIND_IENUM(L, ImGuiTableFlags_BordersInnerV, "TableFlags_BordersInnerV");
+    BIND_IENUM(L, ImGuiTableFlags_BordersOuterV, "TableFlags_BordersOuterV");
+    BIND_IENUM(L, ImGuiTableFlags_BordersH, "TableFlags_BordersH");
+    BIND_IENUM(L, ImGuiTableFlags_BordersV, "TableFlags_BordersV");
+    BIND_IENUM(L, ImGuiTableFlags_BordersInner, "TableFlags_BordersInner");
+    BIND_IENUM(L, ImGuiTableFlags_BordersOuter, "TableFlags_BordersOuter");
+    BIND_IENUM(L, ImGuiTableFlags_Borders, "TableFlags_Borders");
+    BIND_IENUM(L, ImGuiTableFlags_NoBordersInBody, "TableFlags_NoBordersInBody");
+    BIND_IENUM(L, ImGuiTableFlags_NoBordersInBodyUntilResize, "TableFlags_NoBordersInBodyUntilResize");
+    BIND_IENUM(L, ImGuiTableFlags_SizingFixedFit, "TableFlags_SizingFixedFit");
+    BIND_IENUM(L, ImGuiTableFlags_SizingFixedSame, "TableFlags_SizingFixedSame");
+    BIND_IENUM(L, ImGuiTableFlags_SizingStretchProp, "TableFlags_SizingStretchProp");
+    BIND_IENUM(L, ImGuiTableFlags_SizingStretchSame, "TableFlags_SizingStretchSame");
+    BIND_IENUM(L, ImGuiTableFlags_NoHostExtendX, "TableFlags_NoHostExtendX");
+    BIND_IENUM(L, ImGuiTableFlags_NoHostExtendY, "TableFlags_NoHostExtendY");
+    BIND_IENUM(L, ImGuiTableFlags_NoKeepColumnsVisible, "TableFlags_NoKeepColumnsVisible");
+    BIND_IENUM(L, ImGuiTableFlags_PreciseWidths, "TableFlags_PreciseWidths");
+    BIND_IENUM(L, ImGuiTableFlags_NoClip, "TableFlags_NoClip");
+    BIND_IENUM(L, ImGuiTableFlags_PadOuterX, "TableFlags_PadOuterX");
+    BIND_IENUM(L, ImGuiTableFlags_NoPadOuterX, "TableFlags_NoPadOuterX");
+    BIND_IENUM(L, ImGuiTableFlags_NoPadInnerX, "TableFlags_NoPadInnerX");
+    BIND_IENUM(L, ImGuiTableFlags_ScrollX, "TableFlags_ScrollX");
+    BIND_IENUM(L, ImGuiTableFlags_ScrollY, "TableFlags_ScrollY");
+    BIND_IENUM(L, ImGuiTableFlags_SortMulti, "TableFlags_SortMulti");
+    BIND_IENUM(L, ImGuiTableFlags_SortTristate, "TableFlags_SortTristate");
 
     // ImGuiTableColumnFlags
-    BIND_ENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
-    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
-    BIND_ENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
-    BIND_ENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
-    BIND_ENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
-    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
-    BIND_ENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
+    BIND_IENUM(L, ImGuiTableColumnFlags_None, "TableColumnFlags_None");
+    BIND_IENUM(L, ImGuiTableColumnFlags_DefaultHide, "TableColumnFlags_DefaultHide");
+    BIND_IENUM(L, ImGuiTableColumnFlags_DefaultSort, "TableColumnFlags_DefaultSort");
+    BIND_IENUM(L, ImGuiTableColumnFlags_WidthStretch, "TableColumnFlags_WidthStretch");
+    BIND_IENUM(L, ImGuiTableColumnFlags_WidthFixed, "TableColumnFlags_WidthFixed");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoResize, "TableColumnFlags_NoResize");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoReorder, "TableColumnFlags_NoReorder");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoHide, "TableColumnFlags_NoHide");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoClip, "TableColumnFlags_NoClip");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSort, "TableColumnFlags_NoSort");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSortAscending, "TableColumnFlags_NoSortAscending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoSortDescending, "TableColumnFlags_NoSortDescending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_NoHeaderWidth, "TableColumnFlags_NoHeaderWidth");
+    BIND_IENUM(L, ImGuiTableColumnFlags_PreferSortAscending, "TableColumnFlags_PreferSortAscending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_PreferSortDescending, "TableColumnFlags_PreferSortDescending");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IndentEnable, "TableColumnFlags_IndentEnable");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IndentDisable, "TableColumnFlags_IndentDisable");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsEnabled, "TableColumnFlags_IsEnabled");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsVisible, "TableColumnFlags_IsVisible");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsSorted, "TableColumnFlags_IsSorted");
+    BIND_IENUM(L, ImGuiTableColumnFlags_IsHovered, "TableColumnFlags_IsHovered");
 
     // ImGuiTableRowFlags
-    BIND_ENUM(L, ImGuiTableRowFlags_None, "TableRowFlags_None");
-    BIND_ENUM(L, ImGuiTableRowFlags_Headers, "TableRowFlags_Headers");
+    BIND_IENUM(L, ImGuiTableRowFlags_None, "TableRowFlags_None");
+    BIND_IENUM(L, ImGuiTableRowFlags_Headers, "TableRowFlags_Headers");
 
     // ImGuiSortDirection
-    BIND_ENUM(L, ImGuiSortDirection_None, "SortDirection_None");
-    BIND_ENUM(L, ImGuiSortDirection_Ascending, "SortDirection_Ascending");
-    BIND_ENUM(L, ImGuiSortDirection_Descending, "SortDirection_Descending");
+    BIND_IENUM(L, ImGuiSortDirection_None, "SortDirection_None");
+    BIND_IENUM(L, ImGuiSortDirection_Ascending, "SortDirection_Ascending");
+    BIND_IENUM(L, ImGuiSortDirection_Descending, "SortDirection_Descending");
+
+    BIND_FENUM(L, FLT_MAX, "FLT_MAX");
+    BIND_FENUM(L, DBL_MAX, "DBL_MAX");
 
     lua_pop(L, 1);
 }
@@ -1330,6 +1334,7 @@ public:
     void applicationResize(Event *)
     {
         lua_getglobal(L, "application");
+
         lua_getfield(L, -1, "getLogicalScaleX");
         lua_pushvalue(L, -2);
         lua_call(L, 1, 1);
@@ -4090,8 +4095,8 @@ int Selectable(lua_State* L)
 
     bool result = ImGui::Selectable(label, &selected, flags, size);
 
-    lua_pushboolean(L, result);
     lua_pushboolean(L, selected);
+    lua_pushboolean(L, result);
     return 2;
 }
 
@@ -4134,7 +4139,7 @@ int ListBoxHeader(lua_State* L)
     const char* label = luaL_checkstring(L, 2);
     if (lua_gettop(L) > 3)
     {
-        ImVec2 size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+        ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
         lua_pushboolean(L, ImGui::ListBoxHeader(label, size));
     }
     else
@@ -4236,14 +4241,13 @@ int Value(lua_State* L)
         }
         case LUA_TNUMBER:
         {
+            float n = luaL_checknumber(L, 3);
             if (lua_gettop(L) > 3)
             {
-                float n = luaL_checknumber(L, 3);
                 ImGui::Value(prefix, n, luaL_optstring(L, 4, ""));
             }
             else
             {
-                int n = luaL_checkinteger(L, 3);
                 ImGui::Value(prefix, n);
             }
             break;
@@ -4478,7 +4482,7 @@ int BeginTable(lua_State* L)
     return 1;
 }
 
-int EndTable(lua_State* L)
+int EndTable(lua_State* _UNUSED(L))
 {
     ImGui::EndTable();
     return 0;
@@ -4525,7 +4529,7 @@ int TableSetupScrollFreeze(lua_State* L)
     return 0;
 }
 
-int TableHeadersRow(lua_State* L)
+int TableHeadersRow(lua_State* _UNUSED(L))
 {
     ImGui::TableHeadersRow();
     return 0;
@@ -4594,12 +4598,6 @@ int TableSetBgColor(lua_State* L)
 int TableSortSpecs_GetColumnSortSpecs(lua_State* L)
 {
     ImGuiTableSortSpecs* specs = getPtr<ImGuiTableSortSpecs>(L, "ImGuiTableSortSpecs", 1);
-    if (!specs->Specs)
-    {
-        lua_pushnil(L);
-        return 1;
-    }
-
     lua_createtable(L, 0, specs->SpecsCount);
 
     for (int i = 0; i < specs->SpecsCount; i++)
@@ -5191,11 +5189,6 @@ int DockBuilder_Node_GetCentralNode(lua_State* L)
 {
 
     ImGuiDockNode* node = getPtr<ImGuiDockNode>(L, "ImGuiDockNode", 1);
-    if (node == nullptr)
-    {
-        lua_pushnil(L);
-        return 1;
-    }
     g_pushInstance(L, "ImGuiDockNode", node->CentralNode);
     return 1;
 }
@@ -5204,11 +5197,6 @@ int DockBuilder_Node_GetOnlyNodeWithWindows(lua_State* L)
 {
 
     ImGuiDockNode* node = getPtr<ImGuiDockNode>(L, "ImGuiDockNode", 1);
-    if (node == nullptr)
-    {
-        lua_pushnil(L);
-        return 1;
-    }
     g_pushInstance(L, "ImGuiDockNode", node->OnlyNodeWithWindows);
     return 1;
 }
@@ -5542,8 +5530,8 @@ int TabBar_GetTab(lua_State* L)
 
     ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
     int count = tabBar->Tabs.Size;
-    int index = luaL_checkinteger(L, 2) - 1;
-    LUA_ASSERT(index >= 0 && index <= count, "Tab index is out of bounds.");
+    int index = luaL_checkinteger(L, 2);
+    LUA_ASSERTF(index >= 0 && index <= count, "Tab index is out of bounds. Must be: [1; %d]", count);
     g_pushInstance(L, "ImGuiTabItem", &tabBar->Tabs[index]);
     return 1;
 }
@@ -5552,8 +5540,7 @@ int TabBar_GetTabCount(lua_State* L)
 {
 
     ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
-    int count = tabBar->Tabs.Size;
-    lua_pushnumber(L, count);
+    lua_pushinteger(L, tabBar->Tabs.Size);
     return 1;
 }
 
@@ -5595,14 +5582,14 @@ int TabBar_GetVisibleTabId(lua_State* L)
 int TabBar_GetCurrFrameVisible(lua_State* L)
 {
     ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
-    lua_pushnumber(L, tabBar->CurrFrameVisible);
+    lua_pushinteger(L, tabBar->CurrFrameVisible);
     return 0;
 }
 
 int TabBar_GetPrevFrameVisible(lua_State* L)
 {
     ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
-    lua_pushnumber(L, tabBar->PrevFrameVisible);
+    lua_pushinteger(L, tabBar->PrevFrameVisible);
     return 0;
 }
 
@@ -5774,15 +5761,8 @@ int TabBar_GetTabsNames(lua_State* L)
 
 int TabBar_GetTabOrder(lua_State* L)
 {
-
-    g_isInstanceOf(L, "ImGuiTabBar", 1);
-    g_isInstanceOf(L, "ImGuiTabItem", 2);
-
-    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(g_getInstance(L, "ImGuiTabBar", 1));
-    LUA_ASSERT(tabBar != nullptr, "TabBar is nil!");
-
-    ImGuiTabItem* tab = static_cast<ImGuiTabItem*>(g_getInstance(L, "ImGuiTabItem", 2));
-    LUA_ASSERT(tab != nullptr, "TabItem is nil!");
+    ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
+    ImGuiTabItem* tab = getPtr<ImGuiTabItem>(L, "ImGuiTabItem", 2);
 
     lua_pushnumber(L, tabBar->GetTabOrder(tab));
     return 1;
@@ -5790,16 +5770,8 @@ int TabBar_GetTabOrder(lua_State* L)
 
 int TabBar_GetTabName(lua_State* L)
 {
-
-
-    g_isInstanceOf(L, "ImGuiTabBar", 1);
-    g_isInstanceOf(L, "ImGuiTabItem", 2);
-
-    ImGuiTabBar* tabBar = static_cast<ImGuiTabBar*>(g_getInstance(L, "ImGuiTabBar", 1));
-    LUA_ASSERT(tabBar != nullptr && tabBar != NULL, "TabBar is nil!");
-
-    ImGuiTabItem* tab = static_cast<ImGuiTabItem*>(g_getInstance(L, "ImGuiTabItem", 2));
-    LUA_ASSERT(tab != nullptr && tab != NULL, "TabItem is nil!");
+    ImGuiTabBar* tabBar = getPtr<ImGuiTabBar>(L, "ImGuiTabBar", 1);
+    ImGuiTabItem* tab = getPtr<ImGuiTabItem>(L, "ImGuiTabItem", 2);
 
     lua_pushstring(L, tabBar->GetTabName(tab));
     return 1;
@@ -5824,14 +5796,14 @@ int LogToTTY(lua_State* L)
 
 int LogToFile(lua_State* L)
 {
-    int auto_open_depth = luaL_optinteger(L, 2, -1);
-
     GidImGui* imgui = getImgui(L);
     ImGuiIO& io = imgui->ctx->IO;
 
     LUA_ASSERT(io.LogFilename != NULL, "Log to file is disabled! Use ImGui:setLogFilename(filename) first.");
 
-    if (lua_gettop(L) < 2 || lua_isnil(L, 3))
+    int auto_open_depth = luaL_optinteger(L, 2, -1);
+
+    if (lua_gettop(L) < 3)
         ImGui::LogToFile(auto_open_depth, NULL);
     else
     {
@@ -5966,6 +5938,8 @@ int Payload_GetStringData(lua_State* L)
     return 1;
 }
 
+// TODO add tables ?
+
 int Payload_Clear(lua_State* L)
 {
     ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload", 1);
@@ -6013,7 +5987,7 @@ int PushClipRect(lua_State* L)
 {
     const ImVec2 clip_rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     const ImVec2 clip_rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    bool intersect_with_current_clip_rect = lua_toboolean(L, 6) > 0;
+    bool intersect_with_current_clip_rect = lua_toboolean(L, 6);
     ImGui::PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
     return 0;
 }
@@ -6070,7 +6044,7 @@ int IsItemFocused(lua_State* L)
 
 int IsItemClicked(lua_State* L)
 {
-    ImGuiMouseButton mouse_button = convertGiderosMouseButton(luaL_optinteger(L, 2, 1));
+    ImGuiMouseButton mouse_button = convertGiderosMouseButton(luaL_optinteger(L, 2, GINPUT_LEFT_BUTTON));
     lua_pushboolean(L, ImGui::IsItemClicked(mouse_button));
     return 1;
 }
@@ -6202,7 +6176,7 @@ int GetStyleColorName(lua_State* L)
 int GetStyleColor(lua_State* L)
 {
     int idx = luaL_checkinteger(L, 2);
-    GColor color = GColor::toHex(ImGui::GetStyleColorVec4(idx));
+    GColor color(ImGui::GetStyleColorVec4(idx));
     lua_pushinteger(L, color.hex);
     lua_pushnumber(L, color.alpha);
     return 2;
