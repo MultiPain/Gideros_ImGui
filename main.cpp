@@ -157,25 +157,52 @@ struct GColor {
         alpha = 0;
     }
 
+    GColor(ImU32 color)
+    {
+        GColor converted = GColor::toHex(color);
+        hex = converted.hex;
+        alpha = converted.alpha;
+    }
+
+    GColor(ImVec4 color)
+    {
+        GColor converted = GColor::toHex(color);
+        hex = converted.hex;
+        alpha = converted.alpha;
+    }
+
     GColor(int _hex, double _alpha = 1.0f)
     {
         hex = _hex;
         alpha = _alpha;
     }
 
+    GColor(double _r, double _g, double _b, double _a = 1.0f)
+    {
+        GColor converted = GColor::toHex(_r, _g, _b, _a);
+        hex = converted.hex;
+        alpha = converted.alpha;
+    }
+
     static ImVec4 toVec4(int hex, double alpha = 1.0f)
     {
         double s = 1.0f / 255.0f;
         return ImVec4(
-                    ((hex >> IM_COL32_B_SHIFT) & 0xFF) * s,
-                    ((hex >> IM_COL32_G_SHIFT) & 0xFF) * s,
-                    ((hex >> IM_COL32_R_SHIFT) & 0xFF) * s,
-                    alpha);
+            ((hex >> IM_COL32_B_SHIFT) & 0xFF) * s,
+            ((hex >> IM_COL32_G_SHIFT) & 0xFF) * s,
+            ((hex >> IM_COL32_R_SHIFT) & 0xFF) * s,
+            alpha);
     }
 
     static ImVec4 toVec4(GColor color)
     {
         return GColor::toVec4(color.hex, color.alpha);
+    }
+
+    static ImVec4 toVec4(ImU32 color)
+    {
+        GColor converted(color);
+        return toVec4(converted);
     }
 
     static GColor toHex(double _r, double _g, double _b, double _a = 1.0f)
@@ -192,6 +219,14 @@ struct GColor {
     static GColor toHex(ImVec4 color)
     {
         return GColor::toHex(color.x, color.y, color.z, color.w);
+    }
+
+    static GColor toHex(ImU32 color)
+    {
+        int a = color >> IM_COL32_A_SHIFT;
+        int hex = color & ~IM_COL32_A_MASK;
+        float alpha = a / 255.0f;
+        return GColor(hex, alpha);
     }
 
     static ImU32 toU32(double _r, double _g, double _b, double _a = 1.0f)
@@ -214,10 +249,10 @@ struct GColor {
         ImU32 ghex = (int)alpha | hex << 8;
 
         ImU32 out =
-                (((ghex << IM_COL32_R_SHIFT) & 0xff000000) >> IM_COL32_A_SHIFT) |
-                (((ghex << IM_COL32_G_SHIFT) & 0xff000000) >> IM_COL32_B_SHIFT) |
-                (((ghex << IM_COL32_B_SHIFT) & 0xff000000) >> IM_COL32_G_SHIFT) |
-                (((ghex << IM_COL32_A_SHIFT) & 0xff000000) >> IM_COL32_R_SHIFT);
+            (((ghex << IM_COL32_R_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT) |
+            (((ghex << IM_COL32_G_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_B_SHIFT) |
+            (((ghex << IM_COL32_B_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_G_SHIFT) |
+            (((ghex << IM_COL32_A_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_R_SHIFT);
         return out;
     }
 
@@ -225,8 +260,6 @@ struct GColor {
     {
         return GColor::toU32(color.hex, color.alpha);
     }
-
-
 };
 
 GTextureData getTexture(lua_State* L, int idx = 1)
@@ -10154,17 +10187,18 @@ int TE_LoadPalette(lua_State* L)
     const int MAX = (int)TextEditor::PaletteIndex::Max;
     LUA_ASSERTF(count / 2 == MAX, "Incorrect number of colors. Expected: %d, but got: %d", MAX, count / 2);
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
-    int j = 0;
     for (int i = 0; i < count; i+=2)
     {
         lua_rawgeti(L, 2, i + 1);
         lua_rawgeti(L, 2, i + 2);
-        int hex =luaL_checkinteger(L, -2);
+
+        int hex = luaL_checkinteger(L, -2);
         float alpha = luaL_checknumber(L, -1);
+
         ImU32 color = GColor::toU32(hex, alpha);
         lua_pop(L, 2);
-        editor->SetPaletteColor(j, color);
-        j++;
+
+        editor->SetPaletteColor(i / 2, color);
     }
     return 0;
 }
@@ -10278,6 +10312,17 @@ int TE_SetPaletteColor(lua_State* L)
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
     editor->SetPaletteColor(i, color);
     return 0;
+}
+
+int TE_GetPaletteColor(lua_State* L)
+{
+    TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
+    int i = luaL_checkinteger(L, 2);
+    ImU32 color = editor->GetPaletteColor(i);
+    GColor converted(color);
+    lua_pushinteger(L, converted.hex);
+    lua_pushnumber(L, converted.alpha);
+    return 2;
 }
 
 int TE_GetPalette(lua_State* L)
@@ -11667,6 +11712,8 @@ int loader(lua_State* L)
         {"getPalette", TE_GetPalette},
 
         {"setPaletteColor", TE_SetPaletteColor},
+        {"getPaletteColor", TE_GetPaletteColor},
+
         {"loadPalette", TE_LoadPalette},
 
         {"setErrorMarkers", TE_SetErrorMarkers},
