@@ -6911,22 +6911,6 @@ int Style_GetTabBorderSize(lua_State* L)
     return 1;
 }
 
-int Style_SetTabMinWidthForUnselectedCloseButton(lua_State* L)
-{
-    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle", 1);
-    //style.TabMinWidthForUnselectedCloseButton = luaL_checknumber(L, 2); // renamed in 1.79 (backward capability)
-    style.TabMinWidthForCloseButton = luaL_checknumber(L, 2);
-    return 0;
-}
-
-int Style_GetTabMinWidthForUnselectedCloseButton(lua_State* L)
-{
-    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle", 1);
-    //lua_pushnumber(L, style.TabMinWidthForUnselectedCloseButton);
-    lua_pushnumber(L, style.TabMinWidthForCloseButton);  // renamed in 1.79 (backward capability)
-    return 1;
-}
-
 int Style_SetTabMinWidthForCloseButton(lua_State* L)
 {
     ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle", 1);
@@ -8187,14 +8171,6 @@ int FontAtlas_AddFont(lua_State *L)
 
     ImFont* font = addFont(L, atlas, file_name, size_pixels, lua_gettop(L) > 3, 4);
 
-    //ImFontConfig cfg = ImFontConfig();
-    //if (lua_gettop(L) > 3)
-    //{
-    //    loadFontConfig(L, 4, cfg, atlas);
-    //}
-    //
-    //ImFont* font = atlas->AddFontFromFileTTF(file_name, size_pixels, &cfg);
-
     g_pushInstance(L, "ImFont", font);
 
     return 1;
@@ -8249,40 +8225,6 @@ int FontAtlas_Build(lua_State* L)
 
     return 0;
 }
-
-/*
-int FontAtlas_AddFonts(lua_State* L)
-{
-    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas", 1);
-    luaL_checktype(L, 2, LUA_TTABLE);
-    int len = luaL_getn(L, 2);
-    for (int i = 0; i < len; i++)
-    {
-        lua_rawgeti(L, 2, i + 1);
-        lua_rawgeti(L, 3, 1);
-        const char* file_name = luaL_checkstring(L, -1);
-        lua_pop(L, 1);
-        lua_rawgeti(L, 3, 2);
-        double size_pixels = luaL_checknumber(L, -1);
-        lua_pop(L, 1);
-        ImFontConfig font_cfg = ImFontConfig();
-        // options table
-        lua_rawgeti(L, 3, 3);
-        if (!lua_isnil(L, -1))
-        {
-            luaL_checktype(L, -1, LUA_TTABLE);
-            lua_pushvalue(L, -1); // push options table to top
-            loadFontConfig(L, -1, font_cfg, atlas);
-            lua_pop(L, 1); // pop options table
-        }
-        lua_pop(L, 1);
-        addFont(atlas, file_name, size_pixels, font_cfg);
-        lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
-    return 0;
-}
-*/
 
 int FontAtlas_GetFontByIndex(lua_State* L)
 {
@@ -10227,7 +10169,7 @@ int TE_SetLanguageDefinition(lua_State* L)
 {
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
 
-    TextEditor::LanguageDefinition& lang = *getPtr<TextEditor::LanguageDefinition>(L,"TextEditorLanguageDefinition", 2);
+    TextEditor::LanguageDefinition& lang = *getPtr<TextEditor::LanguageDefinition>(L,"ImGuiTextEditorLanguage", 2);
     editor->SetLanguageDefinition(lang);
     return 0;
 }
@@ -10235,55 +10177,55 @@ int TE_SetLanguageDefinition(lua_State* L)
 int TE_GetLanguageDefinition_CPP(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::CPlusPlus()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_GLSL(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::GLSL()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_HLSL(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::HLSL()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_C(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::C()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_SQL(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::SQL()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_AngelScript(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::AngelScript()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetLanguageDefinition_Lua(lua_State* L)
 {
     TextEditor::LanguageDefinition* lang = const_cast<TextEditor::LanguageDefinition*>(&(TextEditor::LanguageDefinition::Lua()));
-    g_pushInstance(L, "TextEditorLanguageDefinition", lang);
+    g_pushInstance(L, "ImGuiTextEditorLanguage", lang);
     return 1;
 }
 
 int TE_GetName(lua_State* L)
 {
-    TextEditor::LanguageDefinition* lang = getPtr<TextEditor::LanguageDefinition>(L, "TextEditorLanguageDefinition", 1);
+    TextEditor::LanguageDefinition* lang = getPtr<TextEditor::LanguageDefinition>(L, "ImGuiTextEditorLanguage", 1);
     lua_pushstring(L, lang->mName.c_str());
     return 1;
 }
@@ -10291,7 +10233,7 @@ int TE_GetName(lua_State* L)
 int TE_GetLanguageDefinition(lua_State* L)
 {
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
-    g_pushInstance(L, "TextEditorLanguageDefinition", const_cast<TextEditor::LanguageDefinition*>(&(editor->GetLanguageDefinition())));
+    g_pushInstance(L, "ImGuiTextEditorLanguage", const_cast<TextEditor::LanguageDefinition*>(&(editor->GetLanguageDefinition())));
     return 1;
 }
 
@@ -10299,28 +10241,28 @@ int TE_GetPalette_Dark(lua_State* L)
 {
     const TextEditor::Palette& palette = TextEditor::GetDarkPalette();
     TextEditor::Palette* ptr = const_cast<TextEditor::Palette*>(&palette);
-    g_pushInstance(L, "TextEditorPalette", ptr);
+    g_pushInstance(L, "ImGuiTextEditorPalette", ptr);
     return 1;
 }
 
 int TE_GetPalette_Light(lua_State* L)
 {
     TextEditor::Palette* palette = const_cast<TextEditor::Palette*>(&(TextEditor::GetLightPalette()));
-    g_pushInstance(L, "TextEditorPalette", palette);
+    g_pushInstance(L, "ImGuiTextEditorPalette", palette);
     return 1;
 }
 
 int TE_GetPalette_Retro(lua_State* L)
 {
     TextEditor::Palette* palette = const_cast<TextEditor::Palette*>(&(TextEditor::GetRetroBluePalette()));
-    g_pushInstance(L, "TextEditorPalette", palette);
+    g_pushInstance(L, "ImGuiTextEditorPalette", palette);
     return 1;
 }
 
 int TE_SetPalette(lua_State* L)
 {
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
-    TextEditor::Palette& palette = *getPtr<TextEditor::Palette>(L, "TextEditorPalette", 2);
+    TextEditor::Palette& palette = *getPtr<TextEditor::Palette>(L, "ImGuiTextEditorPalette", 2);
     editor->SetPalette(palette);
     return 0;
 }
@@ -10348,7 +10290,7 @@ int TE_GetPaletteColor(lua_State* L)
 int TE_GetPalette(lua_State* L)
 {
     TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor", 1);
-    g_pushInstance(L, "TextEditorPalette", const_cast<TextEditor::Palette*>(&(editor->GetPalette())));
+    g_pushInstance(L, "ImGuiTextEditorPalette", const_cast<TextEditor::Palette*>(&(editor->GetPalette())));
 
     return 1;
 }
@@ -11219,8 +11161,6 @@ int loader(lua_State* L)
         {"getTabRounding", Style_GetTabRounding},
         {"setTabBorderSize", Style_SetTabBorderSize},
         {"getTabBorderSize", Style_GetTabBorderSize},
-        {"setTabMinWidthForUnselectedCloseButton", Style_SetTabMinWidthForUnselectedCloseButton},
-        {"getTabMinWidthForUnselectedCloseButton", Style_GetTabMinWidthForUnselectedCloseButton},
         {"setTabMinWidthForCloseButton", Style_SetTabMinWidthForCloseButton},
         {"getTabMinWidthForCloseButton", Style_GetTabMinWidthForCloseButton},
         {"setMouseCursorScale", Style_SetMouseCursorScale},
@@ -11810,13 +11750,13 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImGuiTextEditor", 0, initTextEditor, NULL, imguiTextEditorFunctionsList);
 
-    g_createClass(L, "TextEditorPalette", 0, NULL, NULL, imguiEmptyFunctionsList);
+    g_createClass(L, "ImGuiTextEditorPalette", 0, NULL, NULL, imguiEmptyFunctionsList);
 
     const luaL_Reg imguiLanguageDefenitionFunctionsList[] = {
         {"getName", TE_GetName},
         {NULL, NULL}
     };
-    g_createClass(L, "TextEditorLanguageDefinition", 0, NULL, NULL, imguiLanguageDefenitionFunctionsList);
+    g_createClass(L, "ImGuiTextEditorLanguage", 0, NULL, NULL, imguiLanguageDefenitionFunctionsList);
 
     const luaL_Reg imguiErrorMarkersFunctionsList[] = {
         {"add", EM_MAdd},
