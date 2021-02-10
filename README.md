@@ -145,6 +145,7 @@ number = ImGuiTabItem:getBeginOrder()
 number = ImGuiTabItem:getIndexDuringLayout()
 flag = ImGuiTabItem:wantClose()
 ```
+## ENUMS
 ### WindowFlags
 ```lua
 ImGui.WindowFlags_NoDocking
