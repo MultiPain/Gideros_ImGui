@@ -7,8 +7,6 @@
 * [ENUMS](#enums)
     - [WindowFlags](#windowflags)
     - [ConfigFlags](#configflags)
-    - [TabBarFlags](#TabBarFlags)
-    - [TabItemFlags](#TabItemFlags)
     - [DockNodeFlags](#docknodeflags)
 
 ## Docking
@@ -153,34 +151,6 @@ ImGui.WindowFlags_NoDocking
 ### ConfigFlags
 ```lua
 ImGui.ConfigFlags_DockingEnable
-```
-[To top](#docking-api)
-### TabBarFlags
-```lua
-ImGui.TabBarFlags_AutoSelectNewTabs
-ImGui.TabBarFlags_NoCloseWithMiddleMouseButton
-ImGui.TabBarFlags_TabListPopupButton
-ImGui.TabBarFlags_NoTooltip
-ImGui.TabBarFlags_FittingPolicyMask
-ImGui.TabBarFlags_Reorderable
-ImGui.TabBarFlags_FittingPolicyDefault
-ImGui.TabBarFlags_FittingPolicyScroll
-ImGui.TabBarFlags_FittingPolicyResizeDown
-ImGui.TabBarFlags_None
-ImGui.TabBarFlags_NoTabListScrollingButtons
-```
-[To top](#docking-api)
-### TabItemFlags
-```lua
-ImGui.TabItemFlags_SetSelected
-ImGui.TabItemFlags_NoCloseWithMiddleMouseButton
-ImGui.TabItemFlags_NoTooltip
-ImGui.TabItemFlags_None
-ImGui.TabItemFlags_NoPushId
-ImGui.TabItemFlags_UnsavedDocument
-ImGui.TabItemFlags_Leading
-ImGui.TabItemFlags_Trailing
-ImGui.TabItemFlags_NoReorder
 ```
 [To top](#docking-api)
 ### DockNodeFlags
