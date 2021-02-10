@@ -333,10 +333,8 @@ Style:setTabRounding(value)
 value = Style:getTabRounding()
 Style:setTabBorderSize(value)
 value = Style:getTabBorderSize()
-Style:setTabMinWidthForUnselectedCloseButton(value)     -- renamed in 1.79 (can be still used until 1.80)
-value = Style:getTabMinWidthForUnselectedCloseButton()  -- renamed in 1.79 (can be still used until 1.80)
-Style:setTabMinWidthForCloseButton(value)               -- same as "ImGui:setTabMinWidthForUnselectedCloseButton(value)"
-value = Style:getTabMinWidthForCloseButton()            -- same as "ImGui:getlTabMinWidthForUnselectedCloseButton()"
+Style:setTabMinWidthForCloseButton(value)
+value = Style:getTabMinWidthForCloseButton()
 Style:setMouseCursorScale(value)
 value = Style:getMouseCursorScale()
 Style:setCurveTessellationTol(value)
