@@ -33,21 +33,14 @@
 #include "custom/TextEditor.h" // https://github.com/BalazsJako/ImGuiColorTextEdit
 
 #ifdef IS_BETA_BUILD
+#include "custom/node-editor/imgui_node_editor.h" // https://github.com/thedmd/imgui-node-editor
 #define PLUGIN_NAME "ImGui_beta"
+#define ED ax::NodeEditor
 #else
 #define PLUGIN_NAME "ImGui"
 #endif
 
-#ifdef IS_BETA_BUILD
-#include "custom/node-editor/imgui_node_editor.h" // https://github.com/thedmd/imgui-node-editor
-#define ED ax::NodeEditor
-#endif
-
-static lua_State* L;
-static Application* application;
-static char keyWeak = ' ';
-
-static std::map<int, const char*> giderosCursorMap;
+#define CC 0.0039215686274509803921568627451
 
 #define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
 #define LUA_ASSERTF(EXP, FMT, ...) if (!(EXP)) { lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L); }
@@ -58,6 +51,11 @@ static std::map<int, const char*> giderosCursorMap;
 
 #define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
 #define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
+
+static lua_State* L;
+static Application* application;
+static char keyWeak = ' ';
+static std::map<int, const char*> giderosCursorMap;
 
 namespace ImGui_impl
 {
@@ -188,11 +186,10 @@ struct GColor {
 
     static ImVec4 toVec4(int hex, double alpha = 1.0f)
     {
-        double s = 1.0f / 255.0f;
         return ImVec4(
-            ((hex >> IM_COL32_B_SHIFT) & 0xFF) * s,
-            ((hex >> IM_COL32_G_SHIFT) & 0xFF) * s,
-            ((hex >> IM_COL32_R_SHIFT) & 0xFF) * s,
+            ((hex >> IM_COL32_B_SHIFT) & 0xFF) * CC,
+            ((hex >> IM_COL32_G_SHIFT) & 0xFF) * CC,
+            ((hex >> IM_COL32_R_SHIFT) & 0xFF) * CC,
             alpha);
     }
 
@@ -436,6 +433,7 @@ static bool* getPopen(lua_State* L, int idx, int top = 2)
 void bindEnums(lua_State* L)
 {
 #ifdef IS_BETA_BUILD
+
     lua_getglobal(L, "ImGuiNodeEditor");
 
     BIND_IENUM(L, (int)ED::PinKind::Input, "Input");
@@ -484,6 +482,7 @@ void bindEnums(lua_State* L)
     BIND_IENUM(L, ED::StyleVar_GroupBorderWidth, "StyleVar_GroupBorderWidth");
 
     lua_pop(L, 1);
+
 #endif
 
     lua_getglobal(L, "ImGui");
@@ -660,6 +659,7 @@ void bindEnums(lua_State* L)
     BIND_IENUM(L, ImGuiCol_TableBorderLight, "Col_TableBorderLight");
     BIND_IENUM(L, ImGuiCol_TableRowBg, "Col_TableRowBg");
     BIND_IENUM(L, ImGuiCol_TableRowBgAlt, "Col_TableRowBgAlt");
+
 #ifdef IS_BETA_BUILD
     BIND_IENUM(L, ImGuiCol_DockingPreview, "Col_DockingPreview");
     BIND_IENUM(L, ImGuiCol_DockingEmptyBg, "Col_DockingEmptyBg");
@@ -8207,27 +8207,30 @@ int FontAtlas_AddFonts(lua_State *L)
     luaL_checktype(L, 2, LUA_TTABLE);
     int len = luaL_getn(L, 2);
 
+    lua_createtable(L, len, 0);
     for (int i = 0; i < len; i++)
     {
         lua_rawgeti(L, 2, i + 1);
 
-        lua_rawgeti(L, 3, 1);
+        lua_rawgeti(L, -1, 1);
         const char* file_name = luaL_checkstring(L, -1);
         lua_pop(L, 1);
 
-        lua_rawgeti(L, 3, 2);
+        lua_rawgeti(L, -1, 2);
         double size_pixels = luaL_checknumber(L, -1);
         lua_pop(L, 1);
 
         // options table
-        lua_rawgeti(L, 3, 3);
+        lua_rawgeti(L, -1, 3);
         ImFont* font = addFont(L, atlas, file_name, size_pixels, !lua_isnil(L, -1), -1);
         lua_pop(L, 1);
 
         lua_pop(L, 1);
+
+        g_pushInstance(L, "ImFont", font);
+        lua_rawseti(L, -2, i + 1);
     }
-    lua_pop(L, 1);
-    return 0;
+    return 1;
 }
 
 int FontAtlas_Build(lua_State* L)
