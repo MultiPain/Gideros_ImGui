@@ -7,6 +7,7 @@
 * [ENUMS](#enums)
     - [WindowFlags](#windowflags)
     - [ConfigFlags](#configflags)
+    - [Col](#col)
     - [DockNodeFlags](#docknodeflags)
 
 ## Docking
@@ -151,6 +152,12 @@ ImGui.WindowFlags_NoDocking
 ### ConfigFlags
 ```lua
 ImGui.ConfigFlags_DockingEnable
+```
+[To top](#docking-api)
+### Col
+```lua
+ImGui.Col_DockingPreview
+ImGui.Col_DockingEmptyBg
 ```
 [To top](#docking-api)
 ### DockNodeFlags
