@@ -1,11 +1,11 @@
 # DOCKING API
 * [Docking](#docking)
-* [Dock builder](#dock-builder-beta)
-* [Dock node](#dock-node-beta)
-* [Tab Bar](#tab-bar-beta)
-* [Tab Item](#tab-item-beta)
+* [Dock builder](#dock-builder)
+* [Dock node](#dock-node)
+* [Tab Bar](#tab-bar)
+* [Tab Item](#tab-item)
 * [ENUMS](#enums)
-	- [WindowFlags] (#windowflags)
+    - [WindowFlags](#windowflags)
     - [ConfigFlags](#configflags)
     - [TabBarFlags](#TabBarFlags)
     - [TabItemFlags](#TabItemFlags)
@@ -19,7 +19,7 @@ ImGui:setNextWindowDockID(ImGuiID, [ImGuiCond = 0])
 ImGuiID = ImGui:getWindowDockID()
 flag = ImGui:isWindowDocked()
 ```
-[To top](#api)
+[To top](#docking-api)
 ## Dock builder
 ```lua
 ImGui:dockBuilderDockWindow(window_name, node_id)
@@ -36,7 +36,7 @@ ImGui:dockBuilderCopyWindowSettings(src_name, dst_name)
 -- ImGui:dockBuilderCopyDockSpace(src_dockspace_id, dst_dockspace_id) -- W.I.P.
 ImGui:dockBuilderFinish(node_id)
 ```
-[To top](#api)
+[To top](#docking-api)
 ### Dock node
 ```lua
 number = ImGuiDockNode:getID()
@@ -91,7 +91,7 @@ flag = ImGuiDockNode:isEmpty()
 ImGuiDockNodeFlags = ImGuiDockNode:getMergedFlags()
 x1,y1, x2,y2 = ImGuiDockNode:rect()
 ```
-[To top](#api)
+[To top](#docking-api)
 ### Tab Bar
 ```lua
 table = ImGuiTabBar:getTabs() -- table of ImGuiTabItem
@@ -130,7 +130,7 @@ string = ImGuiTabBar:getTabsNames()
 string = ImGuiTabBar:getTabOrder(ImGuiTabItem) -- try not use it very often
 string = ImGuiTabBar:getTabName(ImGuiTabItem) -- try not use it very often
 ```
-[To top](#api)
+[To top](#docking-api)
 ### Tab Item
 ```lua
 number = ImGuiTabItem:getID()
@@ -153,8 +153,7 @@ ImGui.WindowFlags_NoDocking
 ```lua
 ImGui.ConfigFlags_DockingEnable
 ```
-[To top](#api)
-[To top](#api)
+[To top](#docking-api)
 ### TabBarFlags
 ```lua
 ImGui.TabBarFlags_AutoSelectNewTabs
@@ -169,7 +168,7 @@ ImGui.TabBarFlags_FittingPolicyResizeDown
 ImGui.TabBarFlags_None
 ImGui.TabBarFlags_NoTabListScrollingButtons
 ```
-[To top](#api)
+[To top](#docking-api)
 ### TabItemFlags
 ```lua
 ImGui.TabItemFlags_SetSelected
@@ -182,7 +181,7 @@ ImGui.TabItemFlags_Leading
 ImGui.TabItemFlags_Trailing
 ImGui.TabItemFlags_NoReorder
 ```
-[To top](#api)
+[To top](#docking-api)
 ### DockNodeFlags
 ```lua
 ImGui.DockNodeFlags_None
@@ -193,4 +192,4 @@ ImGui.DockNodeFlags_NoSplit
 ImGui.DockNodeFlags_NoResize
 ImGui.DockNodeFlags_AutoHideTabBar
 ```
-[To top](#api)
+[To top](#docking-api)
