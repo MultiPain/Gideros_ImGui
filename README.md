@@ -11,7 +11,7 @@
     - [TabItemFlags](#TabItemFlags)
     - [DockNodeFlags](#docknodeflags)
 
-## Docking (BETA)
+## Docking
 ```lua
 ImGui:dockSpace(ImGuiID, w, h, [ImGuiDockNodeFlags = 0])
 ImGuiID = ImGui:dockSpaceOverViewport([ImGuiDockNodeFlags = 0])
