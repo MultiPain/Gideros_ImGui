@@ -1102,6 +1102,7 @@ TextEditor:loadPalette{
 }
 ]]
 
+-- see below
 TextEditor:setErrorMarkers(ErrorMarkers)
 TextEditor:setBreakpoints(Breakpoints)
 
@@ -1181,6 +1182,8 @@ string = LanguageDefinition:getName()
 
 ### ErrorMarkers
 ```lua
+ErrorMarkers = ImGuiErrorMarkers.new()
+
 ErrorMarkers:add(line, message)
 ErrorMarkers:remove(line)
 message = ErrorMarkers:get(line)
@@ -1189,6 +1192,8 @@ number = ErrorMarkers:getSize()
 
 ### Breakpoints
 ```lua
+Breakpoints = ImGuiBreakpoints.new()
+
 Breakpoints:add(line)
 Breakpoints:remove(line)
 bool = Breakpoints:get(line)
