@@ -3,6 +3,7 @@
 # API
 * [EXPERIMENTAL](#EXPERIMENTAL)
 * [Fonts](#fonts) ([example](#minimal-example), [glyphs example](#glyphs-example))
+* [Font](#font)
 * [Inputs](#inputs) ([example](#usage-example))
 * [Available KeyCodes](#available-keycodes)
 * [Style setters/getters](#style-settersgetters)
@@ -151,6 +152,7 @@ FontAtlas:clearInputData()
 FontAtlas:clearTexData()
 FontAtlas:clearFonts()
 FontAtlas:clear()
+table = FontAtlas:getFonts() -- returns a table with all fonts (included default)
 flag = FontAtlas:isBuilt()
 number = FontAtlas:addCustomRectRegular(width, height)
 number = FontAtlas:addCustomRectFontGlyph(font, id, width, height, advance_x, [offset_x, offset_y])
@@ -229,6 +231,20 @@ fonts:build()
 local icon = utf8.char(0x2590)
  
 ImGui:text("My icon >>" .. icon .. " << !!!")
+```
+[To top](#api)
+## Font
+```lua
+number = Font:getFontSize()
+FontAtlas = Font:getContainerAtlas()
+Font:setScale(number)
+number = Font:getScale()
+number = Font:getAscent()
+number = Font:getDescent()
+boo = Font:isLoaded()
+string = Font:getDebugName()
+w, h = Font:calcTextSizeA(size, max_width, wrap_width, string)
+Font:calcWordWrapPositionA(scale, string, wrap_width) -- not tested
 ```
 [To top](#api)
 ## INPUTS
@@ -394,6 +410,8 @@ r, g, b, a = ImGui:colorConvertHEXtoRGB(color, [alpha = 1])
 hex = ImGui:colorConvertRGBtoHEX(r, g, b)
 h, s, v = ImGui:colorConvertRGBtoHSV(r, g, b)
 r, g, b = ImGui:colorConvertHSVtoRGB(h, s, v)
+h, s, v = colorConvertHEXtoHSV(hex)
+hex = colorConvertHSVtoHEX(h, s, v)
 ```
 [To top](#api)
 ## IO Functions
