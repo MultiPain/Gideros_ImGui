@@ -46,6 +46,11 @@
 * [Utilities](#miscellaneous-utilities)
 * [Render](#render)
 * [ImGui Demos](#demos)
+* [TextEditor](#texteditor)
+* [Functions](#functions)
+* [LanguageDefinition](#languagedefinition)
+* [ErrorMarkers](#errormarkers)
+* [Breakpoints](#breakpoints)
 * [ENUMS](#enums)
     - [FocusedFlags](#focusedflags)
     - [PopoupFlags](#opoupflags)
@@ -79,6 +84,7 @@
     - [TableColumnFlags](#tablecolumnflags)
     - [TableRowFlags](#tablerowflags)
     - [SortDirection](#sortdirection)
+	- [TE_ColorIndex](#te-ColorIndex)
 * [Custom drawing](#draw-lists) ([example](#usage-example-2))
 
 !VERY IMPORTANT!</br> 
@@ -1040,6 +1046,156 @@ isOpenFlag = ImGui:showStyleSelector()
 ImGui:showLuaStyleEditor()
 ```
 [To top](#api)
+## TextEditor
+```lua
+-- otherTextEditor: another "ImGuiTextEditor" instance to copy setting 
+TextEditor = ImGuiTextEditor.new([otherTextEditor])
+```
+## Functions
+```lua
+LanguageDefinition = TextEditor:getLanguageCPP()
+LanguageDefinition = TextEditor:getLanguageGLSL()
+LanguageDefinition = TextEditor:getLanguageHLSL()
+LanguageDefinition = TextEditor:getLanguageC()
+LanguageDefinition = TextEditor:getLanguageSQL()
+LanguageDefinition = TextEditor:getLanguageAngelScript()
+LanguageDefinition = TextEditor:getLanguageLua()
+
+TextEditor:setLanguageDefinition(LanguageDefinition)
+LanguageDefinition = TextEditor:getLanguageDefinition()
+
+Palette = TextEditor:getPaletteDark()
+Palette = TextEditor:getPaletteLight()
+Palette = TextEditor:getPaletteRetro()
+
+TextEditor:setPalette(Palette)
+Palette = TextEditor:getPalette()
+
+TextEditor:setPaletteColor(TE_ColorIndex, color) -- see TextEditor enums below
+TextEditor:getPaletteColor(TE_ColorIndex)
+
+TextEditor:loadPalette(table) -- 42 elements table
+-- example:
+--[[ dark palete:
+TextEditor:loadPalette{
+	0x7f7f7f, 1,	-- Default
+	0xd69c56, 1,	-- Keyword
+	0x00ff00, 1,	-- Number
+	0x7070e0, 1,	-- String
+	0x70a0e0, 1,	-- Char literal
+	0xffffff, 1,	-- Punctuation
+	0x408080, 1,	-- Preprocessor
+	0xaaaaaa, 1,	-- Identifier
+	0x9bc64d, 1,	-- Known identifier
+	0xc040a0, 1,	-- Preproc identifier
+	0x206020, 1,	-- Comment (single line)
+	0x406020, 1,	-- Comment (multi line)
+	0x101010, 1,	-- Background
+	0xe0e0e0, 1,	-- Cursor
+	0xa06020, 0.5,	-- Selection
+	0x0020ff, 0.5,	-- ErrorMarker
+	0xf08000, 0.25, -- Breakpoint
+	0x707000, 1,	-- Line number
+	0x000000, 0.25, -- Current line fill
+	0x808080, 0.25, -- Current line fill (inactive)
+	0xa0a0a0, 0.25, -- Current line edge
+}
+]]
+
+TextEditor:setErrorMarkers(ErrorMarkers)
+TextEditor:setBreakpoints(Breakpoints)
+
+TextEditor:render(string_id, [w = 0, h = 0, border = 0])
+
+TextEditor:setText(string)
+TextEditor:getText()
+TextEditor:setTextLines(table) -- set editor text using table. Structure: {"line 1", "line 2", "line 3", ...}
+table = TextEditor:getTextLines()
+
+string = TextEditor:getSelectedText()
+string = TextEditor:getCurrentLineText()
+
+number = TextEditor:getTotalLines()
+bool = TextEditor:isOverwrite()
+
+bool = TextEditor:setReadOnly()
+bool = TextEditor:isReadOnly()
+bool = TextEditor:isTextChanged()
+bool = TextEditor:isCursorPositionChanged()
+
+TextEditor:setColorizerEnable()
+bool = TextEditor:isColorizerEnabled()
+
+line, column = TextEditor:getCursorPosition() -- 0 based line & column number 
+TextEditor:setCursorPosition(line, column)
+
+TextEditor:setHandleMouseInputs(bool)
+bool = TextEditor:isHandleMouseInputsEnabled()
+
+TextEditor:setHandleKeyboardInputs(bool)
+bool = TextEditor:isHandleKeyboardInputsEnabled()
+
+TextEditor:setTextEditorChildIgnored(bool)
+bool = TextEditor:isTextEditorChildIgnored()
+
+TextEditor:setShowWhitespaces(bool)
+bool = TextEditor:isShowingWhitespaces()
+
+TextEditor:setTabSize(size)
+size = TextEditor:getTabSize()
+
+TextEditor:insertText(string)
+
+TextEditor:moveUp([amount = 1, select = false])
+TextEditor:moveDown([amount = 1, select = false])
+TextEditor:moveLeft([amount = 1, select = false])
+TextEditor:moveRight([amount = 1, select = false])
+TextEditor:moveTop([select = false])
+TextEditor:moveBottom([select = false])
+TextEditor:moveHome([select = false])
+TextEditor:moveEnd([select = false])
+
+TextEditor:setSelectionStart(line, column)
+TextEditor:setSelectionEnd(line, column)
+TextEditor:setSelection(startLine, startColumn, endLine, endColumn)
+TextEditor:selectWordUnderCursor()
+TextEditor:selectAll()
+bool = TextEditor:hasSelection()
+
+TextEditor:copy()
+TextEditor:cut()
+TextEditor:paste()
+TextEditor:delete()
+
+bool = TextEditor:canUndo()
+bool = TextEditor:canRedo()
+TextEditor:undo()
+TextEditor:redo()
+```
+[To top](#api)
+
+### LanguageDefinition
+```lua
+string = LanguageDefinition:getName()
+```
+
+### ErrorMarkers
+```lua
+ErrorMarkers:add(line, message)
+ErrorMarkers:remove(line)
+message = ErrorMarkers:get(line)
+number = ErrorMarkers:getSize()
+```
+
+### Breakpoints
+```lua
+Breakpoints:add(line)
+Breakpoints:remove(line)
+bool = Breakpoints:get(line)
+number = Breakpoints:getSize()
+```
+[To top](#api)
+
 ## ENUMS
 
 ### FocusedFlags
@@ -1586,6 +1742,33 @@ ImGui.SortDirection_Ascending
 ImGui.SortDirection_Descending
 ```
 [To top](#api)
+
+### TE_ColorIndex
+```lua
+ImGui.TE_Default
+ImGui.TE_Keyword
+ImGui.TE_Number
+ImGui.TE_String
+ImGui.TE_CharLiteral
+ImGui.TE_Punctuation
+ImGui.TE_Preprocessor
+ImGui.TE_Identifier
+ImGui.TE_KnownIdentifier
+ImGui.TE_PreprocIdentifier
+ImGui.TE_Comment
+ImGui.TE_MultiLineComment
+ImGui.TE_Background
+ImGui.TE_Cursor
+ImGui.TE_Selection
+ImGui.TE_ErrorMarker
+ImGui.TE_Breakpoint
+ImGui.TE_LineNumber
+ImGui.TE_CurrentLineFill
+ImGui.TE_CurrentLineFillInactive
+ImGui.TE_CurrentLineEdge
+```
+[To top](#api)
+
 ## DRAW LISTS
 
 ### Window draw list
@@ -1657,6 +1840,12 @@ list:rotateEnd(math.pi/2.2)
 <img src="https://user-images.githubusercontent.com/1312968/99901217-4697fa80-2cb5-11eb-9e80-c469cc69b848.gif"></br>
 ```lua
 -- reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
+UI = ImGui.new()
+IO = UI:getIO()
+local w = 320
+local h = 180
+IO:setDisplaySize(w*2,h*2)
+
 local cos,sin,sqrt=math.cos,math.sin,math.sqrt
 local p = {-1,-1, 1,-1, 1,1, -1,1}
 local function conv(z,szx,szy,ox,oy,vx,vy) return ((vx/z)*szx*5+szx*0.5)+ox,((vy/z)*szy*5+szy*0.5)+oy end
@@ -1673,12 +1862,6 @@ local function FX(d,ax,ay,bx,by,sw,sh,t)
 	end
 end
 
-UI = ImGui.new()
-IO = UI:getIO()
-stage:addChild(UI)
-local w = 320
-local h = 180
-IO:setDisplaySize(w*2,h*2)
 function onEnterFrame(e)
 	UI:newFrame(e)
 	UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)
@@ -1694,6 +1877,7 @@ function onEnterFrame(e)
 	UI:endFrame()
 end
 
+stage:addChild(UI)
 stage:addEventListener("enterFrame", onEnterFrame)
 ```
 [To top](#api)
