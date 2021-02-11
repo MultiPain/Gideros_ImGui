@@ -2293,6 +2293,12 @@ int PopStyleVar(lua_State* L)
     return 0;
 }
 
+int GetFont(lua_State* L)
+{
+    g_pushInstance(L, "ImFont", ImGui::GetFont());
+    return 1;
+}
+
 int GetFontSize(lua_State* L)
 {
     lua_pushnumber(L, ImGui::GetFontSize());
@@ -8343,6 +8349,83 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
+/// ImFont
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int ImFont_GetFontSize(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushnumber(L, font->FontSize);
+    return 1;
+}
+
+int ImFont_GetContainerAtlas(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    g_pushInstance(L, "ImFontAtlas", font->ContainerAtlas);
+    return 1;
+}
+
+int ImFont_SetScale(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    font->Scale = luaL_checknumber(L, 2);
+    return 0;
+}
+
+int ImFont_GetScale(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushnumber(L, font->Scale);
+    return 1;
+}
+
+int ImFont_GetAscent(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushnumber(L, font->Ascent);
+    return 1;
+}
+
+int ImFont_GetDescent(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushnumber(L, font->Descent);
+    return 1;
+}
+
+int ImFont_IsLoaded(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushboolean(L, font->IsLoaded());
+    return 1;
+}
+
+int ImFont_GetDebugName(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    lua_pushstring(L, font->GetDebugName());
+    return 1;
+}
+
+int ImFont_CalcTextSizeA(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    float size = luaL_checknumber(L, 2);
+    float max_width = luaL_checknumber(L, 3);
+    float wrap_width = luaL_checknumber(L, 4);
+    const char* text = luaL_checkstring(L, 5);
+    ImVec2 tsize = font->CalcTextSizeA(size, max_width, wrap_width, text);
+    lua_pushnumber(L, tsize.x);
+    lua_pushnumber(L, tsize.y);
+    return 2;
+}
+//const char*       CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width)
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
 /// DRAW LIST
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -10755,8 +10838,17 @@ int EM_MGet(lua_State* L)
     TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers", 1);
     int lineNumber = luaL_checkinteger(L, 2);
     TextEditor::ErrorMarkers::iterator it = markers->find(lineNumber);
-    it == markers->end() ? lua_pushnil(L) : lua_pushstring(L, (*it).second.c_str());
-    return 1;
+    if (it == markers->end())
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+    else
+    {
+        lua_pushnumber(L, (*it).first);
+        lua_pushstring(L, (*it).second.c_str());
+        return 2;
+    }
 }
 
 int EM_MSize(lua_State* L)
@@ -10800,7 +10892,7 @@ int EM_BGet(lua_State* L)
     TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints", 1);
     int lineNumber = luaL_checkinteger(L, 2);
     TextEditor::Breakpoints::iterator it = points->find(lineNumber);
-    it == points->end() ? lua_pushnil(L) : lua_pushnumber(L, *it);
+    it == points->end() ? lua_pushnil(L) : lua_pushinteger(L, *it);
     return 1;
 }
 
@@ -11382,9 +11474,22 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImFontAtlas", 0, NULL, NULL, imguiFontAtlasFunctionList);
 
-    g_createClass(L, "ImFont", 0, NULL, NULL, imguiEmptyFunctionsList);
+    const luaL_Reg imguiFontFunctionsList[] = {
+        {"getFontSize", ImFont_GetFontSize },
+        {"getContainerAtlas", ImFont_GetContainerAtlas },
+        {"setScale", ImFont_SetScale },
+        {"getScale", ImFont_GetScale },
+        {"getAscent", ImFont_GetAscent },
+        {"getDescent", ImFont_GetDescent },
+        {"isLoaded", ImFont_IsLoaded },
+        {"getDebugName", ImFont_GetDebugName },
+        {"calcTextSizeA", ImFont_CalcTextSizeA },
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImFont", 0, NULL, NULL, imguiFontFunctionsList);
 
 #ifdef IS_BETA_BUILD
+
     const luaL_Reg imguiDockNodeFunctionList[] = {
         {"getID", DockBuilder_Node_GetID},
         {"getSharedFlags", DockBuilder_Node_GetSharedFlags},
@@ -11649,6 +11754,7 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGuiEDStyle", 0, NULL, NULL, imguiEDStyleFunctionsList);
+
 #endif
 
     const luaL_Reg imguiTextEditorFunctionsList[] = {
@@ -11925,6 +12031,7 @@ int loader(lua_State* L)
         {"popStyleColor", PopStyleColor},
         {"pushStyleVar", PushStyleVar},
         {"popStyleVar", PopStyleVar},
+        {"getFont", GetFont},
         {"getFontSize", GetFontSize},
 
         {"pushItemWidth", PushItemWidth},
@@ -12272,6 +12379,7 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGui", "Sprite", initImGui, destroyImGui, imguiFunctionList);
+
     luaL_newweaktable(L);
     luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 
