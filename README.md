@@ -399,7 +399,7 @@ flag = Style:getAntiAliasedFill()
 [To top](#api)
 ## DEFAULT STYLES 
 ```lua
-Style:setDarkStyle()
+ImGui:setDarkStyle()
 ImGui:setLightStyle()
 ImGui:setClassicStyle()
 ```
