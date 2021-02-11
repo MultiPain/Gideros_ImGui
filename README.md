@@ -47,10 +47,10 @@
 * [Render](#render)
 * [ImGui Demos](#demos)
 * [TextEditor](#texteditor)
-* [Functions](#functions)
-* [LanguageDefinition](#languagedefinition)
-* [ErrorMarkers](#errormarkers)
-* [Breakpoints](#breakpoints)
+    - [Functions](#functions)
+    - [LanguageDefinition](#languagedefinition)
+    - [ErrorMarkers](#errormarkers)
+    - [Breakpoints](#breakpoints)
 * [ENUMS](#enums)
     - [FocusedFlags](#focusedflags)
     - [PopoupFlags](#opoupflags)
@@ -84,7 +84,7 @@
     - [TableColumnFlags](#tablecolumnflags)
     - [TableRowFlags](#tablerowflags)
     - [SortDirection](#sortdirection)
-	- [TE_ColorIndex](#te-ColorIndex)
+	- [TE_ColorIndex](#te_colorindex)
 * [Custom drawing](#draw-lists) ([example](#usage-example-2))
 
 !VERY IMPORTANT!</br> 
