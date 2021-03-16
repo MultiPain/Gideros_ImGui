@@ -1835,7 +1835,8 @@ DrawList:addConvexPolyFilled(pointsTable, color) -- pointsTable (table), color (
 DrawList:addBezierCubic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, thickness, [num_segments = 0])
 DrawList:addBezierQuadratic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, thickness, [num_segments = 0])
 DrawList:addImage(texture, x, y, x + w, y + h, [tintColor = 0xffffff, tintAlpha = 1]) 
-DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h, [tintColor = 0xffffff, tintAlpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = DrawList:addImageRounded(texture, x, y, x + w, y + h, tintColor, tintAlpha, roundRadius, [CornerFlags = ImGui.CorenerFlags_All])
+DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h, [tintColor = 0xffffff, tintAlpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = 
+DrawList:addImageRounded(texture, x, y, x + w, y + h, tintColor, tintAlpha, roundRadius, [CornerFlags = ImGui.CorenerFlags_All])
 DrawList:pathClear()
 DrawList:pathLineTo(x, y)
 DrawList:pathLineToMergeDuplicate(x, y)
