@@ -4,6 +4,7 @@
 #include "lua.hpp"
 #include "luautil.h"
 
+//#include "stackchecker.h"
 #include "gplugin.h"
 #include "gfile.h"
 #include "gstdio.h"
@@ -1749,11 +1750,13 @@ int NewFrame(lua_State* L)
 
 int Render(lua_State* L)
 {
+    //StackChecker checker(L, "Render", 1);
+    
     GidImGui* imgui = getImgui(L);
 
     if (imgui->autoUpdateCursor)
     {
-        ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+        ImGuiMouseCursor cursor = imgui->ctx->MouseCursor;
         const char* cursorName = giderosCursorMap[cursor];
         setApplicationCursor(L, cursorName);
     }
@@ -1761,8 +1764,9 @@ int Render(lua_State* L)
     return 0;
 }
 
-int EndFrame(lua_State* _UNUSED(L))
+int EndFrame(lua_State* L)
 {
+    ////StackChecker checker(L, "EndFrame", 0);
     ImGui::EndFrame();
     return 0;
 }
@@ -1775,6 +1779,8 @@ int EndFrame(lua_State* _UNUSED(L))
 
 int Begin(lua_State* L)
 {
+    //StackChecker checker(L, "Begin", 4);
+    
     const char* name = luaL_checkstring(L, 2);
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 
@@ -1794,8 +1800,9 @@ int Begin(lua_State* L)
     return ret;
 }
 
-int End(lua_State* _UNUSED(L))
+int End(lua_State* L)
 {
+    //StackChecker checker(L, "End", 0);
     ImGui::End();
     return 0;
 }
@@ -1803,6 +1810,8 @@ int End(lua_State* _UNUSED(L))
 // @MultiPain
 int BeginFullScreenWindow(lua_State* L)
 {
+    //StackChecker checker(L, "End", 0);
+    
     const char* name = luaL_checkstring(L, 2);
     ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
     flags |= ImGuiWindowFlags_FullScreen;
@@ -2702,8 +2711,8 @@ int Image(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
+    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
 
     ImGui::Image(data.texture, size, data.uv0, data.uv1, tint, border);
     return 0;
@@ -2713,9 +2722,9 @@ int ImageFilled(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
 
     ImGui::ImageFilled(data.texture, size, data.uv0, data.uv1, bg_col, tint, border);
     return 0;
@@ -2726,8 +2735,8 @@ int ImageButton(lua_State* L)
     GTextureData data = getTexture(L, 2);
     const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
     int frame_padding = luaL_optinteger(L, 5, -1);
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
 
     lua_pushboolean(L, ImGui::ImageButton(data.texture, size, data.uv0, data.uv1, frame_padding, bg_col, tint));
     return 1;
@@ -2737,10 +2746,10 @@ int ImageButtonWithText(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
     const char* label = luaL_checkstring(L, 3);
-    ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     int frame_padding = luaL_optinteger(L, 6, -1);
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    ImVec4 tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
 
     lua_pushboolean(L, ImGui::ImageButtonWithText(data.texture, label, size, data.uv0, data.uv1, frame_padding, bg_col, tint_col));
     return 1;
@@ -2749,38 +2758,43 @@ int ImageButtonWithText(lua_State* L)
 int ScaledImage(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
-    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L,  9, 0.5f), luaL_optnumber(L, 10, 0.5f));
+    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
+    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L,  11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+    float frame_rounding = luaL_optnumber(L, 13, 0.0f);
 
-    ImGui::ScaledImage(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, tint, border);
+    ImGui::ScaledImage(data.texture, image_size, data.texture_size, button_size, anchor, data.uv0, data.uv1, tint, border, frame_rounding);
     return 0;
 }
 
 int ScaledImageFilled(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
-    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    ImVec4 border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
+    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 13, 0.5f), luaL_optnumber(L, 14, 0.5f));
+    float frame_rounding = luaL_optnumber(L, 15, 0.0f);
 
-    ImGui::ScaledImageFilled(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, bg_col, tint, border);
+    ImGui::ScaledImageFilled(data.texture, image_size, data.texture_size, button_size, anchor, data.uv0, data.uv1, bg_col, tint, border, frame_rounding);
     return 0;
 }
 
 int ScaledImageButton(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
-    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    int frame_padding = luaL_optinteger(L, 5, -1);
-    ImVec4 tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 10, 0.5f), luaL_optnumber(L, 11, 0.5f));
+    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+    ImGuiButtonFlags flags = luaL_optinteger(L, 7, 0);
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 1.0f));
+    const ImVec4& bg = GColor::toVec4(luaL_optinteger(L, 10, 0), luaL_optnumber(L, 11, 0.0f));
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 12, 0.5f), luaL_optnumber(L, 13, 0.5f));
 
-    lua_pushboolean(L, ImGui::ScaledImageButton(data.texture, size, data.texture_size, anchor, data.uv0, data.uv1, frame_padding, bg_col, tint));
+    lua_pushboolean(L, ImGui::ScaledImageButton(data.texture, image_size, data.texture_size, button_size, tint, bg, flags, anchor, data.uv0, data.uv1));
     return 1;
 }
 
@@ -2788,13 +2802,14 @@ int ScaledImageButtonWithText(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
     const char* label = luaL_checkstring(L, 3);
-    ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    int frame_padding = luaL_optinteger(L, 6, -1);
-    ImVec4 bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    ImVec4 tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+    ImGuiDir image_side = luaL_optinteger(L, 8, ImGuiDir_Left);
+    ImGuiButtonFlags flags = luaL_optinteger(L, 9, 0);
+    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 10, 0xffffff), luaL_optnumber(L, 11, 1.0f));
+    const ImVec4& bg = GColor::toVec4(luaL_optinteger(L, 12, 0), luaL_optnumber(L, 13, 0.0f));
 
-    lua_pushboolean(L, ImGui::ScaledImageButtonWithText(data.texture, label, data.texture_size, anchor, size, data.uv0, data.uv1, frame_padding, bg_col, tint_col));
+    lua_pushboolean(L, ImGui::ScaledImageButtonWithText(data.texture, label, image_size, data.texture_size, button_size, tint, bg, image_side, flags, data.uv0, data.uv1));
     return 1;
 }
 
@@ -3988,16 +4003,11 @@ int ColorButton(lua_State* L)
 {
     const char* desc_id = luaL_checkstring(L, 2);
     ImVec4 col = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
-    ImGuiColorEditFlags flags = luaL_optinteger(L, 5, 0);
-    ImVec2 size = ImVec2(luaL_optnumber(L, 6, 0), luaL_optnumber(L, 7, 0));
+    ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0), luaL_optnumber(L, 6, 0));
+    ImGuiColorEditFlags flags = luaL_optinteger(L, 7, 0);
 
-    bool result = ImGui::ColorButton(desc_id, col, flags, size);
-
-    GColor conv = GColor::toHex(col);
-    lua_pushnumber(L, conv.hex);
-    lua_pushnumber(L, conv.alpha);
-    lua_pushboolean(L, result);
-    return 3;
+    lua_pushboolean(L, ImGui::ColorButton(desc_id, col, flags, size));
+    return 1;
 }
 
 int SetColorEditOptions(lua_State* L)
@@ -6414,21 +6424,24 @@ int CaptureMouseFromApp(lua_State* L)
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-int StyleDark(lua_State* _UNUSED(L))
+int StyleDark(lua_State* L)
 {
-    ImGui::StyleColorsDark();
+    GidImGui* imgui = getImgui(L);
+    ImGui::StyleColorsDark(&imgui->ctx->Style);
     return 0;
 }
 
-int StyleLight(lua_State* _UNUSED(L))
+int StyleLight(lua_State* L)
 {
-    ImGui::StyleColorsLight();
+    GidImGui* imgui = getImgui(L);
+    ImGui::StyleColorsLight(&imgui->ctx->Style);
     return 0;
 }
 
-int StyleClassic(lua_State* _UNUSED(L))
+int StyleClassic(lua_State* L)
 {
-    ImGui::StyleColorsClassic();
+    GidImGui* imgui = getImgui(L);
+    ImGui::StyleColorsClassic(&imgui->ctx->Style);
     return 0;
 }
 
@@ -7284,6 +7297,13 @@ int IO_SetFontDefault(lua_State* L)
     if (font)
         io.FontDefault = font;
     return 0;
+}
+
+int IO_GetDefaultFont(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    g_pushInstance(L, "ImFont", io.FontDefault);
+    return 1;
 }
 
 int IO_GetFonts(lua_State* L)
@@ -8215,6 +8235,21 @@ int FontAtlas_AddFonts(lua_State *L)
     return 1;
 }
 
+int FontAtlas_GetFonts(lua_State* L)
+{
+    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas", 1);
+    int count = atlas->Fonts.Size;
+
+    lua_createtable(L, count, 0);
+    for (int i = 0; i < count; i++)
+    {
+        g_pushInstance(L, "ImFont", atlas->Fonts[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
 int FontAtlas_Build(lua_State* L)
 {
     ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas", 1);
@@ -8421,8 +8456,17 @@ int ImFont_CalcTextSizeA(lua_State* L)
     lua_pushnumber(L, tsize.y);
     return 2;
 }
-//const char*       CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width)
 
+int ImFont_CalcWordWrapPositionA(lua_State* L)
+{
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 1);
+    float scale = luaL_checknumber(L, 2);
+    const char* text = luaL_checkstring(L, 3);
+    float wrap_width = luaL_checknumber(L, 4);
+    const char* t = font->CalcWordWrapPositionA(scale, text, NULL, wrap_width);
+    lua_pushstring(L, t);
+    return 1;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -8459,6 +8503,38 @@ int GetForegroundDrawList(lua_State* L)
     ErrorCheck(L);
     ImDrawList* draw_list = ImGui::GetForegroundDrawList();
     g_pushInstance(L, "ImDrawList", draw_list);
+    return 1;
+}
+
+int DrawList_GetFont(lua_State* L)
+{
+    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
+    ImFont* font = list->_Data->Font;
+    g_pushInstance(L, "ImFont", font);
+    return 1;
+}
+
+int DrawList_GetFontSize(lua_State* L)
+{
+    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
+    float font_size = list->_Data->FontSize;
+    lua_pushnumber(L, font_size);
+    return 1;
+}
+
+int DrawList_GetCurveTessellationTol(lua_State* L)
+{
+    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
+    float tessellation = list->_Data->CurveTessellationTol;
+    lua_pushnumber(L, tessellation);
+    return 1;
+}
+
+int DrawList_GetCircleSegmentMaxError(lua_State* L)
+{
+    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
+    float maxError = list->_Data->CircleSegmentMaxError;
+    lua_pushnumber(L, maxError);
     return 1;
 }
 
@@ -8821,7 +8897,8 @@ int DrawList_AddImage(lua_State* L)
     ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
 
     ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
-    ImGui::FitImage(p_min, p_max, p_max - p_min, data.texture_size, ImVec2(0.5f, 0.5f));
+    ImVec2 area = p_max - p_min;
+    ImGui::FitImage(p_min, p_max, area, area, data.texture_size, ImVec2(0.5f, 0.5f), ImGui::GetStyle().FramePadding);
 
     list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
     return 0;
@@ -8854,7 +8931,8 @@ int DrawList_AddImageRounded(lua_State* L)
     double rounding = luaL_checknumber(L, 9);
     ImDrawCornerFlags rounding_corners = luaL_optinteger(L, 10, ImDrawCornerFlags_All);
 
-    ImGui::FitImage(p_min, p_max, p_max - p_min, data.texture_size, ImVec2(0.5f, 0.5f));
+    ImVec2 area = p_max - p_min;
+    ImGui::FitImage(p_min, p_max, area, area, data.texture_size, ImVec2(0.5f, 0.5f));
 
     ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList", 1);
     list->AddImageRounded(data.texture, p_min, p_max, data.uv0, data.uv1, col, rounding, rounding_corners);
@@ -11301,6 +11379,11 @@ int loader(lua_State* L)
 
     const luaL_Reg imguiDrawListFunctionList[] =
     {
+        {"getFont", DrawList_GetFont},
+        {"getFontSize", DrawList_GetFontSize},
+        {"getCurveTessellationTol", DrawList_GetCurveTessellationTol},
+        {"getCircleSegmentMaxError", DrawList_GetCircleSegmentMaxError},
+
         {"pushClipRect", DrawList_PushClipRect},
         {"pushClipRectFullScreen", DrawList_PushClipRectFullScreen},
         {"popClipRect", DrawList_PopClipRect},
@@ -11350,6 +11433,7 @@ int loader(lua_State* L)
     const luaL_Reg imguiIoFunctionList[] =
     {
         {"setFontDefault", IO_SetFontDefault},
+        {"getDefaultFont", IO_GetDefaultFont},
         {"getFonts", IO_GetFonts},
 
         {"getDeltaTime", IO_GetDeltaTime},
@@ -11457,6 +11541,7 @@ int loader(lua_State* L)
         {"addFont", FontAtlas_AddFont},
         {"addFonts", FontAtlas_AddFonts},
         {"getFont", FontAtlas_GetFontByIndex},
+        {"getFonts", FontAtlas_GetFonts},
         {"getFontsCount", FontAtlas_GetFontsSize},
         {"getCurrentFont", FontAtlas_GetCurrentFont},
         {"addDefaultFont", FontAtlas_AddDefaultFont},
@@ -11484,6 +11569,7 @@ int loader(lua_State* L)
         {"isLoaded", ImFont_IsLoaded },
         {"getDebugName", ImFont_GetDebugName },
         {"calcTextSizeA", ImFont_CalcTextSizeA },
+        {"calcWordWrapPositionA", ImFont_CalcWordWrapPositionA},
         {NULL, NULL}
     };
     g_createClass(L, "ImFont", 0, NULL, NULL, imguiFontFunctionsList);
