@@ -146,8 +146,7 @@ FontAtlas:addFonts(fontsDescription)
 -- FontAtlas:addFonts{ {"fonts/DroidSans.ttf", 16}, {"fonts/ProggyTiny.ttf", 16} }
 
 Font = FontAtlas:getFont([index]) -- get font by index (if index is 0 or nil you will get default font instance)
-FontAtlas:build()
-FontAtlas:bake() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
+FontAtlas:build() -- call after multiple FontAtlas:addFont(...) calls to update ImGui font atlas 
 FontAtlas:clearInputData()
 FontAtlas:clearTexData()
 FontAtlas:clearFonts()
@@ -174,7 +173,7 @@ local VDS_font = FontAtlas:addFont("fonts/VDS.ttf", 16, {
 	}
 })
 IO:setFontDefault(VDS_font)
-FontAtlas:bake()
+FontAtlas:build()
 stage:addChild(UI)
 
 -- you can use multiple fonts at the same time
