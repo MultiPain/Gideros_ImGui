@@ -21,6 +21,7 @@ SOURCES += \
     imgui_src/imgui_widgets.cpp \
     imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
+    TextEditor.cpp \
     ../../Src/2dsg/bitmapdata.cpp \
     ../../Src/2dsg/Matrices.cpp \
     ../../Src/2dsg/mouseevent.cpp \
@@ -29,18 +30,18 @@ SOURCES += \
     main.cpp
 
 HEADERS += \
-    ../../Src/2dsg/bitmapdata.h \
-    ../../Src/luabinding/binder.h \
-    ../../Src/2dsg/mouseevent.h \
-    ../../Src/2dsg/touchevent.h \
-    ../../Src/2dsg/keyboardevent.h \
-    imgui_user.h \
     imgui_src/imconfig.h \
     imgui_src/imgui.h \
     imgui_src/imgui_internal.h \
     imgui_src/imstb_rectpack.h \
     imgui_src/imstb_textedit.h \
-    imgui_src/imstb_truetype.h
+    imgui_src/imstb_truetype.h \
+    imgui_user.h \
+    TextEditor.h \
+    ../../Src/2dsg/bitmapdata.h \
+    ../../Src/2dsg/mouseevent.h \
+    ../../Src/2dsg/touchevent.h \
+    ../../Src/2dsg/keyboardevent.h
 
 LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs
 
