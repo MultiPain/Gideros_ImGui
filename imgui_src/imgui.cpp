@@ -3605,6 +3605,7 @@ void ImGui::UpdateMouseMovingWindowEndFrame()
             StartMouseMovingWindow(g.HoveredWindow); //-V595
 
             // Cancel moving if clicked outside of title bar OR menu bar
+            // @MultiPain
             if (g.IO.ConfigWindowsMoveFromTitleBarOnly)
             {
                 if (!(root_window->Flags & ImGuiWindowFlags_NoTitleBar))

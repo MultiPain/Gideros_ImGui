@@ -74,14 +74,16 @@ namespace ImGui
             window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
             PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
 
+            ImU32 bg_col;
             if (titleText)
             {
                 const bool window_is_focused = (g.NavWindow && window->RootWindowForTitleBarHighlight == g.NavWindow->RootWindowForTitleBarHighlight);
-                const ImU32 bg_col = GetColorU32(window_is_focused ? ImGuiCol_TitleBgActive : ImGuiCol_TitleBg);
-                const ImVec2 text_max(pos.x + label_size.x, pos.y + label_size.y);
-                ImRect bb(pos.x, pos.y, text_max.x + window->DC.MenuColumns.Spacing, text_max.y + style.FramePadding.y * 2.0f);
-                RenderFrame(bb.Min, bb.Max, bg_col, false);
+                bg_col = GetColorU32(window_is_focused ? ImGuiCol_TitleBgActive : ImGuiCol_TitleBg);
             }
+            const ImVec2 text_max(pos.x + label_size.x, pos.y + label_size.y);
+            ImRect bb(pos.x, pos.y, text_max.x + window->DC.MenuColumns.Spacing, text_max.y + style.FramePadding.y * 2.0f);
+            RenderFrame(bb.Min, bb.Max, bg_col, false);
+            
             TextUnformatted(label);
             PopStyleVar();
             window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
@@ -101,8 +103,8 @@ namespace ImGui
     ImVec2 GetItemSize(ImVec2 size, ImVec2 min, float defw, float defh)
     {
         ImVec2 out_size = CalcItemSize(size, min.x + defw, min.y + defh);
-        size.x = std::fmaxf(size.x, min.x);
-        size.y = std::fmaxf(size.y, min.y);
+        size.x = ImMax(size.x, min.x);
+        size.y = ImMax(size.y, min.y);
         return out_size;
     }
 
