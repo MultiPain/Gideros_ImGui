@@ -1718,7 +1718,7 @@ local list = ImGui:getBackgroundDrawList()
 local list = ImGui:getForegroundDrawList()
 ```
 
-## Draw lists commands
+### Draw lists commands
 ```lua
 DrawList:pushClipRect(clip_rect_min_x, clip_rect_min_y, clip_rect_max_x, clip_rect_max_y, [intersect_with_current_clip_rect = false])
 DrawList:pushClipRectFullScreen()
