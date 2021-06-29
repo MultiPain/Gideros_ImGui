@@ -647,9 +647,8 @@ value, flag = ImGui:inputScalar(label, ImGuiDataType, value, v_min, v_max, forma
 ```lua
 ImGui:inputText(label, text, bufferSize, [ImGuiInputTextFlags = 0, callbackFunction])
 
-callbackFunction:
-
-function(CallbackData)
+callbackFunction = function(CallbackData)
+	-- do something with data
 	-- see below
 end
 ```
@@ -657,9 +656,9 @@ end
 ```lua
 ImGuiInputTextFlags = CallbackData:getEventFlag()
 ImGuiInputTextFlags = CallbackData:getFlags()
-string = CallbackData:getEventChar()
-CallbackData:setEventChar(string)
-string = CallbackData:getEventKey()
+number = CallbackData:getEventChar()
+CallbackData:setEventChar(number)
+number = CallbackData:getEventKey()
 string = CallbackData:getBuf()
 CallbackData:setBuf(string)
 number = CallbackData:getBufTextLen()
