@@ -646,6 +646,8 @@ value, flag = ImGui:inputScalar(label, ImGuiDataType, value, v_min, v_max, forma
 ### Input text callbacks
 ```lua
 ImGui:inputText(label, text, bufferSize, [ImGuiInputTextFlags = 0, callbackFunction])
+ImGui:inputTextMultiline(label, text, bufferSize, [ImGuiInputTextFlags = 0, callbackFunction])
+ImGui:inputTextWithHint(label, text, hint, bufferSize, [ImGuiInputTextFlags = 0, callbackFunction])
 
 callbackFunction = function(CallbackData)
 	-- do something with data
