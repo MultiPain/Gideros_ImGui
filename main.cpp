@@ -3654,11 +3654,11 @@ int InputText(lua_State* L)
     if (lua_gettop(L) > 5)
     {
         setCallbackFunction(L, LuaInputCallbackFunction, 6);
-        ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
+        result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
     }
     else
     {
-        ImGui::InputText(label, buffer, buffer_size, flags);
+        result = ImGui::InputText(label, buffer, buffer_size, flags);
     }
 
     lua_pushstring(L, &(*buffer));
@@ -3672,14 +3672,22 @@ int InputTextMultiline(lua_State* L)
     const char* label = luaL_checkstring(L, 2);
     const char* text = luaL_checkstring(L, 3);
     int buffer_size = luaL_checkinteger(L, 4);
-
-    char* buffer = new char[buffer_size];
-    sprintf(buffer, "%s", text);
-
     ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
     ImGuiInputTextFlags flags = luaL_optinteger(L, 7, 0);
+    char* buffer = new char[buffer_size];
+    sprintf(buffer, "%s", text);
+    bool result = false;
 
-    bool result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags);
+    if (lua_gettop(L) > 7)
+    {
+        setCallbackFunction(L, LuaInputCallbackFunction, 8);
+        result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags, InputTextCallback, (void *)L);
+    }
+    else
+    {
+        result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags);
+    }
+
     lua_pushstring(L, &(*buffer));
     lua_pushboolean(L, result);
     delete[] buffer;
@@ -3694,11 +3702,21 @@ int InputTextWithHint(lua_State* L)
     const char* text = luaL_checkstring(L, 3);
     const char* hint = luaL_checkstring(L, 4);
     size_t buf_size = luaL_checkinteger(L, 5);
+    ImGuiInputTextFlags flags = luaL_optinteger(L, 6, 0);
     char* buffer = new char[buf_size];
     sprintf(buffer, "%s", text);
-    ImGuiInputTextFlags flags = luaL_optinteger(L, 6, 0);
+    bool result = false;
 
-    bool result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags);
+    if (lua_gettop(L) > 6)
+    {
+        setCallbackFunction(L, LuaInputCallbackFunction, 7);
+        result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags, InputTextCallback, (void *)L);
+    }
+    else
+    {
+        result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags);
+    }
+
     lua_pushstring(L, &(*buffer));
     lua_pushboolean(L, result);
     delete[] buffer;
