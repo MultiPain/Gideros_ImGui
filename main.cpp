@@ -54,6 +54,32 @@ static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
 static std::map<int, const char*> giderosCursorMap;
+static int LuaWindowConstraintCallback = -1;
+static int LuaInputCallbackFunction = -1;
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+    lua_State* L = (lua_State*)data->UserData;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LuaInputCallbackFunction);
+    g_pushInstance(L, "ImGuiInputTextCallbackData", data);
+    lua_call(L, 1, 0);
+    return 0;
+}
+static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
+{
+    lua_State* L = (lua_State*)data->UserData;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LuaWindowConstraintCallback);
+    lua_pushnumber(L, data->Pos.x);
+    lua_pushnumber(L, data->Pos.y);
+    lua_pushnumber(L, data->CurrentSize.x);
+    lua_pushnumber(L, data->CurrentSize.y);
+    lua_pushnumber(L, data->DesiredSize.x);
+    lua_pushnumber(L, data->DesiredSize.y);
+    lua_call(L, 6, 2);
+    data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
+    lua_pop(L, 2);
+}
 
 namespace ImGui_impl
 {
@@ -308,6 +334,17 @@ GTextureData getTexture(lua_State* L, int idx = 1)
 /// HELPERS
 ///
 ////////////////////////////////////////////////////////////////////////////////
+
+static void setCallbackFunction(lua_State* L, int &regIndex, int index)
+{
+    luaL_checktype(L, index, LUA_TFUNCTION);
+    if (regIndex != -1)
+    {
+        luaL_unref(L, LUA_REGISTRYINDEX, regIndex);
+        regIndex = -1;
+    }
+    regIndex = luaL_ref(L, LUA_REGISTRYINDEX);
+}
 
 static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float* ty)
 {
@@ -1908,27 +1945,11 @@ int SetNextWindowSize(lua_State* L)
     return 0;
 }
 
-static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
-{
-    lua_State* L = (lua_State*)data->UserData;
-
-    luaL_checktype(L, 5, LUA_TFUNCTION);
-    lua_pushvalue(L, 5);
-    lua_pushnumber(L, data->Pos.x);
-    lua_pushnumber(L, data->Pos.y);
-    lua_pushnumber(L, data->CurrentSize.x);
-    lua_pushnumber(L, data->CurrentSize.y);
-    lua_pushnumber(L, data->DesiredSize.x);
-    lua_pushnumber(L, data->DesiredSize.y);
-    lua_call(L, 6, 2);
-    data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
-    lua_pop(L, 1);
-}
-
 int SetNextWindowSizeConstraints(lua_State* L)
 {
     ImVec2 size_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 size_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    setCallbackFunction(L, LuaWindowConstraintCallback, 6);
     ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)L);
     return 0;
 }
@@ -3618,17 +3639,6 @@ int VFilledSliderScalar(lua_State* L)
     return 2;
 }
 
-// TODO: callbacks?
-/*
-    static int TextInputCallback(ImGuiInputTextCallbackData* data)
-    {
-        //lua_State* L = (lua_State *)data->UserData;
-        //lua_pushstring(L, data->Buf);
-        //lua_error(L);
-        return 0;
-    }
-    */
-
 // Widgets: Input with Keyboard
 int InputText(lua_State* L)
 {
@@ -3644,6 +3654,24 @@ int InputText(lua_State* L)
 
     lua_pushstring(L, &(*buffer));
     lua_pushboolean(L, result);
+    delete[] buffer;
+    return 2;
+}
+
+int InputTextWithCallback(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    const char* text = luaL_checkstring(L, 3);
+    int buffer_size = luaL_checkinteger(L, 4);
+    ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
+    setCallbackFunction(L, LuaInputCallbackFunction, 6);
+
+    char* buffer = new char[buffer_size];
+    sprintf(buffer, "%s", text);
+    bool result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
+    lua_pushstring(L, &(*buffer));
+    lua_pushboolean(L, result);
+
     delete[] buffer;
     return 2;
 }
@@ -10825,6 +10853,7 @@ int loader(lua_State* L)
         {"vFilledSliderScalar", VFilledSliderScalar},
 
         {"inputText", InputText},
+        {"inputTextWithCllback", InputTextWithCallback},
         {"inputTextMultiline", InputTextMultiline},
         {"inputTextWithHint", InputTextWithHint},
         {"inputFloat", InputFloat},
