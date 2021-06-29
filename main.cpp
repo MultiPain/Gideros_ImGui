@@ -54,32 +54,6 @@ static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
 static std::map<int, const char*> giderosCursorMap;
-static int LuaWindowConstraintCallback = -1;
-static int LuaInputCallbackFunction = -1;
-static int InputTextCallback(ImGuiInputTextCallbackData* data)
-{
-    lua_State* L = (lua_State*)data->UserData;
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, LuaInputCallbackFunction);
-    g_pushInstance(L, "ImGuiInputTextCallbackData", data);
-    lua_call(L, 1, 0);
-    return 0;
-}
-static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
-{
-    lua_State* L = (lua_State*)data->UserData;
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, LuaWindowConstraintCallback);
-    lua_pushnumber(L, data->Pos.x);
-    lua_pushnumber(L, data->Pos.y);
-    lua_pushnumber(L, data->CurrentSize.x);
-    lua_pushnumber(L, data->CurrentSize.y);
-    lua_pushnumber(L, data->DesiredSize.x);
-    lua_pushnumber(L, data->DesiredSize.y);
-    lua_call(L, 6, 2);
-    data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
-    lua_pop(L, 2);
-}
 
 namespace ImGui_impl
 {
@@ -89,9 +63,9 @@ namespace ImGui_impl
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-int DUMP_INDEX = 0;
+static int DUMP_INDEX = 0;
 
-void stackDump(lua_State* L, const char* prefix = "")
+static void stackDump(lua_State* L, const char* prefix = "")
 {
     int i = lua_gettop(L);
     lua_getglobal(L, "print");
@@ -105,28 +79,28 @@ void stackDump(lua_State* L, const char* prefix = "")
         case LUA_TSTRING:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d:'%s'", i, lua_tostring(L, i));
+            lua_pushfstring(L, "[S] %d:'%s'", i, lua_tostring(L, i));
             lua_call(L, 1, 0);
         }
             break;
         case LUA_TBOOLEAN:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
+            lua_pushfstring(L, "[B] %d: %s", i, lua_toboolean(L, i) ? "true" : "false");
             lua_call(L, 1, 0);
         }
             break;
         case LUA_TNUMBER:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d: %d", i, lua_tonumber(L, i));
+            lua_pushfstring(L, "[N] %d: %f", i, lua_tonumber(L, i));
             lua_call(L, 1, 0);
         }
             break;
         default:
         {
             lua_getglobal(L, "print");
-            lua_pushfstring(L, "%d: %s", i, lua_typename(L, t));
+            lua_pushfstring(L, "[D] %d: %s", i, lua_typename(L, t));
             lua_call(L, 1, 0);
         }
             break;
@@ -331,20 +305,50 @@ GTextureData getTexture(lua_State* L, int idx = 1)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// HELPERS
+/// CallbackData
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-static void setCallbackFunction(lua_State* L, int &regIndex, int index)
+class CallbackData
 {
-    luaL_checktype(L, index, LUA_TFUNCTION);
-    if (regIndex != -1)
+private:
+    lua_State* l;
+public:
+    int functionIndex;
+    int argumentIndex;
+
+    CallbackData(lua_State* L, int index)
     {
-        luaL_unref(L, LUA_REGISTRYINDEX, regIndex);
-        regIndex = -1;
+        functionIndex = NULL;
+        argumentIndex = NULL;
+        l = L;
+
+        if (lua_gettop(l) == index + 1)
+        {
+            setCallbackArg(argumentIndex);
+        }
+
+        luaL_checktype(l, index, LUA_TFUNCTION);
+        setCallbackArg(functionIndex);
     }
-    regIndex = luaL_ref(L, LUA_REGISTRYINDEX);
-}
+
+private:
+    void setCallbackArg(int &arg)
+    {
+        if (arg != NULL)
+        {
+            luaL_unref(l, LUA_REGISTRYINDEX, arg);
+            arg = NULL;
+        }
+        arg = luaL_ref(l, LUA_REGISTRYINDEX);
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// HELPERS
+///
+////////////////////////////////////////////////////////////////////////////////
 
 static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float* ty)
 {
@@ -457,6 +461,54 @@ static bool* getPopen(lua_State* L, int idx, int top = 2)
         return new bool(flag);
     }
     return NULL;
+}
+
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+    CallbackData* callbackData = (CallbackData*)data->UserData;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
+    g_pushInstance(L, "ImGuiInputTextCallbackData", data);
+
+    if (callbackData->argumentIndex != NULL)
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->argumentIndex);
+        lua_call(L, 2, 0);
+    }
+    else
+    {
+        lua_call(L, 1, 0);
+    }
+    delete callbackData;
+
+    return 0;
+}
+
+static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
+{
+    CallbackData* callbackData = (CallbackData*)data->UserData;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
+    lua_pushnumber(L, data->Pos.x);
+    lua_pushnumber(L, data->Pos.y);
+    lua_pushnumber(L, data->CurrentSize.x);
+    lua_pushnumber(L, data->CurrentSize.y);
+    lua_pushnumber(L, data->DesiredSize.x);
+    lua_pushnumber(L, data->DesiredSize.y);
+
+    if (callbackData->argumentIndex != NULL)
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->argumentIndex);
+        lua_call(L, 7, 2);
+    }
+    else
+    {
+        lua_call(L, 6, 2);
+    }
+
+    data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
+    lua_pop(L, 2);
+    delete callbackData;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1950,8 +2002,8 @@ int SetNextWindowSizeConstraints(lua_State* L)
 {
     ImVec2 size_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 size_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    setCallbackFunction(L, LuaWindowConstraintCallback, 6);
-    ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)L);
+    CallbackData* data = new CallbackData(L, 6);
+    ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)data);
     return 0;
 }
 
@@ -3653,8 +3705,8 @@ int InputText(lua_State* L)
 
     if (lua_gettop(L) > 5)
     {
-        setCallbackFunction(L, LuaInputCallbackFunction, 6);
-        result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
+        CallbackData* data = new CallbackData(L, 6);
+        result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void*)data);
     }
     else
     {
@@ -3680,8 +3732,8 @@ int InputTextMultiline(lua_State* L)
 
     if (lua_gettop(L) > 7)
     {
-        setCallbackFunction(L, LuaInputCallbackFunction, 8);
-        result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags, InputTextCallback, (void *)L);
+        CallbackData* data = new CallbackData(L, 8);
+        result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags, InputTextCallback, (void*)data);
     }
     else
     {
@@ -3709,8 +3761,8 @@ int InputTextWithHint(lua_State* L)
 
     if (lua_gettop(L) > 6)
     {
-        setCallbackFunction(L, LuaInputCallbackFunction, 7);
-        result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags, InputTextCallback, (void *)L);
+        CallbackData* data = new CallbackData(L, 7);
+        result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags, InputTextCallback, (void *)data);
     }
     else
     {
