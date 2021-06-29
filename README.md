@@ -643,6 +643,43 @@ value, flag = ImGui:inputDouble(label, value, [step = 0, step_fast = 0, format =
 value, flag = ImGui:inputScalar(label, ImGuiDataType, value, v_min, v_max, format, [ImGuiInputTextFlags = 0])
 ```
 
+### Input text callbacks
+```lua
+ImGui:inputText(label, text, bufferSize, [ImGuiInputTextFlags = 0, callbackFunction])
+
+callbackFunction:
+
+function(CallbackData)
+	-- see below
+end
+```
+### CallbackData
+```lua
+ImGuiInputTextFlags = CallbackData:getEventFlag()
+ImGuiInputTextFlags = CallbackData:getFlags()
+string = CallbackData:getEventChar()
+CallbackData:setEventChar(string)
+string = CallbackData:getEventKey()
+string = CallbackData:getBuf()
+CallbackData:setBuf(string)
+number = CallbackData:getBufTextLen()
+CallbackData:setBufTextLen(number)
+number = CallbackData:getBufSize()
+bool = CallbackData:getBufDirty()
+CallbackData:setBufDirty(bool)
+number = CallbackData:getCursorPos()
+CallbackData:setCursorPos(number)
+number = CallbackData:getSelectionStart()
+CallbackData:setSelectionStart(number)
+number = CallbackData:getSelectionEnd()
+CallbackData:setSelectionEnd(number)
+CallbackData:deleteChars(position, bytesCount)
+CallbackData:insertChars(position, text)
+CallbackData:selectAll()
+CallbackData:clearSelection()
+bool = CallbackData:hasSelection()
+```
+
 ## Widgets: Color Editor/Picker
 ```lua
 hexColor, isTouchingFlag = ImGui:colorEdit3(label, color, [ImGuiColorEditFlags = 0]) -- alpha ignored, no need to pass it!

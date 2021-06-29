@@ -3646,33 +3646,23 @@ int InputText(lua_State* L)
     const char* label = luaL_checkstring(L, 2);
     const char* text = luaL_checkstring(L, 3);
     int buffer_size = luaL_checkinteger(L, 4);
+    ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
     char* buffer = new char[buffer_size];
     sprintf(buffer, "%s", text);
+    bool result = false;
 
-    ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
-
-    bool result = ImGui::InputText(label, buffer, buffer_size, flags);
+    if (lua_gettop(L) > 5)
+    {
+        setCallbackFunction(L, LuaInputCallbackFunction, 6);
+        ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
+    }
+    else
+    {
+        ImGui::InputText(label, buffer, buffer_size, flags);
+    }
 
     lua_pushstring(L, &(*buffer));
     lua_pushboolean(L, result);
-    delete[] buffer;
-    return 2;
-}
-
-int InputTextWithCallback(lua_State* L)
-{
-    const char* label = luaL_checkstring(L, 2);
-    const char* text = luaL_checkstring(L, 3);
-    int buffer_size = luaL_checkinteger(L, 4);
-    ImGuiInputTextFlags flags = luaL_optinteger(L, 5, 0);
-    setCallbackFunction(L, LuaInputCallbackFunction, 6);
-
-    char* buffer = new char[buffer_size];
-    sprintf(buffer, "%s", text);
-    bool result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void *)L);
-    lua_pushstring(L, &(*buffer));
-    lua_pushboolean(L, result);
-
     delete[] buffer;
     return 2;
 }
@@ -4617,6 +4607,180 @@ int TableColumnSortSpecs_GetSortDirection(lua_State* L)
 {
     ImGuiTableColumnSortSpecs* sort_spec = getPtr<ImGuiTableColumnSortSpecs>(L, "ImGuiTableColumnSortSpecs", 1);
     lua_pushinteger(L, sort_spec->SortDirection);
+    return 1;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// ImGuiTextInputCallbackData functions
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int ITCD_GetEventFlag(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->EventFlag);
+    return 1;
+}
+
+int ITCD_GetFlags(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->Flags);
+    return 1;
+}
+
+int ITCD_GetEventChar(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->EventChar);
+    return 1;
+}
+
+int ITCD_SetEventChar(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    int eChar = luaL_checkinteger(L, 2);
+    data->EventChar = eChar;
+    return 0;
+}
+
+int ITCD_GetEventKey(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, ImGui::GetIO().KeyMap[data->EventKey]);
+    return 1;
+}
+
+int ITCD_GetBuf(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushlstring(L, data->Buf, data->BufSize);
+    return 1;
+}
+
+int ITCD_SetBuf(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    const char* buf = luaL_checkstring(L, 2);
+    data->Buf = new char[strlen(buf) + 1];
+    strcpy(data->Buf, buf);
+    return 0;
+}
+
+int ITCD_GetBufTextLen(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->BufTextLen);
+    return 1;
+}
+
+int ITCD_SetBufTextLen(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->BufTextLen = luaL_checkinteger(L, 2);
+    return 0;
+}
+
+int ITCD_GetBufSize(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->BufSize);
+    return 1;
+}
+
+int ITCD_GetBufDirty(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushboolean(L, data->BufDirty);
+    return 1;
+}
+
+int ITCD_SetBufDirty(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->BufDirty = lua_toboolean(L, 2);
+    return 0;
+}
+
+int ITCD_GetCursorPos(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->CursorPos);
+    return 1;
+}
+
+int ITCD_SetCursorPos(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->CursorPos = luaL_checkinteger(L, 2);
+    return 0;
+}
+
+int ITCD_GetSelectionStart(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->SelectionStart);
+    return 1;
+}
+
+int ITCD_SetSelectionStart(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->SelectionStart = luaL_checkinteger(L, 2);
+    return 0;
+}
+
+int ITCD_GetSelectionEnd(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushinteger(L, data->SelectionEnd);
+    return 1;
+}
+
+int ITCD_SetSelectionEnd(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->SelectionEnd = luaL_checkinteger(L, 2);
+    return 0;
+}
+
+int ITCD_DeleteChars(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    int pos = luaL_checkinteger(L, 2);
+    int count = luaL_checkinteger(L, 3);
+    data->DeleteChars(pos, count);
+    return 0;
+}
+
+int ITCD_InsertChars(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    int pos = luaL_checkinteger(L, 2);
+    const char* text = luaL_checkstring(L, 3);
+    data->InsertChars(pos, text);
+    return 0;
+}
+
+int ITCD_SelectAll(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->SelectAll();
+    return 0;
+}
+
+int ITCD_ClearSelection(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    data->ClearSelection();
+    return 0;
+}
+
+int ITCD_HasSelection(lua_State* L)
+{
+    ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
+    lua_pushboolean(L, data->HasSelection());
     return 1;
 }
 
@@ -10627,6 +10791,34 @@ int loader(lua_State* L)
     };
     g_createClass(L, "ImGuiTableColumnSortSpecs", NULL, NULL, NULL, imguiTableColumnSortSpecsFunctionList);
 
+    const luaL_Reg imguiInputTextCallbackDataFunctionList[] = {
+        {"getEventFlag", ITCD_GetEventFlag},
+        {"getFlags", ITCD_GetFlags},
+        {"getEventChar", ITCD_GetEventChar},
+        {"setEventChar", ITCD_SetEventChar},
+        {"getEventKey", ITCD_GetEventKey},
+        {"getBuf", ITCD_GetBuf},
+        {"setBuf", ITCD_SetBuf},
+        {"getBufTextLen", ITCD_GetBufTextLen},
+        {"setBufTextLen", ITCD_SetBufTextLen},
+        {"getBufSize", ITCD_GetBufSize},
+        {"getBufDirty", ITCD_GetBufDirty},
+        {"setBufDirty", ITCD_SetBufDirty},
+        {"getCursorPos", ITCD_GetCursorPos},
+        {"setCursorPos", ITCD_SetCursorPos},
+        {"getSelectionStart", ITCD_GetSelectionStart},
+        {"setSelectionStart", ITCD_SetSelectionStart},
+        {"getSelectionEnd", ITCD_GetSelectionEnd},
+        {"setSelectionEnd", ITCD_SetSelectionEnd},
+        {"deleteChars", ITCD_DeleteChars},
+        {"insertChars", ITCD_InsertChars},
+        {"selectAll", ITCD_SelectAll},
+        {"clearSelection", ITCD_ClearSelection},
+        {"hasSelection", ITCD_HasSelection},
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiInputTextCallbackData", NULL, NULL, NULL, imguiInputTextCallbackDataFunctionList);
+
     const luaL_Reg imguiFunctionList[] =
     {
         {"menuText", MenuText},
@@ -10854,7 +11046,6 @@ int loader(lua_State* L)
         {"vFilledSliderScalar", VFilledSliderScalar},
 
         {"inputText", InputText},
-        {"inputTextWithCllback", InputTextWithCallback},
         {"inputTextMultiline", InputTextMultiline},
         {"inputTextWithHint", InputTextWithHint},
         {"inputFloat", InputFloat},

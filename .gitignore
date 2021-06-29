@@ -3,3 +3,5 @@
 ImGui.pro.user
 *.user
 *.8-pre1
+*.autosave
+*.22
