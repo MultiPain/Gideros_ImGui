@@ -510,6 +510,7 @@ void bindEnums(lua_State* L)
     //ImGuiInputTextFlags
     BIND_IENUM(L, ImGuiInputTextFlags_EnterReturnsTrue, "InputTextFlags_EnterReturnsTrue");
     BIND_IENUM(L, ImGuiInputTextFlags_CallbackCompletion, "InputTextFlags_CallbackCompletion");
+    BIND_IENUM(L, ImGuiInputTextFlags_CallbackEdit, "InputTextFlags_CallbackEdit");
     BIND_IENUM(L, ImGuiInputTextFlags_None, "InputTextFlags_None");
     BIND_IENUM(L, ImGuiInputTextFlags_CallbackResize, "InputTextFlags_CallbackResize");
     BIND_IENUM(L, ImGuiInputTextFlags_ReadOnly, "InputTextFlags_ReadOnly");
