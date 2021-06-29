@@ -679,6 +679,79 @@ CallbackData:clearSelection()
 bool = CallbackData:hasSelection()
 ```
 
+### Example
+```lua
+require "ImGui"
+
+ui = ImGui.new()
+stage:addChild(ui)
+
+local testMessage1 = ""
+local testMessage2 = ""
+local testMessage3 = ""
+
+-- Add ".." at the end of current input string
+function myCallback1(data)
+	data:insertChars(data:getCursorPos(), "..")
+end
+
+-- Replace all chars if UP/DOWN arrow is pressed
+function myCallback2(data)
+	local key = data:getEventKey()
+	if (key == KeyCode.UP) then
+		data:deleteChars(0, data:getBufTextLen())
+		data:insertChars(0, "Pressed Up!")
+		data:selectAll()
+	elseif (key == KeyCode.DOWN) then
+		data:deleteChars(0, data:getBufTextLen())
+		data:insertChars(0, "Pressed Down!")
+		data:selectAll()
+	end
+end
+
+-- Switch case of the first char
+function myCallback3(data)
+	local buf = data:getBuf()
+	local s = buf:sub(1,1)
+	if ((s >= 'a' and s <= 'z') or (s >= 'A' and s <= 'Z')) then 
+		local first = string.char(string.byte(s) ~ 32)
+		data:setBuf(first .. buf:sub(2))
+		data:setBufDirty(true)
+	end
+end
+
+function enterFrame(e)
+	ui:newFrame(e)
+	
+	testMessage1 = ui:inputText(
+		"Label1", 
+		testMessage1, 
+		64, 
+		ImGui.InputTextFlags_CallbackCompletion, 
+		myCallback1
+	)
+	testMessage2 = ui:inputText(
+		"Label2", 
+		testMessage2, 
+		64, 
+		ImGui.InputTextFlags_CallbackHistory, 
+		myCallback2
+	)
+	testMessage3 = ui:inputText(
+		"Label3", 
+		testMessage3, 
+		64, 
+		ImGui.InputTextFlags_CallbackEdit, 
+		myCallback3
+	)
+	
+	ui:render()
+	ui:endFrame()
+end
+
+stage:addEventListener("enterFrame", enterFrame)
+```
+
 ## Widgets: Color Editor/Picker
 ```lua
 hexColor, isTouchingFlag = ImGui:colorEdit3(label, color, [ImGuiColorEditFlags = 0]) -- alpha ignored, no need to pass it!
