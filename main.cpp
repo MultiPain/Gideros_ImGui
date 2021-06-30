@@ -4423,7 +4423,7 @@ int OpenPopup(lua_State* L)
     return 0;
 }
 
-int OpenPopupContextItem(lua_State* L) // renamed in 1.79 (backward capability)
+int OpenPopupOnItemClick(lua_State* L)
 {
     const char* str_id = luaL_optstring(L, 2, NULL);
     ImGuiPopupFlags popup_flags = luaL_optinteger(L, 3, 1);
@@ -4431,11 +4431,9 @@ int OpenPopupContextItem(lua_State* L) // renamed in 1.79 (backward capability)
     return 0;
 }
 
-int OpenPopupOnItemClick(lua_State* L)
+int OpenPopupContextItem(lua_State* L)
 {
-    const char* str_id = luaL_optstring(L, 2, NULL);
-    ImGuiPopupFlags popup_flags = luaL_optinteger(L, 3, 1);
-    ImGui::OpenPopupOnItemClick(str_id, popup_flags);
+    LUA_THROW_ERROR("\"ImGui:openPopupContextItem()\" is deprecated, use \"ImGui:openPopupOnItemClick()\" instead");
     return 0;
 }
 
@@ -11167,7 +11165,8 @@ int loader(lua_State* L)
         {"beginPopupModal", BeginPopupModal },
         {"endPopup", EndPopup },
         {"openPopup", OpenPopup },
-        {"openPopupContextItem", OpenPopupContextItem },
+        {"openPopupOnItemClick", OpenPopupOnItemClick},
+        {"openPopupContextItem", OpenPopupContextItem},
         {"closeCurrentPopup", CloseCurrentPopup },
         {"beginPopupContextItem", BeginPopupContextItem },
         {"beginPopupContextWindow", BeginPopupContextWindow },
