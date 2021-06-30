@@ -4725,7 +4725,7 @@ int ITCD_GetEventKey(lua_State* L)
 int ITCD_GetBuf(lua_State* L)
 {
     ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
-    lua_pushlstring(L, data->Buf, data->BufSize);
+    lua_pushstring(L, data->Buf);
     return 1;
 }
 
@@ -4733,8 +4733,7 @@ int ITCD_SetBuf(lua_State* L)
 {
     ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
     const char* buf = luaL_checkstring(L, 2);
-    data->Buf = new char[strlen(buf) + 1];
-    strcpy(data->Buf, buf);
+    sprintf(data->Buf, "%s", buf);
     return 0;
 }
 
