@@ -4541,7 +4541,7 @@ int TableSetupColumn(lua_State* L)
 int TableSetupScrollFreeze(lua_State* L)
 {
     int cols = luaL_checkinteger(L, 2);
-    int rows = luaL_checkinteger(L, 2);
+    int rows = luaL_checkinteger(L, 3);
     ImGui::TableSetupScrollFreeze(cols, rows);
     return 0;
 }
