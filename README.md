@@ -409,12 +409,10 @@ number = IO:getDeltaTime()
 # WIDGETS & STUFF
 ## Windows
 ```lua
--- resizeCallback (function): applies if 'ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h)' 
--- was called BEFORE 'ImGui:beginWindow(...)'
-p_open, draw = ImGui:beginWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback])
-draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
-p_open, draw = ImGui:beginFullScreenWindow(label, p_open, [ImGuiWindowFlags = 0, resizeCallback]) -- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
-draw = ImGui:beginFullScreenWindow(label, nil, [ImGuiWindowFlags = 0, resizeCallback]) -- do not show "X" button
+p_open, draw = ImGui:beginWindow(label, p_open, [ImGuiWindowFlags = 0])
+draw = ImGui:beginWindow(label, nil, [ImGuiWindowFlags = 0]) -- do not show "X" button
+p_open, draw = ImGui:beginFullScreenWindow(label, p_open, [ImGuiWindowFlags = 0]) -- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
+draw = ImGui:beginFullScreenWindow(label, nil, [ImGuiWindowFlags = 0]) -- do not show "X" button
 ImGui:endWindow()
 ```
 
@@ -447,6 +445,25 @@ ImGui:setWindowSize(name, w, h, [ImGuiCond = 0]) OR ImGui:setWindowSize(w, h, [I
 ImGui:setWindowCollapsed(name, flag, [ImGuiCond = 0]) OR ImGui:setWindowCollapsed(flag, [ImGuiCond = 0])
 ImGui:setWindowFocus(name) OR ImGui:setWindowFocus()
 ImGui:setWindowFontScale(scale)
+```
+
+### Window size constraints
+Can be used to set minimum and maximum window size, plus contraint the size if needed
+```lua
+-- call this function before ImGui:beginWindow()
+ImGui:setNextWindowSizeConstraints(minW, minH, maxW, maxH, [resizeCallback, userData]))
+-- resizeCallback is a function:
+function (callbackData, [userData])
+	-- get window position
+	local x, y = callbackData:getPos()
+	-- get currrent size
+	local currentWidth, currentHeight = callbackData:getCurrentSize()
+	-- get desired size
+	local deseridWidth, deseridHeight = callbackData:getDesiredSize()
+	-- do some math, and return desireed size
+	-- ...
+	return desiredWidth, desiredHeight
+end
 ```
 
 ## Content region 

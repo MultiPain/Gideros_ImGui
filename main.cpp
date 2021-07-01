@@ -489,26 +489,21 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     CallbackData* callbackData = (CallbackData*)data->UserData;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
-    lua_pushnumber(L, data->Pos.x);
-    lua_pushnumber(L, data->Pos.y);
-    lua_pushnumber(L, data->CurrentSize.x);
-    lua_pushnumber(L, data->CurrentSize.y);
-    lua_pushnumber(L, data->DesiredSize.x);
-    lua_pushnumber(L, data->DesiredSize.y);
+    g_pushInstance(L, "ImGuiSizeCallbackData", data);
 
     if (callbackData->argumentIndex != NULL)
     {
         lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->argumentIndex);
-        lua_call(L, 7, 2);
+        lua_call(L, 2, 2);
     }
     else
     {
-        lua_call(L, 6, 2);
+        lua_call(L, 1, 2);
     }
 
     data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
-    lua_pop(L, 2);
     delete callbackData;
+    lua_pop(L, 2);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -2002,8 +1997,16 @@ int SetNextWindowSizeConstraints(lua_State* L)
 {
     ImVec2 size_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImVec2 size_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    CallbackData* data = new CallbackData(L, 6);
-    ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)data);
+
+    if (lua_gettop(L) > 5)
+    {
+        CallbackData* data = new CallbackData(L, 6);
+        ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)data);
+    }
+    else
+    {
+        ImGui::SetNextWindowSizeConstraints(size_min, size_max);
+    }
     return 0;
 }
 
@@ -4849,6 +4852,36 @@ int ITCD_HasSelection(lua_State* L)
     ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData", 1);
     lua_pushboolean(L, data->HasSelection());
     return 1;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// ImGuiSizeCallbackData
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int SCD_GetPos(lua_State* L)
+{
+    ImGuiSizeCallbackData* data = getPtr<ImGuiSizeCallbackData>(L, "ImGuiSizeCallbackData", 1);
+    lua_pushnumber(L, data->Pos.x);
+    lua_pushnumber(L, data->Pos.y);
+    return 2;
+}
+
+int SCD_GetCurrentSize(lua_State* L)
+{
+    ImGuiSizeCallbackData* data = getPtr<ImGuiSizeCallbackData>(L, "ImGuiSizeCallbackData", 1);
+    lua_pushnumber(L, data->CurrentSize.x);
+    lua_pushnumber(L, data->CurrentSize.y);
+    return 2;
+}
+
+int SCD_GetDesiredSize(lua_State* L)
+{
+    ImGuiSizeCallbackData* data = getPtr<ImGuiSizeCallbackData>(L, "ImGuiSizeCallbackData", 1);
+    lua_pushnumber(L, data->DesiredSize.x);
+    lua_pushnumber(L, data->DesiredSize.y);
+    return 2;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -10885,6 +10918,14 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGuiInputTextCallbackData", NULL, NULL, NULL, imguiInputTextCallbackDataFunctionList);
+
+    const luaL_Reg imguiSizeCallbackDataFunctionList[] = {
+        {"getPos", SCD_GetPos},
+        {"getCurrentSize", SCD_GetCurrentSize},
+        {"getDesiredSize", SCD_GetDesiredSize},
+        {NULL, NULL}
+    };
+    g_createClass(L, "ImGuiSizeCallbackData", NULL, NULL, NULL, imguiSizeCallbackDataFunctionList);
 
     const luaL_Reg imguiFunctionList[] =
     {
