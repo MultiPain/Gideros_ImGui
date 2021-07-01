@@ -466,6 +466,38 @@ function (callbackData, [userData])
 end
 ```
 
+### Example
+```lua
+require "ImGui"
+
+local function stepSize(callbackData, step)
+	local w, h = callbackData:getDesiredSize()
+	w = (w // step) * step
+	h = (h // step) * step
+	return w, h
+end
+
+local ui = ImGui.new()
+stage:addChild(ui)
+
+stage:addEventListener("enterFrame", function(e)
+	ui:newFrame(e)
+	
+	-- window size step is 32 (last argument, that is passed to the callback as second argument)
+	ui:setNextWindowSizeConstraints(200, 200, 400, 400, stepSize, 32)
+	if (ui:beginWindow("My window")) then 
+		
+		ui:textWrapped("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+	end
+	ui:endWindow()
+	
+	ui:showDemoWindow()
+	
+	ui:render()
+	ui:endFrame()
+end)
+```
+
 ## Content region 
 ```lua
 scaleX, scaleY = ImGui:getContentRegionMax()
