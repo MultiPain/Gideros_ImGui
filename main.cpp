@@ -1763,13 +1763,10 @@ int NewFrame(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
     ImGui::SetCurrentContext(imgui->ctx);
-
-    double deltaTime = getfield(L, "deltaTime");
-
+    double deltaTime = luaL_checknumber(L, 2);
     ImGuiIO& io = imgui->ctx->IO;
     io.DeltaTime = deltaTime;
     ImGui::NewFrame();
-
     return 0;
 }
 
