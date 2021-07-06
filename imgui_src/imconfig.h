@@ -20,13 +20,14 @@ typedef G_FILE* ImFileHandle;
 
 #include "debugapi.h"
 
-#ifdef IS_BETA_BUILD
+//#ifdef IS_BETA_BUILD
+#define IM_ASSERTF( exp, format, ...) do { if (!(exp)) { char buffer[1024]; sprintf(buffer, format, __VA_ARGS__); OutputDebugStringA( buffer ); } } while(0)
 #define IM_ASSERT( exp ) do { if (!(exp)) { char buffer[1024]; sprintf(buffer, "[%d] %s: %s\n", __LINE__, __FILE__, #exp); OutputDebugStringA( buffer ); }} while(0)
 #define IM_TRACE( msg ) do { char buffer[1024]; sprintf(buffer, "    [%d] %s: %s", __LINE__, __FILE__, msg); OutputDebugStringA( buffer ); } while(0)
-#else
-#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
-#define IM_TRACE( msg )   ((void)(msg))
-#endif
+//#else
+//#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
+//#define IM_TRACE( msg )   ((void)(msg))
+//#endif
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.

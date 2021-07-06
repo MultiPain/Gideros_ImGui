@@ -1392,7 +1392,9 @@ static void _Destroy(void* c)
 GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
                    bool addMouseListeners = true, bool addKeyboardListeners = true, bool addTouchListeners = false)
 {
+
     ctx = ImGui::CreateContext(atlas);
+
     resetTouchPosOnEnd = false;
 
     ImGuiIO& io = ctx->IO;
@@ -1428,12 +1430,14 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
     io.KeyMap[ImGuiKey_Z]           = GINPUT_KEY_Z;
 
     // Create font atlas
-    unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-    g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
-    io.Fonts->TexID = (void*)texture;
+    if (!atlas)
+    {
+        unsigned char* pixels;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
+        io.Fonts->TexID = (void*)texture;
+    }
 
     proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
     eventListener = new EventListener(this);
@@ -1568,7 +1572,6 @@ int initImGui(lua_State* L) // ImGui.new() call
     LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
     ::application = application->getApplication();
 
-
     ImFontAtlas* atlas = NULL;
     if (g_isInstanceOf(L, "ImFontAtlas", 1))
     {
@@ -1590,9 +1593,11 @@ int destroyImGui(lua_State* L)
 {
     void* ptr = *(void**)lua_touserdata(L, 1);
     GidImGui* imgui = static_cast<GidImGui*>(static_cast<SpriteProxy *>(ptr)->getContext());
-    g_id texture = (g_id)imgui->ctx->IO.Fonts->TexID;
-    gtexture_delete(texture);
-    ImGui::DestroyContext(imgui->ctx);
+    if (imgui->ctx->FontAtlasOwnedByContext && ImGui::GetCurrentContext()->FontAtlasOwnedByContext)
+    {
+        gtexture_delete((g_id)imgui->ctx->IO.Fonts->TexID);
+        ImGui::DestroyContext(imgui->ctx);
+    }
     imgui->eventListener->removeEventListeners();
     delete imgui->eventListener;
     return 0;
@@ -8448,6 +8453,11 @@ int FontAtlas_GetFonts(lua_State* L)
 {
     ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas", 1);
     int count = atlas->Fonts.Size;
+    if (count == 0)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
 
     lua_createtable(L, count, 0);
     for (int i = 0; i < count; i++)
