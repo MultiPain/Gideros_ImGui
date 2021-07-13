@@ -8162,6 +8162,15 @@ int IO_SetMouseDown(lua_State* L)
     return 0;
 }
 
+int IO_ResetMouseDown(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    for (int i = 0; i < ImGuiMouseButton_COUNT; ++i) {
+        io.MouseDown[i] = false;
+    }
+    return 0;
+}
+
 int IO_SetMousePos(lua_State* L)
 {
     GidImGui* imgui = getImgui(L);
@@ -10612,6 +10621,7 @@ int loader(lua_State* L)
         {"getMouseDoubleClickMaxDist", IO_GetMouseDoubleClickMaxDist},
         {"setMouseDoubleClickMaxDist", IO_SetMouseDoubleClickMaxDist},
         {"setMouseDown", IO_SetMouseDown},
+        {"resetMouseDown", IO_ResetMouseDown},
         {"setMousePos", IO_SetMousePos},
         {"setMouseWheel", IO_SetMouseWheel},
         {"getKeyMapValue", IO_GetKeyMapValue},
