@@ -8180,6 +8180,62 @@ int IO_SetMouseWheel(lua_State* L)
     return 0;
 }
 
+int IO_AddInputCharactersUTF8(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    const char* text = luaL_checkstring(L, 2);
+    io.AddInputCharactersUTF8(text);
+    return 0;
+}
+
+int IO_SetKeysDown(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    int key = luaL_checkinteger(L, 2);
+    LUA_ASSERTF(key >= 0 && key < 512, "KeyCode (#1) out of range, must be: [0..511], but was: %d", key);
+    io.KeysDown[key] = lua_toboolean(L, 3);
+    return 0;
+}
+
+int IO_SetModKeyDown(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    const int mod = luaL_checkinteger(L, 2);
+    bool state = lua_toboolean(L, 3);
+    switch (mod)
+    {
+        case GINPUT_ALT_MODIFIER:
+            io.KeyAlt = state;
+            break;
+        case GINPUT_SHIFT_MODIFIER:
+            io.KeyShift = state;
+            break;
+        case GINPUT_CTRL_MODIFIER:
+            io.KeyCtrl = state;
+            break;
+        case GINPUT_META_MODIFIER:
+            io.KeySuper = state;
+            break;
+        default:
+            LUA_THROW_ERROR("incorrect key code (#1), must be ALT/CTRL/SHIFT/SUPER (e.g. META)");
+            break;
+    }
+    return 0;
+}
+
+int IO_ResetKeysDown(lua_State* L)
+{
+    ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO", 1);
+    io.KeyAlt = false;
+    io.KeyShift = false;
+    io.KeyCtrl = false;
+    io.KeySuper = false;
+    for (int i = 0; i < 512; ++i) {
+        io.KeysDown[i] = false;
+    }
+    return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// FONTS API
@@ -10495,6 +10551,10 @@ int loader(lua_State* L)
         {"isKeyAlt", IO_isKeyAlt},
         {"isKeySuper", IO_isKeySuper},
         {"getKeysDown", IO_GetKeysDown},
+        {"setKeysDown", IO_SetKeysDown},
+        {"setModKeysDown", IO_SetModKeyDown},
+        {"resetKeysDown", IO_ResetKeysDown},
+
         {"wantCaptureMouse", IO_WantCaptureMouse},
         {"wantCaptureKeyboard", IO_WantCaptureKeyboard},
         {"wantTextInput", IO_WantTextInput},
@@ -10578,6 +10638,8 @@ int loader(lua_State* L)
         {"setConfigWindowsMoveFromTitleBarOnly", IO_SetConfigWindowsMoveFromTitleBarOnly},
         {"getConfigWindowsMemoryCompactTimer", IO_GetConfigMemoryCompactTimer},
         {"setConfigWindowsMemoryCompactTimer", IO_SetConfigMemoryCompactTimer},
+
+        {"addInputCharactersUTF8", IO_AddInputCharactersUTF8},
 
         {"getBackendPlatformName", IO_GetBackendPlatformName},
         {"getBackendRendererName", IO_GetBackendRendererName},
