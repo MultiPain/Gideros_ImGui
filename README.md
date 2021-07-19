@@ -406,6 +406,27 @@ w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
 ```
 
+# Context
+```lua
+string OR nil = ImGui:getHoveredWindow()
+string OR nil = ImGui:getHoveredWindowRoot()
+string OR nil = ImGui:getHoveredWindowUnderMovingWindow()
+string OR nil = ImGui:getMovingWindow()
+string OR nil = ImGui:getActiveIdWindow()
+id = ImGui:getActiveId()
+id = ImGui:getActiveIdPreviousFrame()
+number = ImGui:getActiveIdTimer()
+id = ImGui:getActiveIdAllowOverlap()
+id = ImGui:getHoveredId()
+id = ImGui:getHoveredIdPreviousFrame()
+number = ImGui:getHoveredIdTimer()
+id = ImGui:getHoveredIdAllowOverlap()
+bool = ImGui:getDragDropActive()
+id = ImGui:getDragDropPayloadSourceId()
+string = ImGui:getDragDropPayloadDataType()
+number = ImGui:getDragDropPayloadDataSize()
+```
+
 # WIDGETS & STUFF
 ## Windows
 ```lua
