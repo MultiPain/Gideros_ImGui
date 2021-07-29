@@ -1352,27 +1352,28 @@ ImGui.HoveredFlags_RootWindow
 
 ### InputTextFlags
 ```lua
-ImGui.InputTextFlags_EnterReturnsTrue
-ImGui.InputTextFlags_CallbackCompletion
 ImGui.InputTextFlags_None
-ImGui.InputTextFlags_CallbackResize
+ImGui.InputTextFlags_EnterReturnsTrue
 ImGui.InputTextFlags_ReadOnly
 ImGui.InputTextFlags_AutoSelectAll
 ImGui.InputTextFlags_AllowTabInput
 ImGui.InputTextFlags_CharsScientific
-ImGui.InputTextFlags_CallbackAlways
 ImGui.InputTextFlags_CharsDecimal
 ImGui.InputTextFlags_NoUndoRedo
-ImGui.InputTextFlags_CallbackHistory
 ImGui.InputTextFlags_CtrlEnterForNewLine
 ImGui.InputTextFlags_CharsHexadecimal
 ImGui.InputTextFlags_CharsNoBlank
 ImGui.InputTextFlags_Password
-ImGui.InputTextFlags_CallbackCharFilter
 ImGui.InputTextFlags_NoHorizontalScroll
 ImGui.InputTextFlags_AlwaysInsertMode
 ImGui.InputTextFlags_CharsUppercase
 ImGui.InputTextFlags_NoBackground -- custom constant, used to disable background
+ImGui.InputTextFlags_CallbackCompletion
+ImGui.InputTextFlags_CallbackResize
+ImGui.InputTextFlags_CallbackAlways
+ImGui.InputTextFlags_CallbackHistory
+ImGui.InputTextFlags_CallbackCharFilter
+ImGui.InputTextFlags_CallbackEdit
 ```
 
 ### NavInput
