@@ -15,6 +15,7 @@
 #include "keyboardevent.h"
 #include "touchevent.h"
 
+//#include "gproxy.h"
 #include "sprite.h"
 #include "texturebase.h"
 #include "bitmapdata.h"
@@ -31,11 +32,12 @@
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
 #include "TextEditor.h" // https://github.com/BalazsJako/ImGuiColorTextEdit
+#include "implot.h"
 
 #ifdef IS_BETA_BUILD
 #define PLUGIN_NAME "ImGui_beta"
 #else
-#define PLUGIN_NAME "ImGui_pre_build"
+#define PLUGIN_NAME "ImGui_pre_build_2"
 #endif
 
 #define CC 0.0039215686274509803921568627451
@@ -506,6 +508,22 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
     delete callbackData;
     lua_pop(L, 2);
+}
+
+float* getTableValues(lua_State* L, int idx, unsigned int len)
+{
+    float* values = new float[len];
+    lua_pushvalue(L, idx);
+    for (unsigned int i = 0; i < len; i++)
+    {
+        lua_rawgeti(L, idx, i+1);
+
+        float v = luaL_checknumber(L, -1);
+        values[i] = v;
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    return values;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1041,6 +1059,174 @@ void bindEnums(lua_State* L)
     BIND_FENUM(L, DBL_MAX, "DBL_MAX");
 
     lua_pop(L, 1);
+
+#ifdef IMPLOT_API
+    lua_getglobal(L, "ImPlot");
+
+    // ImPlotStyleVar_
+    BIND_IENUM(L, ImPlotStyleVar_LineWeight, "StyleVar_LineWeight");
+    BIND_IENUM(L, ImPlotStyleVar_Marker, "StyleVar_Marker");
+    BIND_IENUM(L, ImPlotStyleVar_MarkerSize, "StyleVar_MarkerSize");
+    BIND_IENUM(L, ImPlotStyleVar_MarkerWeight, "StyleVar_MarkerWeight");
+    BIND_IENUM(L, ImPlotStyleVar_FillAlpha, "StyleVar_FillAlpha");
+    BIND_IENUM(L, ImPlotStyleVar_ErrorBarSize, "StyleVar_ErrorBarSize");
+    BIND_IENUM(L, ImPlotStyleVar_ErrorBarWeight, "StyleVar_ErrorBarWeight");
+    BIND_IENUM(L, ImPlotStyleVar_DigitalBitHeight, "StyleVar_DigitalBitHeight");
+    BIND_IENUM(L, ImPlotStyleVar_DigitalBitGap, "StyleVar_DigitalBitGap");
+    BIND_IENUM(L, ImPlotStyleVar_PlotBorderSize, "StyleVar_PlotBorderSize");
+    BIND_IENUM(L, ImPlotStyleVar_MinorAlpha, "StyleVar_MinorAlpha");
+    BIND_IENUM(L, ImPlotStyleVar_MajorTickLen, "StyleVar_MajorTickLen");
+    BIND_IENUM(L, ImPlotStyleVar_MinorTickLen, "StyleVar_MinorTickLen");
+    BIND_IENUM(L, ImPlotStyleVar_MajorTickSize, "StyleVar_MajorTickSize");
+    BIND_IENUM(L, ImPlotStyleVar_MinorTickSize, "StyleVar_MinorTickSize");
+    BIND_IENUM(L, ImPlotStyleVar_MajorGridSize, "StyleVar_MajorGridSize");
+    BIND_IENUM(L, ImPlotStyleVar_MinorGridSize, "StyleVar_MinorGridSize");
+    BIND_IENUM(L, ImPlotStyleVar_PlotPadding, "StyleVar_PlotPadding");
+    BIND_IENUM(L, ImPlotStyleVar_LabelPadding, "StyleVar_LabelPadding");
+    BIND_IENUM(L, ImPlotStyleVar_LegendPadding, "StyleVar_LegendPadding");
+    BIND_IENUM(L, ImPlotStyleVar_LegendInnerPadding, "StyleVar_LegendInnerPadding");
+    BIND_IENUM(L, ImPlotStyleVar_LegendSpacing, "StyleVar_LegendSpacing");
+    BIND_IENUM(L, ImPlotStyleVar_MousePosPadding, "StyleVar_MousePosPadding");
+    BIND_IENUM(L, ImPlotStyleVar_AnnotationPadding, "StyleVar_AnnotationPadding");
+    BIND_IENUM(L, ImPlotStyleVar_FitPadding, "StyleVar_FitPadding");
+    BIND_IENUM(L, ImPlotStyleVar_PlotDefaultSize, "StyleVar_PlotDefaultSize");
+    BIND_IENUM(L, ImPlotStyleVar_PlotMinSize, "StyleVar_PlotMinSize");
+
+    // ImPlotAxisFlags_
+    BIND_IENUM(L, ImPlotAxisFlags_None, "AxisFlags_None");
+    BIND_IENUM(L, ImPlotAxisFlags_NoLabel, "AxisFlags_NoLabel");
+    BIND_IENUM(L, ImPlotAxisFlags_NoGridLines, "AxisFlags_NoGridLines");
+    BIND_IENUM(L, ImPlotAxisFlags_NoTickMarks, "AxisFlags_NoTickMarks");
+    BIND_IENUM(L, ImPlotAxisFlags_NoTickLabels, "AxisFlags_NoTickLabels");
+    BIND_IENUM(L, ImPlotAxisFlags_Foreground, "AxisFlags_Foreground");
+    BIND_IENUM(L, ImPlotAxisFlags_LogScale, "AxisFlags_LogScale");
+    BIND_IENUM(L, ImPlotAxisFlags_Time, "AxisFlags_Time");
+    BIND_IENUM(L, ImPlotAxisFlags_Invert, "AxisFlags_Invert");
+    BIND_IENUM(L, ImPlotAxisFlags_NoInitialFit, "AxisFlags_NoInitialFit");
+    BIND_IENUM(L, ImPlotAxisFlags_AutoFit, "AxisFlags_AutoFit");
+    BIND_IENUM(L, ImPlotAxisFlags_RangeFit, "AxisFlags_RangeFit");
+    BIND_IENUM(L, ImPlotAxisFlags_LockMin, "AxisFlags_LockMin");
+    BIND_IENUM(L, ImPlotAxisFlags_LockMax, "AxisFlags_LockMax");
+    BIND_IENUM(L, ImPlotAxisFlags_Lock, "AxisFlags_Lock");
+    BIND_IENUM(L, ImPlotAxisFlags_NoDecorations, "AxisFlags_NoDecorations");
+
+    // ImPlotYAxis_
+    BIND_IENUM(L, ImPlotYAxis_1, "YAxis_1");
+    BIND_IENUM(L, ImPlotYAxis_2, "YAxis_2");
+    BIND_IENUM(L, ImPlotYAxis_3, "YAxis_3");
+
+    // ImPlotSubplotFlags_
+    BIND_IENUM(L, ImPlotSubplotFlags_None, "SubplotFlags_None");
+    BIND_IENUM(L, ImPlotSubplotFlags_NoTitle, "SubplotFlags_NoTitle");
+    BIND_IENUM(L, ImPlotSubplotFlags_NoLegend, "SubplotFlags_NoLegend");
+    BIND_IENUM(L, ImPlotSubplotFlags_NoMenus, "SubplotFlags_NoMenus");
+    BIND_IENUM(L, ImPlotSubplotFlags_NoResize, "SubplotFlags_NoResize");
+    BIND_IENUM(L, ImPlotSubplotFlags_NoAlign, "SubplotFlags_NoAlign");
+    BIND_IENUM(L, ImPlotSubplotFlags_ShareItems, "SubplotFlags_ShareItems");
+    BIND_IENUM(L, ImPlotSubplotFlags_LinkRows, "SubplotFlags_LinkRows");
+    BIND_IENUM(L, ImPlotSubplotFlags_LinkCols, "SubplotFlags_LinkCols");
+    BIND_IENUM(L, ImPlotSubplotFlags_LinkAllX, "SubplotFlags_LinkAllX");
+    BIND_IENUM(L, ImPlotSubplotFlags_LinkAllY, "SubplotFlags_LinkAllY");
+    BIND_IENUM(L, ImPlotSubplotFlags_ColMajor, "SubplotFlags_ColMajor");
+
+    // ImPlotFlags_
+    BIND_IENUM(L, ImPlotFlags_None, "Flags_None");
+    BIND_IENUM(L, ImPlotFlags_NoTitle, "Flags_NoTitle");
+    BIND_IENUM(L, ImPlotFlags_NoLegend, "Flags_NoLegend");
+    BIND_IENUM(L, ImPlotFlags_NoMenus, "Flags_NoMenus");
+    BIND_IENUM(L, ImPlotFlags_NoBoxSelect, "Flags_NoBoxSelect");
+    BIND_IENUM(L, ImPlotFlags_NoMousePos, "Flags_NoMousePos");
+    BIND_IENUM(L, ImPlotFlags_NoHighlight, "Flags_NoHighlight");
+    BIND_IENUM(L, ImPlotFlags_NoChild, "Flags_NoChild");
+    BIND_IENUM(L, ImPlotFlags_Equal, "Flags_Equal");
+    BIND_IENUM(L, ImPlotFlags_YAxis2, "Flags_YAxis2");
+    BIND_IENUM(L, ImPlotFlags_YAxis3, "Flags_YAxis3");
+    BIND_IENUM(L, ImPlotFlags_Query, "Flags_Query");
+    BIND_IENUM(L, ImPlotFlags_Crosshairs, "Flags_Crosshairs");
+    BIND_IENUM(L, ImPlotFlags_AntiAliased, "Flags_AntiAliased");
+    BIND_IENUM(L, ImPlotFlags_CanvasOnly, "Flags_CanvasOnly");
+
+    // ImPlotMarker_
+    BIND_IENUM(L, ImPlotMarker_None, "Marker_None");
+    BIND_IENUM(L, ImPlotMarker_Circle, "Marker_Circle");
+    BIND_IENUM(L, ImPlotMarker_Square, "Marker_Square");
+    BIND_IENUM(L, ImPlotMarker_Diamond, "Marker_Diamond");
+    BIND_IENUM(L, ImPlotMarker_Up, "Marker_Up");
+    BIND_IENUM(L, ImPlotMarker_Down, "Marker_Down");
+    BIND_IENUM(L, ImPlotMarker_Left, "Marker_Left");
+    BIND_IENUM(L, ImPlotMarker_Right, "Marker_Right");
+    BIND_IENUM(L, ImPlotMarker_Cross, "Marker_Cross");
+    BIND_IENUM(L, ImPlotMarker_Plus, "Marker_Plus");
+    BIND_IENUM(L, ImPlotMarker_Asterisk, "Marker_Asterisk");
+
+    // ImPlotBin_
+    BIND_IENUM(L, ImPlotBin_Sqrt, "Bin_Sqrt");
+    BIND_IENUM(L, ImPlotBin_Sturges, "Bin_Sturges");
+    BIND_IENUM(L, ImPlotBin_Rice, "Bin_Rice");
+    BIND_IENUM(L, ImPlotBin_Scott, "Bin_Scott");
+
+    // ImPlotOrientation_
+    BIND_IENUM(L, ImPlotOrientation_Horizontal, "Orientation_Horizontal");
+    BIND_IENUM(L, ImPlotOrientation_Vertical, "Orientation_Vertical");
+
+    // ImPlotLocation_
+    BIND_IENUM(L, ImPlotLocation_Center, "Location_Center");
+    BIND_IENUM(L, ImPlotLocation_North, "Location_North");
+    BIND_IENUM(L, ImPlotLocation_South, "Location_South");
+    BIND_IENUM(L, ImPlotLocation_West, "Location_West");
+    BIND_IENUM(L, ImPlotLocation_East, "Location_East");
+    BIND_IENUM(L, ImPlotLocation_NorthWest, "Location_NorthWest");
+    BIND_IENUM(L, ImPlotLocation_NorthEast, "Location_NorthEast");
+    BIND_IENUM(L, ImPlotLocation_SouthWest, "Location_SouthWest");
+    BIND_IENUM(L, ImPlotLocation_SouthEast, "Location_SouthEast");
+
+    // ImPlotColormap_
+    BIND_IENUM(L, ImPlotColormap_Deep, "Colormap_Deep");
+    BIND_IENUM(L, ImPlotColormap_Dark, "Colormap_Dark");
+    BIND_IENUM(L, ImPlotColormap_Pastel, "Colormap_Pastel");
+    BIND_IENUM(L, ImPlotColormap_Paired, "Colormap_Paired");
+    BIND_IENUM(L, ImPlotColormap_Viridis, "Colormap_Viridis");
+    BIND_IENUM(L, ImPlotColormap_Plasma, "Colormap_Plasma");
+    BIND_IENUM(L, ImPlotColormap_Hot, "Colormap_Hot");
+    BIND_IENUM(L, ImPlotColormap_Cool, "Colormap_Cool");
+    BIND_IENUM(L, ImPlotColormap_Pink, "Colormap_Pink");
+    BIND_IENUM(L, ImPlotColormap_Jet, "Colormap_Jet");
+    BIND_IENUM(L, ImPlotColormap_Twilight, "Colormap_Twilight");
+    BIND_IENUM(L, ImPlotColormap_RdBu, "Colormap_RdBu");
+    BIND_IENUM(L, ImPlotColormap_BrBG, "Colormap_BrBG");
+    BIND_IENUM(L, ImPlotColormap_PiYG, "Colormap_PiYG");
+    BIND_IENUM(L, ImPlotColormap_Spectral, "Colormap_Spectral");
+    BIND_IENUM(L, ImPlotColormap_Greys, "Colormap_Greys");
+
+    // ImPlotCol_
+    BIND_IENUM(L, ImPlotCol_Line, "Col_Line");
+    BIND_IENUM(L, ImPlotCol_Fill, "Col_Fill");
+    BIND_IENUM(L, ImPlotCol_MarkerOutline, "Col_MarkerOutline");
+    BIND_IENUM(L, ImPlotCol_MarkerFill, "Col_MarkerFill");
+    BIND_IENUM(L, ImPlotCol_ErrorBar, "Col_ErrorBar");
+    BIND_IENUM(L, ImPlotCol_FrameBg, "Col_FrameBg");
+    BIND_IENUM(L, ImPlotCol_PlotBg, "Col_PlotBg");
+    BIND_IENUM(L, ImPlotCol_PlotBorder, "Col_PlotBorder");
+    BIND_IENUM(L, ImPlotCol_LegendBg, "Col_LegendBg");
+    BIND_IENUM(L, ImPlotCol_LegendBorder, "Col_LegendBorder");
+    BIND_IENUM(L, ImPlotCol_LegendText, "Col_LegendText");
+    BIND_IENUM(L, ImPlotCol_TitleText, "Col_TitleText");
+    BIND_IENUM(L, ImPlotCol_InlayText, "Col_InlayText");
+    BIND_IENUM(L, ImPlotCol_XAxis, "Col_XAxis");
+    BIND_IENUM(L, ImPlotCol_XAxisGrid, "Col_XAxisGrid");
+    BIND_IENUM(L, ImPlotCol_YAxis, "Col_YAxis");
+    BIND_IENUM(L, ImPlotCol_YAxisGrid, "Col_YAxisGrid");
+    BIND_IENUM(L, ImPlotCol_YAxis2, "Col_YAxis2");
+    BIND_IENUM(L, ImPlotCol_YAxisGrid2, "Col_YAxisGrid2");
+    BIND_IENUM(L, ImPlotCol_YAxis3, "Col_YAxis3");
+    BIND_IENUM(L, ImPlotCol_YAxisGrid3, "Col_YAxisGrid3");
+    BIND_IENUM(L, ImPlotCol_Selection, "Col_Selection");
+    BIND_IENUM(L, ImPlotCol_Query, "Col_Query");
+    BIND_IENUM(L, ImPlotCol_Crosshairs, "Col_Crosshairs");
+
+    lua_pop(L, 1);
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1602,6 +1788,225 @@ int destroyImGui(lua_State* L)
     delete imgui->eventListener;
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// ImPlot
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef IMPLOT_API
+
+int initImPlot(lua_State* L)
+{
+    ImPlotContext* ctx = ImPlot::CreateContext();
+    g_pushInstance(L, "ImPlot", ctx);
+
+    luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
+    lua_pushvalue(L, -2);
+    luaL_rawsetptr(L, -2, ctx);
+    lua_pop(L, 1);
+
+    return 1;
+}
+
+int destroyImPlot(lua_State* L)
+{
+    void* ptr = *(void**)lua_touserdata(L, 1);
+    ImPlotContext* ctx = static_cast<ImPlotContext*>(ptr);
+    ImPlot::DestroyContext(ctx);
+    return 0;
+}
+
+ImPlotContext* getPlotContext(lua_State* L, int index = 1)
+{
+    return getPtr<ImPlotContext>(L, "ImPlot", index);
+}
+
+void UpdatePlotContext(lua_State* L)
+{
+    ImPlotContext* ctx = getPlotContext(L);
+    ImPlot::SetCurrentContext(ctx);
+}
+
+int ImPlot_BeginPlot(lua_State* L)
+{
+    const char* title_id = luaL_checkstring(L, 2);
+    const char* x_label = luaL_optstring(L, 3, NULL);
+    const char* y_label = luaL_optstring(L, 4, NULL);
+    const ImVec2& size = ImVec2(luaL_optnumber(L, 5, -1), luaL_optnumber(L, 6, 0));
+    ImPlotFlags flags = luaL_optinteger(L, 7, ImPlotFlags_None);
+    ImPlotAxisFlags x_flags  = luaL_optinteger(L,  8, ImPlotAxisFlags_None);
+    ImPlotAxisFlags y_flags  = luaL_optinteger(L,  9, ImPlotAxisFlags_None);
+    ImPlotAxisFlags y2_flags = luaL_optinteger(L, 10, ImPlotAxisFlags_NoGridLines);
+    ImPlotAxisFlags y3_flags = luaL_optinteger(L, 11, ImPlotAxisFlags_NoGridLines);
+    const char* y2_label = luaL_optstring(L, 12, NULL);
+    const char* y3_label = luaL_optstring(L, 13, NULL);
+
+    UpdatePlotContext(L);
+    lua_pushboolean(L, ImPlot::BeginPlot(title_id, x_label, y_label, size, flags, x_flags, y_flags, y2_flags, y3_flags, y2_label, y3_label));
+    return 1;
+}
+
+int ImPlot_EndPlot(lua_State* L)
+{
+    UpdatePlotContext(L);
+    ImPlot::EndPlot();
+    return 0;
+}
+
+int ImPlot_BeginSubplots(lua_State* L)
+{
+    const char* title_id = luaL_checkstring(L, 2);
+    int rows = luaL_checkinteger(L, 3);
+    int cols = luaL_checkinteger(L, 4);
+    const ImVec2& size = ImVec2(luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
+    ImPlotSubplotFlags flags =luaL_optinteger(L, 7, ImPlotSubplotFlags_None);
+    float* row_ratios = NULL;
+    float* col_ratios = NULL;
+
+    UpdatePlotContext(L);
+    lua_pushboolean(L, ImPlot::BeginSubplots(title_id, rows, cols, size, flags, row_ratios, col_ratios));
+    return 1;
+}
+
+int ImPlot_EndSubplots(lua_State* L)
+{
+    UpdatePlotContext(L);
+    ImPlot::EndSubplots();
+    return 0;
+}
+
+int ImPlot_PlotLine(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3, luaL_getn(L, 3));
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4, luaL_getn(L, 4));
+        int count = luaL_checkinteger(L, 5);
+        int offset = luaL_optinteger(L, 6, 0);
+        ImPlot::PlotLine(label, values, y_values, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double xscale = luaL_optnumber(L, 5, 1);
+        double x0 = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotLine(label, values, count, xscale, x0, offset);
+    }
+    return 0;
+}
+
+int ImPlot_PlotScatter(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3, luaL_getn(L, 3));
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4, luaL_getn(L, 4));
+        int count = luaL_checkinteger(L, 5);
+        int offset = luaL_optinteger(L, 6, 0);
+        ImPlot::PlotScatter(label, values, y_values, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double xscale = luaL_optnumber(L, 5, 1);
+        double x0 = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotScatter(label, values, count, xscale, x0, offset);
+    }
+    return 0;
+}
+
+int ImPlot_PlotStairs(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotShaded(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotBars(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotBarsH(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotErrorBars(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotErrorBarsH(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotStems(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotVLines(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotHLines(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotPieChart(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotHeatmap(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotHistogram(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotHistogram2D(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotDigital(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotImage(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotText(lua_State* L)
+{
+    return 0;
+}
+
+int ImPlot_PlotDummy(lua_State* L)
+{
+    return 0;
+}
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -4180,18 +4585,7 @@ int PlotLines(lua_State* L)
 
     luaL_checktype(L, 3, LUA_TTABLE);
     size_t len = luaL_getn(L, 3);
-    float* values = new float[len];
-    lua_pushvalue(L, 3);
-    for (unsigned int i = 0; i < len; i++)
-    {
-        lua_rawgeti(L, 3, i+1);
-
-        float v = luaL_checknumber(L, -1);
-        values[i] = v;
-        lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
-
+    float* values = getTableValues(L, 3, len);
     int values_offset = luaL_optinteger(L, 4, 0);
     const char* overlay_text = luaL_optstring(L, 5, NULL);
     float scale_min = luaL_optnumber(L, 6, FLT_MAX);
@@ -4210,18 +4604,7 @@ int PlotHistogram(lua_State* L)
 
     luaL_checktype(L, 3, LUA_TTABLE);
     int len = luaL_getn(L, 3);
-    float* values = new float[len];
-    lua_pushvalue(L, 3);
-    for (int i = 0; i < len; i++)
-    {
-        lua_rawgeti(L, 3, i+1);
-
-        float v = luaL_checknumber(L, -1);
-        values[i] = v;
-        lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
-
+    float* values = getTableValues(L, 3, len);
     int values_offset = luaL_optinteger(L, 4, 0);
     const char* overlay_text = luaL_optstring(L, 5, NULL);
     float scale_min = luaL_optnumber(L, 6, FLT_MAX);
@@ -7490,7 +7873,7 @@ int IO_SetConfigDockingTransparentPayload(lua_State* L)
 int IO_SetFontDefault(lua_State* L)
 {
     ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-    ImFont* font = getPtr<ImFont>(L, "ImFont"); // getFont(L, 2)
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 2); // getFont(L, 2)
     if (font)
         io.FontDefault = font;
     return 0;
@@ -8621,14 +9004,14 @@ int FontAtlas_AddCustomRectRegular(lua_State* L)
 
 int FontAtlas_AddCustomRectFontGlyph(lua_State* L)
 {
-    ImFont* font = getPtr<ImFont>(L, "ImFont");
+    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 2);
     ImWchar id = (ImWchar)luaL_checkinteger(L, 3);
     int width = luaL_checkinteger(L, 4);
     int height = luaL_checkinteger(L, 5);
     float advance_x = luaL_checkinteger(L, 6);
     const ImVec2& offset = ImVec2(luaL_optnumber(L, 7, 0.0f), luaL_optnumber(L, 8, 0.0f));
 
-    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
     lua_pushinteger(L, atlas->AddCustomRectFontGlyph(font, id, width, height, advance_x, offset));
     return 1;
 }
@@ -9047,7 +9430,8 @@ int DrawList_AddText(lua_State* L)
 
 int DrawList_AddFontText(lua_State* L)
 {
-    ImFont* font = getPtr<ImFont>(L, "ImFont");
+    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 2);
     double font_size = luaL_checknumber(L, 3);
     ImVec2 pos = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
@@ -9059,7 +9443,6 @@ int DrawList_AddFontText(lua_State* L)
         ImVec4 rect = ImVec4(luaL_checknumber(L, 10), luaL_checknumber(L, 11), luaL_checknumber(L, 12), luaL_checknumber(L, 13));
         cpu_fine_clip_rect = &rect;
     }
-    ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
     list->AddText(font, font_size, pos, col, text_begin, NULL, wrap_width, cpu_fine_clip_rect);
     return 0;
 }
@@ -9625,7 +10008,7 @@ int TE_GetLanguageDefinition_Lua(lua_State* L)
 
 int TE_GetName(lua_State* L)
 {
-    TextEditor::LanguageDefinition* lang = getPtr<TextEditor::LanguageDefinition>(L, "ImGuiTextEditorLanguage", 1);
+    TextEditor::LanguageDefinition* lang = getPtr<TextEditor::LanguageDefinition>(L, "ImGuiTextEditorLanguage");
     lua_pushstring(L, lang->mName.c_str());
     return 1;
 }
@@ -10785,7 +11168,7 @@ int loader(lua_State* L)
 
         {NULL, NULL}
     };
-    g_createClass(L, "ImGuiIO", 0, NULL, NULL, imguiIoFunctionList);
+    g_createClass(L, "ImGuiIO", NULL, NULL, NULL, imguiIoFunctionList);
 
     const luaL_Reg imguiFontAtlasFunctionList[] =
     {
@@ -10808,7 +11191,7 @@ int loader(lua_State* L)
         {"getCustomRectByIndex", FontAtlas_GetCustomRectByIndex},
         {NULL, NULL}
     };
-    g_createClass(L, "ImFontAtlas", 0, NULL, NULL, imguiFontAtlasFunctionList);
+    g_createClass(L, "ImFontAtlas", NULL, NULL, NULL, imguiFontAtlasFunctionList);
 
     const luaL_Reg imguiFontFunctionsList[] = {
         {"getFontSize", ImFont_GetFontSize },
@@ -10823,7 +11206,7 @@ int loader(lua_State* L)
         {"calcWordWrapPositionA", ImFont_CalcWordWrapPositionA},
         {NULL, NULL}
     };
-    g_createClass(L, "ImFont", 0, NULL, NULL, imguiFontFunctionsList);
+    g_createClass(L, "ImFont", NULL, NULL, NULL, imguiFontFunctionsList);
 
 #ifdef IS_BETA_BUILD
 
@@ -11613,6 +11996,21 @@ int loader(lua_State* L)
         {NULL, NULL}
     };
     g_createClass(L, "ImGui", "Sprite", initImGui, destroyImGui, imguiFunctionList);
+
+#ifdef IMPLOT_API
+    const luaL_Reg implotFunctionList[] =
+    {
+        {"beginPlot", ImPlot_BeginPlot},
+        {"endPlot", ImPlot_EndPlot},
+        {"beginSubplots", ImPlot_BeginSubplots},
+        {"endSubplots", ImPlot_EndSubplots},
+        {"plotLine", ImPlot_PlotLine},
+        {"plotScatter", ImPlot_PlotScatter},
+        {NULL, NULL}
+    };
+
+    g_createClass(L, "ImPlot", NULL, initImPlot, destroyImPlot, implotFunctionList);
+#endif
 
     luaL_newweaktable(L);
     luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
