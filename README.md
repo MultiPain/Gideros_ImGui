@@ -317,12 +317,13 @@ ImGui:setClassicStyle()
 
 ## Color convert
 ```lua
-r, g, b, a = ImGui:colorConvertHEXtoRGB(color, [alpha = 1])
-hex = ImGui:colorConvertRGBtoHEX(r, g, b)
-h, s, v = ImGui:colorConvertRGBtoHSV(r, g, b)
-r, g, b = ImGui:colorConvertHSVtoRGB(h, s, v)
-h, s, v = colorConvertHEXtoHSV(hex)
-hex = colorConvertHSVtoHEX(h, s, v)
+-- note: use DOT instead of COLON, so you can use it without creating an ImGui object
+r, g, b, a = ImGui.colorConvertHEXtoRGB(color, [alpha = 1])
+hex = ImGui.colorConvertRGBtoHEX(r, g, b)
+h, s, v = ImGui.colorConvertRGBtoHSV(r, g, b)
+r, g, b = ImGui.colorConvertHSVtoRGB(h, s, v)
+h, s, v = ImGui.colorConvertHEXtoHSV(hex)
+hex = ImGui.colorConvertHSVtoHEX(h, s, v)
 ```
 
 ## IO Functions
