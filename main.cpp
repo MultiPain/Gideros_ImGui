@@ -6734,6 +6734,25 @@ int Payload_GetStringData(lua_State* L)
     return 1;
 }
 
+int Payload_GetColor3Data(lua_State* L)
+{
+    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload", 1);
+    float* v = (float*)(payload->Data);
+    GColor color = GColor::toHex(v[0], v[1], v[2], 1.0);
+    lua_pushinteger(L, color.hex);
+    return 1;
+}
+
+int Payload_GetColor4Data(lua_State* L)
+{
+    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload", 1);
+    float* v = (float*)(payload->Data);
+    GColor color = GColor::toHex(v[0], v[1], v[2], v[3]);
+    lua_pushinteger(L, color.hex);
+    lua_pushnumber(L, color.alpha);
+    return 2;
+}
+
 // TODO add tables ?
 
 int Payload_Clear(lua_State* L)
@@ -11652,6 +11671,8 @@ int loader(lua_State* L)
     const luaL_Reg imguiPayloadFunctionsList[] = {
         {"getNumData", Payload_GetNumberData},
         {"getStrData", Payload_GetStringData},
+        {"getColor3Data", Payload_GetColor3Data},
+        {"getColor4Data", Payload_GetColor4Data},
         {"clear", Payload_Clear},
         {"getDataSize", Payload_GetDataSize},
         {"isDataType", Payload_IsDataType},
