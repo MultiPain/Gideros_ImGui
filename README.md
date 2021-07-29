@@ -179,7 +179,7 @@ ImGui:onKeyChar(event)
 ```
 ### Usage example
 ```lua
-local UI = ImGui.new(false, false, false, false)
+local UI = ImGui.new(nil, false, false, false)
 -- Mouse
 stage:addEventListener("mouseHover", function(e) UI:onMouseHover(e) end)
 stage:addEventListener("mouseMove", function(e) UI:onMouseMove(e) end)
@@ -481,7 +481,7 @@ function (callbackData, [userData])
 	local currentWidth, currentHeight = callbackData:getCurrentSize()
 	-- get desired size
 	local deseridWidth, deseridHeight = callbackData:getDesiredSize()
-	-- do some math, and return desireed size
+	-- do some math, and return desired size
 	-- ...
 	return desiredWidth, desiredHeight
 end
@@ -636,10 +636,10 @@ ImGui:imageFilled(texture, w, h, [tint_color = 0xffffff, 1, bg_color = 0xffffff,
 pressFlag = ImGui:imageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, borderColor = 0xffffff, 0])
 pressFlag = ImGui:imageButtonWithText(texture, text, w, h, [padding = -1, bg_color = 0xffffff, 0, tintColor = 0xffffff, 1])
 -- Scales image to fit space (keeps aspect ratio)
-ImGui:scaledImage(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
-ImGui:scaledImageFilled(texture, w, h, [tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
-pressFlag = ImGui:scaledImageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
-pressFlag = ImGui:scaledImageButtonWithText(texture, text, w, h, [padding = -1, bgColor = 0xffffff, 0,tintColor = 0xffffff, 1, nil, nil, anchorX = 0.5, anchorY = 0.5])
+ImGui:scaledImage(texture, bg_w, bg_h, img_w, img_h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5, frame_round = 0])
+ImGui:scaledImageFilled(texture, bg_w, bg_h, img_w, img_h, [tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5, frame_round = 0])
+pressFlag = ImGui:scaledImageButton(texture, img_w, img_h, bg_w, bg_h, [ImGuiButtonFlags = 0, tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
+pressFlag = ImGui:scaledImageButtonWithText(texture, text, img_w, img_h, bg_w, bg_h, [ImGuiDir = ImGui.Dir_Left, ImGuiButtonFlags = 0, tintColor = 0xffffff, 1,  bgColor = 0xffffff, 0])
 ```
 
 ## Widgets: Combo Box
