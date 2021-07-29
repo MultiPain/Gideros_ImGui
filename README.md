@@ -90,7 +90,7 @@ stage:addChild(UI)
 
 -- you can use multiple fonts at the same time
 function enterFrame(e)
-	UI:newFrame(e)
+	UI:newFrame(e.deltaTime)
 	
 	imgui:pushFont(font1)
 	imgui:text("Font1")
@@ -502,7 +502,7 @@ local ui = ImGui.new()
 stage:addChild(ui)
 
 stage:addEventListener("enterFrame", function(e)
-	ui:newFrame(e)
+	ui:newFrame(e.deltaTime)
 	
 	-- window size step is 32 (last argument, that is passed to the callback as second argument)
 	ui:setNextWindowSizeConstraints(200, 200, 400, 400, stepSize, 32)
@@ -793,7 +793,7 @@ function myCallback3(data)
 end
 
 function enterFrame(e)
-	ui:newFrame(e)
+	ui:newFrame(e.deltaTime)
 	
 	testMessage1 = ui:inputText(
 		"Label1", 
@@ -998,7 +998,7 @@ local Mode_Swap = 2
 local mode = 0 -- current mode
 
 function onEnterFrame(e)
-	UI:newFrame(e)
+	UI:newFrame(e.deltaTime)
  
 	if (UI:radioButton("Copy", mode == Mode_Copy)) then mode = Mode_Copy end UI:sameLine()
 	if (UI:radioButton("Move", mode == Mode_Move)) then mode = Mode_Move end UI:sameLine()
@@ -1138,7 +1138,7 @@ flag = ImGui:getAutoUpdateCursor()
 
 ## Render
 ```lua
-ImGui:newFrame()
+ImGui:newFrame(deltaTime)
 ImGui:render()
 ImGui:endFrame()
 ```
@@ -1978,7 +1978,7 @@ local function FX(d,ax,ay,bx,by,sw,sh,t)
 end
 
 function onEnterFrame(e)
-	UI:newFrame(e)
+	UI:newFrame(e.deltaTime)
 	UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)
 	UI:invisibleButton("canvas", w, h)
 	local minX, minY = UI:getItemRectMin()
