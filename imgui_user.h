@@ -25,7 +25,6 @@ enum ImGuiGlyphRanges
 
 namespace ImGui
 {
-    IMGUI_API void MenuText(const char* label, bool enabled = true, bool titleText = false);
     IMGUI_API void FitImage(ImVec2& Min, ImVec2& Max, const ImVec2& rect_size, const ImVec2& image_size, const ImVec2& texture_size, const ImVec2& anchor, ImVec2 padding = ImVec2(0.0f, 0.0f));
 
     IMGUI_API void ScaledImage(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& texture_size, const ImVec2& button_size, const ImVec2& anchor = ImVec2(0.5f, 0.5f), const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1,1), const ImVec4& tint_col = ImVec4(1,1,1,1), const ImVec4& border_col = ImVec4(0,0,0,0), const float frame_rounding = 0.0f);

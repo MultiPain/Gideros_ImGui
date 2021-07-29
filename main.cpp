@@ -36,11 +36,13 @@
 
 #ifdef IS_BETA_BUILD
 #define PLUGIN_NAME "ImGui_beta"
+#elif defined(IS_PRE_BUILD)
+#define PLUGIN_NAME "ImGui_pre_build"
 #else
-#define PLUGIN_NAME "ImGui_pre_build_2"
+#define PLUGIN_NAME "ImGui"
 #endif
 
-#define CC 0.0039215686274509803921568627451
+#define CC 0.0039215686274509803921568627451f
 
 #define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
 #define LUA_ASSERTF(EXP, FMT, ...) if (!(EXP)) { lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L); }
@@ -149,7 +151,7 @@ struct VColor
 
 struct GColor {
     int hex; // 0xffffff
-    double alpha; // [0..1]
+    float alpha; // [0..1]
 
     GColor()
     {
@@ -171,20 +173,20 @@ struct GColor {
         alpha = converted.alpha;
     }
 
-    GColor(int _hex, double _alpha = 1.0f)
+    GColor(int _hex, double _alpha = 1.0)
     {
         hex = _hex;
         alpha = _alpha;
     }
 
-    GColor(double _r, double _g, double _b, double _a = 1.0f)
+    GColor(double _r, double _g, double _b, double _a = 1.0)
     {
         GColor converted = GColor::toHex(_r, _g, _b, _a);
         hex = converted.hex;
         alpha = converted.alpha;
     }
 
-    static ImVec4 toVec4(int hex, double alpha = 1.0f)
+    static ImVec4 toVec4(int hex, double alpha = 1.0)
     {
         return ImVec4(
             ((hex >> IM_COL32_B_SHIFT) & 0xFF) * CC,
@@ -510,15 +512,16 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
     lua_pop(L, 2);
 }
 
-float* getTableValues(lua_State* L, int idx, unsigned int len)
+template <typename T>
+T* getTableValues(lua_State* L, int idx, unsigned int len)
 {
-    float* values = new float[len];
+    T* values = new T[len];
     lua_pushvalue(L, idx);
     for (unsigned int i = 0; i < len; i++)
     {
         lua_rawgeti(L, idx, i+1);
 
-        float v = luaL_checknumber(L, -1);
+        T v = luaL_checknumber(L, -1);
         values[i] = v;
         lua_pop(L, 1);
     }
@@ -526,10 +529,29 @@ float* getTableValues(lua_State* L, int idx, unsigned int len)
     return values;
 }
 
-float* getTableValues(lua_State* L, int idx)
+template <>
+const char** getTableValues<const char*>(lua_State* L, int idx, unsigned int len)
+{
+    const char** values = new const char*[len];
+    lua_pushvalue(L, idx);
+    for (unsigned int i = 0; i < len; i++)
+    {
+        lua_rawgeti(L, idx, i+1);
+
+        const char* v = luaL_checkstring(L, -1);
+        values[i] = v;
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    return values;
+}
+
+template <typename T>
+T* getTableValues(lua_State* L, int idx)
 {
     unsigned int len = luaL_getn(L, idx);
-    return getTableValues(L, idx, len);
+    T* values = getTableValues<T>(L, idx, len);
+    return values;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1886,13 +1908,14 @@ int ImPlot_EndSubplots(lua_State* L)
 int ImPlot_PlotLine(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
-        ImPlot::PlotLine(label, values, y_values, count, offset);
+        ImPlot::PlotLine<float>(label, values, y_values, count, offset);
+        delete y_values;
     }
     else
     {
@@ -1900,21 +1923,23 @@ int ImPlot_PlotLine(lua_State* L)
         double xscale = luaL_optnumber(L, 5, 1);
         double x0 = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotLine(label, values, count, xscale, x0, offset);
+        ImPlot::PlotLine<float>(label, values, count, xscale, x0, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotScatter(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
-        ImPlot::PlotScatter(label, values, y_values, count, offset);
+        ImPlot::PlotScatter<float>(label, values, y_values, count, offset);
+        delete y_values;
     }
     else
     {
@@ -1922,21 +1947,23 @@ int ImPlot_PlotScatter(lua_State* L)
         double xscale = luaL_optnumber(L, 5, 1);
         double x0 = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotScatter(label, values, count, xscale, x0, offset);
+        ImPlot::PlotScatter<float>(label, values, count, xscale, x0, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotStairs(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
-        ImPlot::PlotStairs(label, values, y_values, count, offset);
+        ImPlot::PlotStairs<float>(label, values, y_values, count, offset);
+        delete y_values;
     }
     else
     {
@@ -1944,29 +1971,33 @@ int ImPlot_PlotStairs(lua_State* L)
         double xscale = luaL_optnumber(L, 5, 1);
         double x0 = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotStairs(label, values, count, xscale, x0, offset);
+        ImPlot::PlotStairs<float>(label, values, count, xscale, x0, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotShaded(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 5) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
-        float* y_values2 = getTableValues(L, 5);
+        float* y_values = getTableValues<float>(L, 4);
+        float* y_values2 = getTableValues<float>(L, 5);
         int count = luaL_checkinteger(L, 6);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotShaded(label, values, y_values, y_values2, count, offset);
+        ImPlot::PlotShaded<float>(label, values, y_values, y_values2, count, offset);
+        delete y_values;
+        delete y_values2;
     }
     else if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
-        ImPlot::PlotShaded(label, values, y_values, count, offset);
+        ImPlot::PlotShaded<float>(label, values, y_values, count, offset);
+        delete y_values;
     }
     else
     {
@@ -1974,22 +2005,24 @@ int ImPlot_PlotShaded(lua_State* L)
         double xscale = luaL_optnumber(L, 5, 1);
         double x0 = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotShaded(label, values, count, xscale, x0, offset);
+        ImPlot::PlotShaded<float>(label, values, count, xscale, x0, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotBars(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         double width = luaL_checknumber(L, 6);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotBars(label, values, y_values, count, width, offset);
+        ImPlot::PlotBars<float>(label, values, y_values, count, width, offset);
+        delete y_values;
     }
     else
     {
@@ -1997,22 +2030,24 @@ int ImPlot_PlotBars(lua_State* L)
         double width = luaL_optnumber(L, 5, 0.67);
         double shift = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotBars(label, values, count, width, shift, offset);
+        ImPlot::PlotBars<float>(label, values, count, width, shift, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotBarsH(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4);
+        float* y_values = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         double height = luaL_checknumber(L, 6);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotBarsH(label, values, y_values, count, height, offset);
+        ImPlot::PlotBarsH<float>(label, values, y_values, count, height, offset);
+        delete y_values;
     }
     else
     {
@@ -2020,66 +2055,76 @@ int ImPlot_PlotBarsH(lua_State* L)
         double height = luaL_optnumber(L, 5, 0.67);
         double shift = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotBarsH(label, values, count, height, shift, offset);
+        ImPlot::PlotBarsH<float>(label, values, count, height, shift, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotErrorBars(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* xs = getTableValues(L, 3);
-    float* ys = getTableValues(L, 4);
-    float* mv = getTableValues(L, 5);
+    float* xs = getTableValues<float>(L, 3);
+    float* ys = getTableValues<float>(L, 4);
+    float* mv = getTableValues<float>(L, 5);
     if (lua_type(L, 6) == LUA_TTABLE)
     {
-        float* pos = getTableValues(L, 6);
+        float* pos = getTableValues<float>(L, 6);
         int count = luaL_checkinteger(L, 7);
         int offset = luaL_optinteger(L, 8, 0);
-        ImPlot::PlotErrorBars(label, xs, ys, mv, pos, count, offset);
+        ImPlot::PlotErrorBars<float>(label, xs, ys, mv, pos, count, offset);
+        delete pos;
     }
     else
     {
         int count = luaL_checkinteger(L, 6);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotErrorBars(label, xs, ys, mv, count, offset);
+        ImPlot::PlotErrorBars<float>(label, xs, ys, mv, count, offset);
     }
+    delete xs;
+    delete ys;
+    delete mv;
     return 0;
 }
 
 int ImPlot_PlotErrorBarsH(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* xs = getTableValues(L, 3);
-    float* ys = getTableValues(L, 4);
-    float* mv = getTableValues(L, 5);
+    float* xs = getTableValues<float>(L, 3);
+    float* ys = getTableValues<float>(L, 4);
+    float* mv = getTableValues<float>(L, 5);
     if (lua_type(L, 6) == LUA_TTABLE)
     {
-        float* pos = getTableValues(L, 6);
+        float* pos = getTableValues<float>(L, 6);
         int count = luaL_checkinteger(L, 7);
         int offset = luaL_optinteger(L, 8, 0);
-        ImPlot::PlotErrorBarsH(label, xs, ys, mv, pos, count, offset);
+        ImPlot::PlotErrorBarsH<float>(label, xs, ys, mv, pos, count, offset);
+        delete pos;
     }
     else
     {
         int count = luaL_checkinteger(L, 6);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotErrorBarsH(label, xs, ys, mv, count, offset);
+        ImPlot::PlotErrorBarsH<float>(label, xs, ys, mv, count, offset);
     }
+    delete xs;
+    delete ys;
+    delete mv;
     return 0;
 }
 
 int ImPlot_PlotStems(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* ys = getTableValues(L, 4);
+        float* ys = getTableValues<float>(L, 4);
         int count = luaL_checkinteger(L, 5);
         double y_ref = luaL_optnumber(L, 6, 0);
         int offset = luaL_optinteger(L, 7, 0);
-        ImPlot::PlotStems(label, values, ys, count, y_ref, offset);
+        ImPlot::PlotStems<float>(label, values, ys, count, y_ref, offset);
+        delete ys;
     }
     else
     {
@@ -2088,42 +2133,59 @@ int ImPlot_PlotStems(lua_State* L)
         double xscale = luaL_optnumber(L, 6, 1);
         double x0 = luaL_optnumber(L, 7, 0);
         int offset = luaL_optinteger(L, 8, 0);
-        ImPlot::PlotStems(label, values, count, y_ref, xscale, x0, offset);
+        ImPlot::PlotStems<float>(label, values, count, y_ref, xscale, x0, offset);
     }
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotVLines(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     int count = luaL_checkinteger(L, 4);
     int offset = luaL_optinteger(L, 5, 0);
-    ImPlot::PlotVLines(label, values, count, offset);
+    ImPlot::PlotVLines<float>(label, values, count, offset);
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotHLines(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     int count = luaL_checkinteger(L, 4);
     int offset = luaL_optinteger(L, 5, 0);
-    ImPlot::PlotHLines(label, values, count, offset);
+    ImPlot::PlotHLines<float>(label, values, count, offset);
+    delete values;
     return 0;
 }
 
-// TODO: label array
 int ImPlot_PlotPieChart(lua_State* L)
 {
-    const char* label = luaL_checkstring(L, 2);
+    int labels_len = luaL_getn(L, 2);
+    const char** label_ids = getTableValues<const char*>(L, 2, labels_len);
+    int values_len = luaL_getn(L, 3);
+    float* values = getTableValues<float>(L, 3);
+    int count = luaL_checkinteger(L, 4);
+    LUA_ASSERT(count <= labels_len && count <= values_len, "#3 must not be greater than labels or values list length");
+    double x = luaL_checknumber(L, 5);
+    double y = luaL_checknumber(L, 6);
+    double radius = luaL_checknumber(L, 7);
+    bool normalize = luaL_optboolean(L, 8, 0);
+    const char* label_fmt = luaL_optstring(L, 9, "%.1f");
+    double angle0 = luaL_optnumber(L, 10, 90);
+
+    ImPlot::PlotPieChart<float>(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0);
+    delete[] label_ids;
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotHeatmap(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     int rows = luaL_checkinteger(L, 4);
     int cols = luaL_checkinteger(L, 5);
     double scale_min = luaL_optnumber(L, 6, 0);
@@ -2131,14 +2193,15 @@ int ImPlot_PlotHeatmap(lua_State* L)
     const char* format = luaL_optstring(L, 8, "%.1f");
     const ImPlotPoint& bounds_min = ImPlotPoint(luaL_optnumber(L, 9, 0), luaL_optnumber(L, 10, 0));
     const ImPlotPoint& bounds_max = ImPlotPoint(luaL_optnumber(L, 11, 1), luaL_optnumber(L, 12, 1));
-    ImPlot::PlotHeatmap(label, values, rows, cols, scale_min, scale_max, format, bounds_min, bounds_max);
+    ImPlot::PlotHeatmap<float>(label, values, rows, cols, scale_min, scale_max, format, bounds_min, bounds_max);
+    delete values;
     return 0;
 }
 
 int ImPlot_PlotHistogram(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3);
+    float* values = getTableValues<float>(L, 3);
     int count = luaL_checkinteger(L, 4);
     int bins = luaL_optinteger(L, 5, ImPlotBin_Sturges);
     bool cumulative = lua_toboolean(L, 6);
@@ -2147,33 +2210,38 @@ int ImPlot_PlotHistogram(lua_State* L)
     bool outliers = lua_toboolean(L, 10);
     double bar_scale = luaL_optnumber(L, 11, 1);
 
-    lua_pushnumber(L, ImPlot::PlotHistogram(label, values, count, bins, cumulative, density, range, outliers, bar_scale));
+    lua_pushnumber(L, ImPlot::PlotHistogram<float>(label, values, count, bins, cumulative, density, range, outliers, bar_scale));
+    delete values;
     return 1;
 }
 
 int ImPlot_PlotHistogram2D(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* xs = getTableValues(L, 3);
-    float* ys = getTableValues(L, 4);
+    float* xs = getTableValues<float>(L, 3);
+    float* ys = getTableValues<float>(L, 4);
     int count = luaL_checkinteger(L, 5);
     int x_bins = luaL_optinteger(L, 6, ImPlotBin_Sturges);
     int y_bins = luaL_optinteger(L, 7, ImPlotBin_Sturges);
     bool density = lua_toboolean(L, 8);
     ImPlotLimits range = ImPlotLimits(luaL_optnumber(L, 9, 0), luaL_optnumber(L, 10, 0), luaL_optnumber(L, 11, 0), luaL_optnumber(L, 12, 0));
     bool outliers = lua_toboolean(L, 13);
-    lua_pushnumber(L, ImPlot::PlotHistogram2D(label, xs, ys, count, x_bins, y_bins, density, range, outliers));
+    lua_pushnumber(L, ImPlot::PlotHistogram2D<float>(label, xs, ys, count, x_bins, y_bins, density, range, outliers));
+    delete xs;
+    delete ys;
     return 1;
 }
 
 int ImPlot_PlotDigital(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* xs = getTableValues(L, 3);
-    float* ys = getTableValues(L, 4);
+    float* xs = getTableValues<float>(L, 3);
+    float* ys = getTableValues<float>(L, 4);
     int count = luaL_checkinteger(L, 5);
     int offset = luaL_optinteger(L, 6, 0);
-    ImPlot::PlotDigital(label, xs, ys, count, offset);
+    ImPlot::PlotDigital<float>(label, xs, ys, count, offset);
+    delete xs;
+    delete ys;
     return 0;
 }
 
@@ -3205,16 +3273,18 @@ int GetID(lua_State* L)
     switch(lua_type(L, 2))
     {
         case LUA_TSTRING:
-        {
-            const char* str_id = luaL_checkstring(L, 2);
-            ImGuiID id = ImGui::GetID(str_id);
-            lua_pushnumber(L, (double)id);
-        }
+            {
+                const char* str_id = luaL_checkstring(L, 2);
+                ImGuiID id = ImGui::GetID(str_id);
+                lua_pushnumber(L, static_cast<double>(id));
+            }
+            break;
         default:
-        {
-            ImGuiID id = ImGui::GetID(lua_topointer(L, 2));
-            lua_pushnumber(L, (double)id);
-        }
+            {
+                ImGuiID id = ImGui::GetID(lua_topointer(L, 2));
+                lua_pushnumber(L, static_cast<double>(id));
+            }
+            break;
     }
 
     return 1;
@@ -3428,10 +3498,10 @@ int CheckboxFlags(lua_State* L)
     int flags = luaL_optinteger(L, 3, 0);
     int flags_value = luaL_optinteger(L, 4, 0);
 
-    bool flag = ImGui::CheckboxFlags(label, &flags, flags_value);
+    bool pressed = ImGui::CheckboxFlags(label, &flags, flags_value);
 
     lua_pushinteger(L, flags);
-    lua_pushboolean(L, flag);
+    lua_pushboolean(L, pressed);
     return 2;
 }
 
@@ -3639,6 +3709,29 @@ int DragFloat4(lua_State* L)
     return 5;
 }
 
+int DragFloatT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    float* data = getTableValues<float>(L, 3, size);
+    float v_speed = luaL_optnumber(L, 4, 1.0f);
+    float v_min = luaL_optnumber(L, 5, 0.0f);
+    float v_max = luaL_optnumber(L, 6, 0.0f);
+    const char* format = luaL_optstring(L, 7, "%.3f");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 8, 0);
+    bool pressed = ImGui::DragScalarN(label, ImGuiDataType_Float, data, size, v_speed, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushnumber(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
+}
+
 int DragFloatRange2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
@@ -3742,6 +3835,29 @@ int DragInt4(lua_State* L)
     return 5;
 }
 
+int DragIntT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    int* data = getTableValues<int>(L, 3, size);
+    float v_speed = luaL_optnumber(L, 4, 1.0f);
+    int v_min = luaL_optinteger(L, 5, 0);
+    int v_max = luaL_optinteger(L, 6, 0);
+    const char* format = luaL_optstring(L, 7, "%d");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 8, 0);
+    bool pressed = ImGui::DragScalarN(label, ImGuiDataType_S32, data, size, v_speed, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushinteger(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
+}
+
 int DragIntRange2(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
@@ -3762,24 +3878,6 @@ int DragIntRange2(lua_State* L)
     return 3;
 }
 
-int DragScalar(lua_State* L)
-{
-    const char* label = luaL_checkstring(L, 2);
-    ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    double v_speed = luaL_checknumber(L, 5);
-    double v_min = luaL_optnumber(L, 6, 0.0f);
-    double v_max = luaL_optnumber(L, 7, 0.0f);
-    const char* format = luaL_optstring(L, 8, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
-
-    bool result = ImGui::DragScalar(label, data_type, (void *)&value, v_speed, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
-    lua_pushnumber(L, value);
-    lua_pushboolean(L, result);
-    return 2;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// Widgets: Sliders
@@ -3790,8 +3888,8 @@ int SliderFloat(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     float v = luaL_checknumber(L, 3);
-    float v_min = luaL_optnumber(L, 4, 0.0f);
-    float v_max = luaL_optnumber(L, 5, 0.0f);
+    float v_min = luaL_checknumber(L, 4);
+    float v_max = luaL_checknumber(L, 5);
     const char* format = luaL_optstring(L, 6, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 7, 0);
 
@@ -3808,8 +3906,8 @@ int SliderFloat2(lua_State* L)
     float vec2f[2];
     vec2f[0] = luaL_checknumber(L, 3);
     vec2f[1] = luaL_checknumber(L, 4);
-    float v_min = luaL_optnumber(L, 5, 0.0f);
-    float v_max = luaL_optnumber(L, 6, 0.0f);
+    float v_min = luaL_checknumber(L, 5);
+    float v_max = luaL_checknumber(L, 6);
     const char* format = luaL_optstring(L, 7, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -3828,8 +3926,8 @@ int SliderFloat3(lua_State* L)
     vec3f[0] = luaL_checknumber(L, 3);
     vec3f[1] = luaL_checknumber(L, 4);
     vec3f[2] = luaL_checknumber(L, 5);
-    float v_min = luaL_optnumber(L, 6, 0.0f);
-    float v_max = luaL_optnumber(L, 7, 0.0f);
+    float v_min = luaL_checknumber(L, 6);
+    float v_max = luaL_checknumber(L, 7);
     const char* format = luaL_optstring(L, 8, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -3850,8 +3948,8 @@ int SliderFloat4(lua_State* L)
     vec4f[1] = luaL_checknumber(L, 4);
     vec4f[2] = luaL_checknumber(L, 5);
     vec4f[3] = luaL_checknumber(L, 6);
-    float v_min = luaL_optnumber(L, 7, 0.0f);
-    float v_max = luaL_optnumber(L, 8, 0.0f);
+    float v_min = luaL_checknumber(L, 7);
+    float v_max = luaL_checknumber(L, 8);
     const char* format = luaL_optstring(L, 9, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
 
@@ -3863,6 +3961,28 @@ int SliderFloat4(lua_State* L)
     lua_pushnumber(L, vec4f[3]);
     lua_pushboolean(L, result);
     return 5;
+}
+
+int SliderFloatT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    float* data = getTableValues<float>(L, 3, size);
+    float v_min = luaL_checknumber(L, 4);
+    float v_max = luaL_checknumber(L, 5);
+    const char* format = luaL_optstring(L, 6, "%.3f");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 7, 0);
+    bool pressed = ImGui::SliderScalarN(label, ImGuiDataType_Float, data, size, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushnumber(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
 }
 
 int SliderAngle(lua_State* L)
@@ -3884,8 +4004,8 @@ int SliderInt(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     int v = luaL_checkinteger(L, 3);
-    int v_min = luaL_optinteger(L, 4, 0);
-    int v_max = luaL_optinteger(L, 5, 0);
+    int v_min = luaL_checkinteger(L, 4);
+    int v_max = luaL_checkinteger(L, 5);
     const char* format = luaL_optstring(L, 6, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 7, 0);
 
@@ -3902,8 +4022,8 @@ int SliderInt2(lua_State* L)
     int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 3);
     vec2i[1] = luaL_checkinteger(L, 4);
-    int v_min = luaL_optinteger(L, 5, 0);
-    int v_max = luaL_optinteger(L, 6, 0);
+    int v_min = luaL_checkinteger(L, 5);
+    int v_max = luaL_checkinteger(L, 6);
     const char* format = luaL_optstring(L, 7, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -3922,8 +4042,8 @@ int SliderInt3(lua_State* L)
     vec3i[0] = luaL_checkinteger(L, 3);
     vec3i[1] = luaL_checkinteger(L, 4);
     vec3i[2] = luaL_checkinteger(L, 5);
-    int v_min = luaL_optinteger(L, 6, 0);
-    int v_max = luaL_optinteger(L, 7, 0);
+    int v_min = luaL_checkinteger(L, 6);
+    int v_max = luaL_checkinteger(L, 7);
     const char* format = luaL_optstring(L, 8, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -3944,8 +4064,8 @@ int SliderInt4(lua_State* L)
     vec4i[1] = luaL_checkinteger(L, 4);
     vec4i[2] = luaL_checkinteger(L, 5);
     vec4i[3] = luaL_checkinteger(L, 6);
-    int v_min = luaL_optinteger(L, 7, 0);
-    int v_max = luaL_optinteger(L, 8, 0);
+    int v_min = luaL_checkinteger(L, 7);
+    int v_max = luaL_checkinteger(L, 8);
     const char* format = luaL_optstring(L, 9, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
 
@@ -3959,21 +4079,26 @@ int SliderInt4(lua_State* L)
     return 5;
 }
 
-int SliderScalar(lua_State* L)
+int SliderIntT(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    double v_min = luaL_checknumber(L, 5);
-    double v_max = luaL_checknumber(L, 6);
-    const char* format = luaL_optstring(L, 7, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
-
-    bool result = ImGui::SliderScalar(label, data_type, (void *)&value, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
-    lua_pushnumber(L, value);
-    lua_pushboolean(L, result);
-    return 2;
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    int* data = getTableValues<int>(L, 3, size);
+    int v_min = luaL_checkinteger(L, 4);
+    int v_max = luaL_checkinteger(L, 5);
+    const char* format = luaL_optstring(L, 6, "%d");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 7, 0);
+    bool pressed = ImGui::SliderScalarN(label, ImGuiDataType_S32, data, size, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushinteger(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
 }
 
 int VSliderFloat(lua_State* L)
@@ -4010,24 +4135,6 @@ int VSliderInt(lua_State* L)
     return 2;
 }
 
-int VSliderScalar(lua_State* L)
-{
-    const char* label = luaL_checkstring(L, 2);
-    const ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    ImGuiDataType data_type = luaL_checkinteger(L, 5);
-    double value = luaL_checknumber(L, 6);
-    double v_min = luaL_optnumber(L, 7, 0.0f);
-    double v_max = luaL_optnumber(L, 8, 0.0f);
-    const char* format = luaL_optstring(L, 9, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
-
-    bool result = ImGui::VSliderScalar(label, size, data_type, (void *)&value, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
-    lua_pushnumber(L, value);
-    lua_pushboolean(L, result);
-    return 2;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// Custom filled sliders
@@ -4039,8 +4146,8 @@ int FilledSliderFloat(lua_State* L)
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
     float v = luaL_checknumber(L, 4);
-    float v_min = luaL_optnumber(L, 5, 0.0f);
-    float v_max = luaL_optnumber(L, 6, 0.0f);
+    float v_min = luaL_checknumber(L, 5);
+    float v_max = luaL_checknumber(L, 6);
     const char* format = luaL_optstring(L, 7, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -4058,8 +4165,8 @@ int FilledSliderFloat2(lua_State* L)
     float vec2f[2];
     vec2f[0] = luaL_checknumber(L, 4);
     vec2f[1] = luaL_checknumber(L, 5);
-    float v_min = luaL_optnumber(L, 6, 0.0f);
-    float v_max = luaL_optnumber(L, 7, 0.0f);
+    float v_min = luaL_checknumber(L, 6);
+    float v_max = luaL_checknumber(L, 7);
     const char* format = luaL_optstring(L, 8, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -4079,8 +4186,8 @@ int FilledSliderFloat3(lua_State* L)
     vec3f[0] = luaL_checknumber(L, 4);
     vec3f[1] = luaL_checknumber(L, 5);
     vec3f[2] = luaL_checknumber(L, 6);
-    float v_min = luaL_optnumber(L, 7, 0.0f);
-    float v_max = luaL_optnumber(L, 8, 0.0f);
+    float v_min = luaL_checknumber(L, 7);
+    float v_max = luaL_checknumber(L, 8);
     const char* format = luaL_optstring(L, 9, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
 
@@ -4102,8 +4209,8 @@ int FilledSliderFloat4(lua_State* L)
     vec4f[1] = luaL_checknumber(L, 5);
     vec4f[2] = luaL_checknumber(L, 6);
     vec4f[3] = luaL_checknumber(L, 7);
-    float v_min = luaL_optnumber(L, 8, 0.0f);
-    float v_max = luaL_optnumber(L, 9, 0.0f);
+    float v_min = luaL_checknumber(L, 8);
+    float v_max = luaL_checknumber(L, 9);
     const char* format = luaL_optstring(L, 10, "%.3f");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 11, 0);
 
@@ -4115,6 +4222,29 @@ int FilledSliderFloat4(lua_State* L)
     lua_pushnumber(L, vec4f[3]);
     lua_pushboolean(L, result);
     return 5;
+}
+
+int FilledSliderFloatT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    bool mirror = lua_toboolean(L, 3);
+    luaL_checktype(L, 4, LUA_TTABLE);
+    const int size = luaL_getn(L, 4);
+    float* data = getTableValues<float>(L, 4, size);
+    float v_min = luaL_checknumber(L, 5);
+    float v_max = luaL_checknumber(L, 6);
+    const char* format = luaL_optstring(L, 7, "%.3f");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 8, 0);
+    bool pressed = ImGui::FilledSliderScalarN(label, mirror, ImGuiDataType_Float, data, size, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 4);
+    for (int i = 0; i < size; i++) {
+        lua_pushnumber(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
 }
 
 int FilledSliderAngle(lua_State* L)
@@ -4139,8 +4269,8 @@ int FilledSliderInt(lua_State* L)
     const char* label = luaL_checkstring(L, 2);
     bool mirror = lua_toboolean(L, 3) > 0;
     int v = luaL_checkinteger(L, 4);
-    int v_min = luaL_optinteger(L, 5, 0);
-    int v_max = luaL_optinteger(L, 6, 0);
+    int v_min = luaL_checkinteger(L, 5);
+    int v_max = luaL_checkinteger(L, 6);
     const char* format = luaL_optstring(L, 7, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
 
@@ -4158,8 +4288,8 @@ int FilledSliderInt2(lua_State* L)
     int vec2i[2];
     vec2i[0] = luaL_checkinteger(L, 4);
     vec2i[1] = luaL_checkinteger(L, 5);
-    int v_min = luaL_optinteger(L, 6, 0);
-    int v_max = luaL_optinteger(L, 7, 0);
+    int v_min = luaL_checkinteger(L, 6);
+    int v_max = luaL_checkinteger(L, 7);
     const char* format = luaL_optstring(L, 8, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
 
@@ -4179,8 +4309,8 @@ int FilledSliderInt3(lua_State* L)
     vec3i[0] = luaL_checkinteger(L, 4);
     vec3i[1] = luaL_checkinteger(L, 5);
     vec3i[2] = luaL_checkinteger(L, 6);
-    int v_min = luaL_optinteger(L, 7, 0);
-    int v_max = luaL_optinteger(L, 8, 0);
+    int v_min = luaL_checkinteger(L, 7);
+    int v_max = luaL_checkinteger(L, 8);
     const char* format = luaL_optstring(L, 9, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 10, 0);
 
@@ -4202,8 +4332,8 @@ int FilledSliderInt4(lua_State* L)
     vec4i[1] = luaL_checkinteger(L, 5);
     vec4i[2] = luaL_checkinteger(L, 6);
     vec4i[3] = luaL_checkinteger(L, 7);
-    int v_min = luaL_optinteger(L, 8, 0);
-    int v_max = luaL_optinteger(L, 9, 0);
+    int v_min = luaL_checkinteger(L, 8);
+    int v_max = luaL_checkinteger(L, 9);
     const char* format = luaL_optstring(L, 10, "%d");
     ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 11, 0);
 
@@ -4217,22 +4347,27 @@ int FilledSliderInt4(lua_State* L)
     return 5;
 }
 
-int FilledSliderScalar(lua_State* L)
+int FilledSliderIntT(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    bool mirror = lua_toboolean(L, 3) > 0;
-    ImGuiDataType data_type = luaL_checkinteger(L, 4);
-    double value = luaL_checknumber(L, 5);
-    double v_min = luaL_optnumber(L, 6, 0.0f);
-    double v_max = luaL_optnumber(L, 7, 0.0f);
-    const char* format = luaL_optstring(L, 8, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 9, 0);
-
-    bool result = ImGui::FilledSliderScalar(label, mirror, data_type, (void *)&value, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
-    lua_pushnumber(L, value);
-    lua_pushboolean(L, result);
-    return 2;
+    bool mirror = lua_toboolean(L, 3);
+    luaL_checktype(L, 4, LUA_TTABLE);
+    const int size = luaL_getn(L, 4);
+    int* data = getTableValues<int>(L, 4, size);
+    int v_min = luaL_checkinteger(L, 5);
+    int v_max = luaL_checkinteger(L, 6);
+    const char* format = luaL_optstring(L, 7, "%d");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 8, 0);
+    bool pressed = ImGui::FilledSliderScalarN(label, mirror, ImGuiDataType_S32, data, size, &v_min, &v_max, format, flags);
+    lua_pushvalue(L, 4);
+    for (int i = 0; i < size; i++) {
+        lua_pushinteger(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
 }
 
 int VFilledSliderFloat(lua_State* L)
@@ -4267,25 +4402,6 @@ int VFilledSliderInt(lua_State* L)
     bool result = ImGui::VFilledSliderInt(label, mirror, size, &v, v_min, v_max, format, sliderFlag);
 
     lua_pushinteger(L, v);
-    lua_pushboolean(L, result);
-    return 2;
-}
-
-int VFilledSliderScalar(lua_State* L)
-{
-    const char* label = luaL_checkstring(L, 2);
-    bool mirror = lua_toboolean(L, 3) > 0;
-    const ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    ImGuiDataType data_type = luaL_checkinteger(L, 6);
-    double value = luaL_checknumber(L, 7);
-    double v_min = luaL_optnumber(L, 8, 0.0f);
-    double v_max = luaL_optnumber(L, 9, 0.0f);
-    const char* format = luaL_optstring(L, 10, "%.3f");
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 11, 0);
-
-    bool result = ImGui::VFilledSliderScalar(label, mirror, size, data_type, (void *)&value, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
-    lua_pushnumber(L, value);
     lua_pushboolean(L, result);
     return 2;
 }
@@ -4442,6 +4558,26 @@ int InputFloat4(lua_State* L)
     return 5;
 }
 
+int InputFloatT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    float* data = getTableValues<float>(L, 3, size);
+    const char* format = luaL_optstring(L, 4, "%.3f");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 5, 0);
+    bool pressed = ImGui::InputScalarN(label, ImGuiDataType_Float, data, size, NULL, NULL, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushnumber(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
+}
+
 int InputInt(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
@@ -4507,6 +4643,26 @@ int InputInt4(lua_State* L)
     return 5;
 }
 
+int InputIntT(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 2);
+    luaL_checktype(L, 3, LUA_TTABLE);
+    const int size = luaL_getn(L, 3);
+    int* data = getTableValues<int>(L, 3, size);
+    const char* format = luaL_optstring(L, 4, "%d");
+    ImGuiSliderFlags flags = luaL_optinteger(L, 5, 0);
+    bool pressed = ImGui::InputScalarN(label, ImGuiDataType_S32, data, size, NULL, NULL, format, flags);
+    lua_pushvalue(L, 3);
+    for (int i = 0; i < size; i++) {
+        lua_pushinteger(L, data[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_pop(L, 1);
+    delete data;
+    lua_pushboolean(L, pressed);
+    return 1;
+}
+
 int InputDouble(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
@@ -4517,23 +4673,6 @@ int InputDouble(lua_State* L)
     ImGuiInputTextFlags flags = luaL_optinteger(L, 7, 0);
 
     bool result = ImGui::InputDouble(label, &value, step, step_fast, format, flags);
-    lua_pushnumber(L, value);
-    lua_pushboolean(L, result);
-    return 2;
-}
-
-int InputScalar(lua_State* L)
-{
-    const char* label = luaL_checkstring(L, 2);
-    ImGuiDataType data_type = luaL_checkinteger(L, 3);
-    double value = luaL_checknumber(L, 4);
-    double v_min = luaL_checknumber(L, 5);
-    double v_max = luaL_checknumber(L, 6);
-    const char* format = luaL_optstring(L, 7, NULL);
-    ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 8, 0);
-
-    bool result = ImGui::InputScalar(label, data_type, (void *)&value, (void *)&v_min, (void *)&v_max, format, sliderFlag);
-
     lua_pushnumber(L, value);
     lua_pushboolean(L, result);
     return 2;
@@ -4785,7 +4924,7 @@ int PlotLines(lua_State* L)
 
     luaL_checktype(L, 3, LUA_TTABLE);
     size_t len = luaL_getn(L, 3);
-    float* values = getTableValues(L, 3, len);
+    float* values = getTableValues<float>(L, 3, len);
     int values_offset = luaL_optinteger(L, 4, 0);
     const char* overlay_text = luaL_optstring(L, 5, NULL);
     float scale_min = luaL_optnumber(L, 6, FLT_MAX);
@@ -4804,7 +4943,7 @@ int PlotHistogram(lua_State* L)
 
     luaL_checktype(L, 3, LUA_TTABLE);
     int len = luaL_getn(L, 3);
-    float* values = getTableValues(L, 3, len);
+    float* values = getTableValues<float>(L, 3, len);
     int values_offset = luaL_optinteger(L, 4, 0);
     const char* overlay_text = luaL_optstring(L, 5, NULL);
     float scale_min = luaL_optnumber(L, 6, FLT_MAX);
@@ -11934,42 +12073,43 @@ int loader(lua_State* L)
         {"dragFloat2", DragFloat2},
         {"dragFloat3", DragFloat3},
         {"dragFloat4", DragFloat4},
+        {"dragFloatT", DragFloatT},
         {"dragFloatRange2", DragFloatRange2},
 
         {"dragInt", DragInt},
         {"dragInt2", DragInt2},
         {"dragInt3", DragInt3},
         {"dragInt4", DragInt4},
+        {"dragIntT", DragIntT},
         {"dragIntRange2", DragIntRange2},
-        {"dragScalar", DragScalar},
 
         {"sliderFloat", SliderFloat},
         {"sliderFloat2", SliderFloat2},
         {"sliderFloat3", SliderFloat3},
         {"sliderFloat4", SliderFloat4},
+        {"sliderFloatT", SliderFloatT},
         {"sliderAngle", SliderAngle},
         {"sliderInt", SliderInt},
         {"sliderInt2", SliderInt2},
         {"sliderInt3", SliderInt3},
         {"sliderInt4", SliderInt4},
-        {"sliderScalar", SliderScalar},
+        {"sliderIntT", SliderIntT},
         {"vSliderFloat", VSliderFloat},
         {"vSliderInt", VSliderInt},
-        {"vSliderScalar", VSliderScalar},
 
         {"filledSliderFloat", FilledSliderFloat},
         {"filledSliderFloat2", FilledSliderFloat2},
         {"filledSliderFloat3", FilledSliderFloat3},
         {"filledSliderFloat4", FilledSliderFloat4},
+        {"filledSliderFloatT", FilledSliderFloatT},
         {"filledSliderAngle", FilledSliderAngle},
         {"filledSliderInt", FilledSliderInt},
         {"filledSliderInt2", FilledSliderInt2},
         {"filledSliderInt3", FilledSliderInt3},
         {"filledSliderInt4", FilledSliderInt4},
-        {"filledSliderScalar", FilledSliderScalar},
+        {"filledSliderIntT", FilledSliderIntT},
         {"vFilledSliderFloat", VFilledSliderFloat},
         {"vFilledSliderInt", VFilledSliderInt},
-        {"vFilledSliderScalar", VFilledSliderScalar},
 
         {"inputText", InputText},
         {"inputTextMultiline", InputTextMultiline},
@@ -11978,12 +12118,13 @@ int loader(lua_State* L)
         {"inputFloat2", InputFloat2},
         {"inputFloat3", InputFloat3},
         {"inputFloat4", InputFloat4},
+        {"inputFloatT", InputFloatT},
         {"inputInt", InputInt},
         {"inputInt2", InputInt2},
         {"inputInt3", InputInt3},
         {"inputInt4", InputInt4},
+        {"inputIntT", InputIntT},
         {"inputDouble", InputDouble},
-        {"inputScalar", InputScalar},
 
         {"colorEdit3", ColorEdit3},
         {"colorEdit4", ColorEdit4},
