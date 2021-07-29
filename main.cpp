@@ -10504,8 +10504,11 @@ int ShowLog(lua_State* L)
         delete p_open;
         return 1;
     }
-    logapp.Shown = false;
-    return 0;
+    else
+    {
+        logapp.Shown = true;
+        return 0;
+    }
 }
 
 int WriteLog(lua_State* L)
