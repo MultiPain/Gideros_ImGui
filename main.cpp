@@ -526,6 +526,12 @@ float* getTableValues(lua_State* L, int idx, unsigned int len)
     return values;
 }
 
+float* getTableValues(lua_State* L, int idx)
+{
+    unsigned int len = luaL_getn(L, idx);
+    return getTableValues(L, idx, len);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// ENUMS
@@ -1880,10 +1886,10 @@ int ImPlot_EndSubplots(lua_State* L)
 int ImPlot_PlotLine(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3, luaL_getn(L, 3));
+    float* values = getTableValues(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4, luaL_getn(L, 4));
+        float* y_values = getTableValues(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
         ImPlot::PlotLine(label, values, y_values, count, offset);
@@ -1902,10 +1908,10 @@ int ImPlot_PlotLine(lua_State* L)
 int ImPlot_PlotScatter(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
-    float* values = getTableValues(L, 3, luaL_getn(L, 3));
+    float* values = getTableValues(L, 3);
     if (lua_type(L, 4) == LUA_TTABLE)
     {
-        float* y_values = getTableValues(L, 4, luaL_getn(L, 4));
+        float* y_values = getTableValues(L, 4);
         int count = luaL_checkinteger(L, 5);
         int offset = luaL_optinteger(L, 6, 0);
         ImPlot::PlotScatter(label, values, y_values, count, offset);
@@ -1923,86 +1929,280 @@ int ImPlot_PlotScatter(lua_State* L)
 
 int ImPlot_PlotStairs(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4);
+        int count = luaL_checkinteger(L, 5);
+        int offset = luaL_optinteger(L, 6, 0);
+        ImPlot::PlotStairs(label, values, y_values, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double xscale = luaL_optnumber(L, 5, 1);
+        double x0 = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotStairs(label, values, count, xscale, x0, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotShaded(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    if (lua_type(L, 5) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4);
+        float* y_values2 = getTableValues(L, 5);
+        int count = luaL_checkinteger(L, 6);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotShaded(label, values, y_values, y_values2, count, offset);
+    }
+    else if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4);
+        int count = luaL_checkinteger(L, 5);
+        int offset = luaL_optinteger(L, 6, 0);
+        ImPlot::PlotShaded(label, values, y_values, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double xscale = luaL_optnumber(L, 5, 1);
+        double x0 = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotShaded(label, values, count, xscale, x0, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotBars(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4);
+        int count = luaL_checkinteger(L, 5);
+        double width = luaL_checknumber(L, 6);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotBars(label, values, y_values, count, width, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double width = luaL_optnumber(L, 5, 0.67);
+        double shift = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotBars(label, values, count, width, shift, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotBarsH(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* y_values = getTableValues(L, 4);
+        int count = luaL_checkinteger(L, 5);
+        double height = luaL_checknumber(L, 6);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotBarsH(label, values, y_values, count, height, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double height = luaL_optnumber(L, 5, 0.67);
+        double shift = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotBarsH(label, values, count, height, shift, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotErrorBars(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* xs = getTableValues(L, 3);
+    float* ys = getTableValues(L, 4);
+    float* mv = getTableValues(L, 5);
+    if (lua_type(L, 6) == LUA_TTABLE)
+    {
+        float* pos = getTableValues(L, 6);
+        int count = luaL_checkinteger(L, 7);
+        int offset = luaL_optinteger(L, 8, 0);
+        ImPlot::PlotErrorBars(label, xs, ys, mv, pos, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 6);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotErrorBars(label, xs, ys, mv, count, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotErrorBarsH(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* xs = getTableValues(L, 3);
+    float* ys = getTableValues(L, 4);
+    float* mv = getTableValues(L, 5);
+    if (lua_type(L, 6) == LUA_TTABLE)
+    {
+        float* pos = getTableValues(L, 6);
+        int count = luaL_checkinteger(L, 7);
+        int offset = luaL_optinteger(L, 8, 0);
+        ImPlot::PlotErrorBarsH(label, xs, ys, mv, pos, count, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 6);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotErrorBarsH(label, xs, ys, mv, count, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotStems(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    if (lua_type(L, 4) == LUA_TTABLE)
+    {
+        float* ys = getTableValues(L, 4);
+        int count = luaL_checkinteger(L, 5);
+        double y_ref = luaL_optnumber(L, 6, 0);
+        int offset = luaL_optinteger(L, 7, 0);
+        ImPlot::PlotStems(label, values, ys, count, y_ref, offset);
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 4);
+        double y_ref = luaL_optnumber(L, 5, 0);
+        double xscale = luaL_optnumber(L, 6, 1);
+        double x0 = luaL_optnumber(L, 7, 0);
+        int offset = luaL_optinteger(L, 8, 0);
+        ImPlot::PlotStems(label, values, count, y_ref, xscale, x0, offset);
+    }
     return 0;
 }
 
 int ImPlot_PlotVLines(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    int count = luaL_checkinteger(L, 4);
+    int offset = luaL_optinteger(L, 5, 0);
+    ImPlot::PlotVLines(label, values, count, offset);
     return 0;
 }
 
 int ImPlot_PlotHLines(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    int count = luaL_checkinteger(L, 4);
+    int offset = luaL_optinteger(L, 5, 0);
+    ImPlot::PlotHLines(label, values, count, offset);
     return 0;
 }
 
+// TODO: label array
 int ImPlot_PlotPieChart(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
     return 0;
 }
 
 int ImPlot_PlotHeatmap(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    int rows = luaL_checkinteger(L, 4);
+    int cols = luaL_checkinteger(L, 5);
+    double scale_min = luaL_optnumber(L, 6, 0);
+    double scale_max = luaL_optnumber(L, 7, 0);
+    const char* format = luaL_optstring(L, 8, "%.1f");
+    const ImPlotPoint& bounds_min = ImPlotPoint(luaL_optnumber(L, 9, 0), luaL_optnumber(L, 10, 0));
+    const ImPlotPoint& bounds_max = ImPlotPoint(luaL_optnumber(L, 11, 1), luaL_optnumber(L, 12, 1));
+    ImPlot::PlotHeatmap(label, values, rows, cols, scale_min, scale_max, format, bounds_min, bounds_max);
     return 0;
 }
 
 int ImPlot_PlotHistogram(lua_State* L)
 {
-    return 0;
+    const char* label = luaL_checkstring(L, 2);
+    float* values = getTableValues(L, 3);
+    int count = luaL_checkinteger(L, 4);
+    int bins = luaL_optinteger(L, 5, ImPlotBin_Sturges);
+    bool cumulative = lua_toboolean(L, 6);
+    bool density = lua_toboolean(L, 7);
+    ImPlotRange range = ImPlotRange(luaL_optnumber(L, 8, 0), luaL_optnumber(L, 9, 0));
+    bool outliers = lua_toboolean(L, 10);
+    double bar_scale = luaL_optnumber(L, 11, 1);
+
+    lua_pushnumber(L, ImPlot::PlotHistogram(label, values, count, bins, cumulative, density, range, outliers, bar_scale));
+    return 1;
 }
 
 int ImPlot_PlotHistogram2D(lua_State* L)
 {
-    return 0;
+    const char* label = luaL_checkstring(L, 2);
+    float* xs = getTableValues(L, 3);
+    float* ys = getTableValues(L, 4);
+    int count = luaL_checkinteger(L, 5);
+    int x_bins = luaL_optinteger(L, 6, ImPlotBin_Sturges);
+    int y_bins = luaL_optinteger(L, 7, ImPlotBin_Sturges);
+    bool density = lua_toboolean(L, 8);
+    ImPlotLimits range = ImPlotLimits(luaL_optnumber(L, 9, 0), luaL_optnumber(L, 10, 0), luaL_optnumber(L, 11, 0), luaL_optnumber(L, 12, 0));
+    bool outliers = lua_toboolean(L, 13);
+    lua_pushnumber(L, ImPlot::PlotHistogram2D(label, xs, ys, count, x_bins, y_bins, density, range, outliers));
+    return 1;
 }
 
 int ImPlot_PlotDigital(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    float* xs = getTableValues(L, 3);
+    float* ys = getTableValues(L, 4);
+    int count = luaL_checkinteger(L, 5);
+    int offset = luaL_optinteger(L, 6, 0);
+    ImPlot::PlotDigital(label, xs, ys, count, offset);
     return 0;
 }
 
 int ImPlot_PlotImage(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    GTextureData data = getTexture(L, 3);
+    const ImPlotPoint& bounds_min = ImPlotPoint(luaL_optnumber(L, 4, 0), luaL_optnumber(L, 5, 0));
+    const ImPlotPoint& bounds_max = ImPlotPoint(luaL_optnumber(L, 6, 0), luaL_optnumber(L, 7, 0));
+    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 1));
+    ImPlot::PlotImage(label, data.texture, bounds_min, bounds_max, data.uv0, data.uv1, tint_col);
     return 0;
 }
 
 int ImPlot_PlotText(lua_State* L)
 {
+    const char* text = luaL_checkstring(L, 2);
+    double x = luaL_checknumber(L, 3);
+    double y = luaL_checknumber(L, 4);
+    bool vertical = lua_toboolean(L, 5);
+    const ImVec2& pix_offset = ImVec2(luaL_optinteger(L, 6, 0), luaL_optinteger(L, 7, 0));
+    ImPlot::PlotText(text, x, y, vertical, pix_offset);
     return 0;
 }
 
 int ImPlot_PlotDummy(lua_State* L)
 {
+    const char* label = luaL_checkstring(L, 2);
+    ImPlot::PlotDummy(label);
     return 0;
 }
 
@@ -12006,6 +12206,22 @@ int loader(lua_State* L)
         {"endSubplots", ImPlot_EndSubplots},
         {"plotLine", ImPlot_PlotLine},
         {"plotScatter", ImPlot_PlotScatter},
+        {"plotStairs", ImPlot_PlotStairs},
+        {"plotShaded", ImPlot_PlotShaded},
+        {"plotBars", ImPlot_PlotBars},
+        {"plotBarsH", ImPlot_PlotBarsH},
+        {"plotErrorBars", ImPlot_PlotErrorBars},
+        {"plotStems", ImPlot_PlotStems},
+        {"plotVLines", ImPlot_PlotVLines},
+        {"plotHLines", ImPlot_PlotHLines},
+        {"plotPieChart", ImPlot_PlotPieChart},
+        {"plotHeatmap", ImPlot_PlotHeatmap},
+        {"plotHistogram", ImPlot_PlotHistogram},
+        {"plotHistogram2D", ImPlot_PlotHistogram2D},
+        {"plotDigital", ImPlot_PlotDigital},
+        {"plotImage", ImPlot_PlotImage},
+        {"plotText", ImPlot_PlotText},
+        {"plotDummy", ImPlot_PlotDummy},
         {NULL, NULL}
     };
 
