@@ -32,12 +32,12 @@
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
 #include "TextEditor.h" // https://github.com/BalazsJako/ImGuiColorTextEdit
-#include "implot.h"
 
 #ifdef IS_BETA_BUILD
 #define PLUGIN_NAME "ImGui_beta"
 #elif defined(IS_PRE_BUILD)
 #define PLUGIN_NAME "ImGui_pre_build"
+#include "implot.h"
 #else
 #define PLUGIN_NAME "ImGui"
 #endif
@@ -206,7 +206,7 @@ struct GColor {
         return toVec4(converted);
     }
 
-    static GColor toHex(double _r, double _g, double _b, double _a = 1.0f)
+    static GColor toHex(double _r, double _g, double _b, double _a = 1.0)
     {
         int r = _r * 255;
         int g = _g * 255;
@@ -230,7 +230,7 @@ struct GColor {
         return GColor(hex, alpha);
     }
 
-    static ImU32 toU32(double _r, double _g, double _b, double _a = 1.0f)
+    static ImU32 toU32(double _r, double _g, double _b, double _a = 1.0)
     {
         ImU32 r = _r * 255;
         ImU32 g = _g * 255;
@@ -244,7 +244,7 @@ struct GColor {
         return GColor::toU32(color.x, color.y, color.y, color.w);
     }
 
-    static ImU32 toU32(int hex, double alpha = 1.0f)
+    static ImU32 toU32(int hex, double alpha = 1.0)
     {
         alpha *= 255.0f;
         ImU32 ghex = (int)alpha | hex << 8;
@@ -1857,6 +1857,8 @@ void UpdatePlotContext(lua_State* L)
     ImPlot::SetCurrentContext(ctx);
 }
 
+// Plot
+
 int ImPlot_BeginPlot(lua_State* L)
 {
     const char* title_id = luaL_checkstring(L, 2);
@@ -2271,6 +2273,288 @@ int ImPlot_PlotDummy(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 2);
     ImPlot::PlotDummy(label);
+    return 0;
+}
+
+// Utils
+
+int ImPlot_SetNextPlotLimits(lua_State* L)
+{
+    double xmin = luaL_checknumber(L, 2);
+    double xmax = luaL_checknumber(L, 3);
+    double ymin = luaL_checknumber(L, 4);
+    double ymax = luaL_checknumber(L, 5);
+    ImGuiCond cond = luaL_optinteger(L, 6, ImGuiCond_Once);
+
+    ImPlot::SetNextPlotLimits(xmin, xmax, ymin, ymax, cond);
+    return 0;
+}
+
+int ImPlot_SetNextPlotLimitsX(lua_State* L)
+{
+    double xmin = luaL_checknumber(L, 2);
+    double xmax = luaL_checknumber(L, 3);
+    ImGuiCond cond = luaL_optinteger(L, 4, ImGuiCond_Once);
+
+    ImPlot::SetNextPlotLimitsX(xmin, xmax, cond);
+    return 0;
+}
+
+int ImPlot_SetNextPlotLimitsY(lua_State* L)
+{
+    double ymin = luaL_checknumber(L, 2);
+    double ymax = luaL_checknumber(L, 3);
+    ImGuiCond cond = luaL_optinteger(L, 4, ImGuiCond_Once);
+    ImPlotYAxis y_axis = luaL_optinteger(L, 5, ImPlotYAxis_1);
+
+    ImPlot::SetNextPlotLimitsY(ymin, ymax, cond, y_axis);
+    return 0;
+}
+
+// TODO: return all the values?
+int ImPlot_LinkNextPlotLimits(lua_State* L)
+{
+    double xmin = luaL_checknumber(L, 2);
+    double xmax = luaL_checknumber(L, 3);
+    double ymin = luaL_checknumber(L, 4);
+    double ymax = luaL_checknumber(L, 5);
+    double ymin2 = luaL_optnumber(L, 6, 0);
+    double ymax2 = luaL_optnumber(L, 7, 0);
+    double ymin3 = luaL_optnumber(L, 8, 0);
+    double ymax3 = luaL_optnumber(L, 9, 0);
+
+    ImPlot::LinkNextPlotLimits(&xmin, &xmax, &ymin, &ymax, &ymin2, &ymax2, &ymin3, &ymax3);
+    return 0;
+}
+
+int ImPlot_FitNextPlotAxes(lua_State* L)
+{
+    bool x  = luaL_optboolean(L, 2, 1);
+    bool y  = luaL_optboolean(L, 3, 1);
+    bool y2 = luaL_optboolean(L, 4, 1);
+    bool y3 = luaL_optboolean(L, 5, 1);
+
+    ImPlot::FitNextPlotAxes(x, y, y2, y3);
+    return 0;
+}
+
+int ImPlot_SetNextPlotTicksX(lua_State* L)
+{
+    if (lua_type(L, 2) == LUA_TTABLE)
+    {
+        const double* values = getTableValues<double>(L, 2);
+        int n_ticks = luaL_checkinteger(L, 3);
+        const char** labels = getTableValues<const char*>(L, 4, luaL_getn(L, 4));
+        bool keep_default = lua_toboolean(L, 5);
+
+        ImPlot::SetNextPlotTicksX(values, n_ticks, labels, keep_default);
+    }
+    else
+    {
+        double x_min = luaL_checknumber(L, 2);
+        double x_max = luaL_checknumber(L, 3);
+        int n_ticks = luaL_checkinteger(L, 4);
+        const char** labels = getTableValues<const char*>(L, 5, luaL_getn(L, 5));
+        bool keep_default = lua_toboolean(L, 6);
+
+        ImPlot::SetNextPlotTicksX(x_min, x_max, n_ticks, labels, keep_default);
+    }
+    return 0;
+}
+
+int ImPlot_SetNextPlotTicksY(lua_State* L)
+{
+    if (lua_type(L, 2) == LUA_TTABLE)
+    {
+        const double* values = getTableValues<double>(L, 2);
+        int n_ticks = luaL_checkinteger(L, 3);
+        const char** labels = getTableValues<const char*>(L, 4, luaL_getn(L, 4));
+        bool keep_default = lua_toboolean(L, 5);
+        ImPlotYAxis y_axis = luaL_optinteger(L, 6, ImPlotYAxis_1);
+
+        ImPlot::SetNextPlotTicksY(values, n_ticks, labels, keep_default, y_axis);
+    }
+    else
+    {
+        double y_min = luaL_checknumber(L, 2);
+        double y_max = luaL_checknumber(L, 3);
+        int n_ticks = luaL_checkinteger(L, 4);
+        const char** labels = getTableValues<const char*>(L, 5, luaL_getn(L, 5));
+        bool keep_default = lua_toboolean(L, 6);
+        ImPlotYAxis y_axis = luaL_optinteger(L, 7, ImPlotYAxis_1);
+
+        ImPlot::SetNextPlotTicksY(y_min, y_max, n_ticks, labels, keep_default, y_axis);
+    }
+    return 0;
+}
+
+int ImPlot_SetNextPlotFormatX(lua_State* L)
+{
+    const char* fmt = luaL_checkstring(L, 2);
+    ImPlot::SetNextPlotFormatX(fmt);
+    return 0;
+}
+
+int ImPlot_SetNextPlotFormatY(lua_State* L)
+{
+    const char* fmt = luaL_checkstring(L, 2);
+    ImPlotYAxis y_axis = luaL_optinteger(L, 3, ImPlotYAxis_1);
+
+    ImPlot::SetNextPlotFormatY(fmt, y_axis);
+    return 0;
+}
+
+int ImPlot_SetPlotYAxis(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_checkinteger(L, 2);
+
+    ImPlot::SetPlotYAxis(y_axis);
+    return 0;
+}
+
+int ImPlot_HideNextItem(lua_State* L)
+{
+    bool hidden = luaL_optboolean(L, 2, 1);
+    ImGuiCond cond = luaL_optinteger(L, 3, ImGuiCond_Once);
+
+    ImPlot::HideNextItem(hidden, cond);
+    return 0;
+}
+
+int ImPlot_PixelsToPlot(lua_State* L)
+{
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+    ImPlotYAxis y_axis = luaL_optinteger(L, 4, IMPLOT_AUTO);
+
+    ImPlotPoint value = ImPlot::PixelsToPlot(x, y, y_axis);
+    lua_pushnumber(L, value.x);
+    lua_pushnumber(L, value.y);
+    return 2;
+}
+
+int ImPlot_PlotToPixels(lua_State* L)
+{
+    double x = luaL_checknumber(L, 2);
+    double y = luaL_checknumber(L, 3);
+    ImPlotYAxis y_axis = luaL_optinteger(L, 4, IMPLOT_AUTO);
+
+    ImVec2 value = ImPlot::PlotToPixels(x, y, y_axis);
+    lua_pushnumber(L, value.x);
+    lua_pushnumber(L, value.y);
+    return 2;
+}
+
+int ImPlot_GetPlotPos(lua_State* L)
+{
+    ImVec2 value = ImPlot::GetPlotPos();
+    lua_pushnumber(L, value.x);
+    lua_pushnumber(L, value.y);
+    return 2;
+}
+
+int ImPlot_GetPlotSize(lua_State* L)
+{
+
+    ImVec2 value = ImPlot::GetPlotSize();
+    lua_pushnumber(L, value.x);
+    lua_pushnumber(L, value.y);
+    return 2;
+}
+
+int ImPlot_IsPlotHovered(lua_State* L)
+{
+    bool value = ImPlot::IsPlotHovered();
+    lua_pushboolean(L, value);
+    return 1;
+}
+
+int ImPlot_IsPlotXAxisHovered(lua_State* L)
+{
+    bool value = ImPlot::IsPlotXAxisHovered();
+    lua_pushboolean(L, value);
+    return 1;
+}
+
+int ImPlot_IsPlotYAxisHovered(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_optinteger(L, 2, ImPlotYAxis_1);
+
+    bool value = ImPlot::IsPlotYAxisHovered(y_axis);
+    lua_pushboolean(L, value);
+    return 1;
+}
+
+int ImPlot_GetPlotMousePos(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_optinteger(L, 2, IMPLOT_AUTO);
+
+    ImPlotPoint value = ImPlot::GetPlotMousePos(y_axis);
+    lua_pushnumber(L, value.x);
+    lua_pushnumber(L, value.y);
+    return 2;
+}
+
+int ImPlot_GetPlotLimits(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_optinteger(L, 2, IMPLOT_AUTO);
+
+    ImPlotLimits value = ImPlot::GetPlotLimits(y_axis);
+    lua_pushnumber(L, value.X.Min);
+    lua_pushnumber(L, value.X.Max);
+    lua_pushnumber(L, value.Y.Min);
+    lua_pushnumber(L, value.Y.Max);
+    return 4;
+}
+
+int ImPlot_IsPlotSelected(lua_State* L)
+{
+    bool value = ImPlot::IsPlotSelected();
+    lua_pushboolean(L, value);
+    return 1;
+}
+
+int ImPlot_GetPlotSelection(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_optinteger(L, 2, IMPLOT_AUTO);
+
+    ImPlotLimits value = ImPlot::GetPlotSelection(y_axis);
+    lua_pushnumber(L, value.X.Min);
+    lua_pushnumber(L, value.X.Max);
+    lua_pushnumber(L, value.Y.Min);
+    lua_pushnumber(L, value.Y.Max);
+    return 4;
+}
+
+int ImPlot_IsPlotQueried(lua_State* L)
+{
+    bool value = ImPlot::IsPlotQueried();
+    lua_pushboolean(L, value);
+    return 1;
+}
+
+int ImPlot_GetPlotQuery(lua_State* L)
+{
+    ImPlotYAxis y_axis = luaL_optinteger(L, 2, IMPLOT_AUTO);
+
+    ImPlotLimits value = ImPlot::GetPlotQuery(y_axis);
+    lua_pushnumber(L, value.X.Min);
+    lua_pushnumber(L, value.X.Max);
+    lua_pushnumber(L, value.Y.Min);
+    lua_pushnumber(L, value.Y.Max);
+    return 4;
+}
+
+int ImPlot_SetPlotQuery(lua_State* L)
+{
+    double xmin = luaL_checknumber(L, 2);
+    double xmax = luaL_checknumber(L, 3);
+    double ymin = luaL_checknumber(L, 4);
+    double ymax = luaL_checknumber(L, 5);
+    const ImPlotLimits& query = ImPlotLimits(xmin, xmax, ymin, ymax);
+    ImPlotYAxis y_axis = luaL_optinteger(L, 6, IMPLOT_AUTO);
+
+    ImPlot::SetPlotQuery(query, y_axis);
     return 0;
 }
 
@@ -12384,6 +12668,37 @@ int loader(lua_State* L)
         {"plotImage", ImPlot_PlotImage},
         {"plotText", ImPlot_PlotText},
         {"plotDummy", ImPlot_PlotDummy},
+
+        {"setNextPlotLimits", ImPlot_SetNextPlotLimits},
+        {"setNextPlotLimitsX", ImPlot_SetNextPlotLimitsX},
+        {"setNextPlotLimitsY", ImPlot_SetNextPlotLimitsY},
+        {"linkNextPlotLimits", ImPlot_LinkNextPlotLimits},
+        {"fitNextPlotAxes", ImPlot_FitNextPlotAxes},
+        {"setNextPlotTicksX", ImPlot_SetNextPlotTicksX},
+        {"setNextPlotTicksX", ImPlot_SetNextPlotTicksX},
+        {"setNextPlotTicksY", ImPlot_SetNextPlotTicksY},
+        {"setNextPlotTicksY", ImPlot_SetNextPlotTicksY},
+        {"setNextPlotFormatX", ImPlot_SetNextPlotFormatX},
+        {"setNextPlotFormatY", ImPlot_SetNextPlotFormatY},
+        {"setPlotYAxis", ImPlot_SetPlotYAxis},
+        {"hideNextItem", ImPlot_HideNextItem},
+        {"pixelsToPlot", ImPlot_PixelsToPlot},
+        {"pixelsToPlot", ImPlot_PixelsToPlot},
+        {"plotToPixels", ImPlot_PlotToPixels},
+        {"plotToPixels", ImPlot_PlotToPixels},
+        {"getPlotPos", ImPlot_GetPlotPos},
+        {"getPlotSize", ImPlot_GetPlotSize},
+        {"isPlotHovered", ImPlot_IsPlotHovered},
+        {"isPlotXAxisHovered", ImPlot_IsPlotXAxisHovered},
+        {"isPlotYAxisHovered", ImPlot_IsPlotYAxisHovered},
+        {"getPlotMousePos", ImPlot_GetPlotMousePos},
+        {"getPlotLimits", ImPlot_GetPlotLimits},
+        {"isPlotSelected", ImPlot_IsPlotSelected},
+        {"getPlotSelection", ImPlot_GetPlotSelection},
+        {"isPlotQueried", ImPlot_IsPlotQueried},
+        {"getPlotQuery", ImPlot_GetPlotQuery},
+        {"setPlotQuery", ImPlot_SetPlotQuery},
+
         {NULL, NULL}
     };
 
