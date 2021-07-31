@@ -408,7 +408,7 @@ number = IO:getDeltaTime()
 IO:resetMouseDown() -- reset mouse buttons state
 IO:resetKeysDown() -- reset key states (including ALT/SHIFT/CTRL/SUPER (META))
 IO:setModKeyDown(keyCode, bool) -- set ALT/SHIFT/CTRL/SUPER (META) key state
-IO:SetKeysDown(keyCode, bool) -- set any key state
+IO:setKeysDown(keyCode, bool) -- set any key state
 IO:addInputCharactersUTF8(text) -- adds text to active text input widget
 IO:setMouseWheel(number) -- emulate wheel scrolling
 IO:setMousePos(x, y) -- sets mouse position (data only, no visual changes)
