@@ -1,5 +1,7 @@
-// regex: (\s\*)+\b
 #define _UNUSED(n)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 #include "lua.hpp"
 #include "luautil.h"
@@ -15,7 +17,6 @@
 #include "keyboardevent.h"
 #include "touchevent.h"
 
-//#include "gproxy.h"
 #include "sprite.h"
 #include "texturebase.h"
 #include "bitmapdata.h"
@@ -1082,6 +1083,11 @@ void bindEnums(lua_State* L)
     BIND_IENUM(L, ImGuiSortDirection_None, "SortDirection_None");
     BIND_IENUM(L, ImGuiSortDirection_Ascending, "SortDirection_Ascending");
     BIND_IENUM(L, ImGuiSortDirection_Descending, "SortDirection_Descending");
+
+    BIND_IENUM(L, ImGuiImageScaleMode_LetterBox, "ImageScaleMode_LetterBox");
+    BIND_IENUM(L, ImGuiImageScaleMode_FitWidth, "ImageScaleMode_FitWidth");
+    BIND_IENUM(L, ImGuiImageScaleMode_FitHeight, "ImageScaleMode_FitHeight");
+    BIND_IENUM(L, ImGuiImageScaleMode_Stretch, "ImageScaleMode_Stretch");
 
     BIND_FENUM(L, FLT_MAX, "FLT_MAX");
     BIND_FENUM(L, DBL_MAX, "DBL_MAX");
@@ -3671,18 +3677,6 @@ int Image(lua_State* L)
     return 0;
 }
 
-int ImageFilled(lua_State* L)
-{
-    GTextureData data = getTexture(L, 2);
-    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
-
-    ImGui::ImageFilled(data.texture, size, data.uv0, data.uv1, bg_col, tint, border);
-    return 0;
-}
-
 int ImageButton(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
@@ -3695,59 +3689,36 @@ int ImageButton(lua_State* L)
     return 1;
 }
 
-int ImageButtonWithText(lua_State* L)
-{
-    GTextureData data = getTexture(L, 2);
-    const char* label = luaL_checkstring(L, 3);
-    const ImVec2& size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    int frame_padding = luaL_optinteger(L, 6, -1);
-    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
-    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
-
-    lua_pushboolean(L, ImGui::ImageButtonWithText(data.texture, label, size, data.uv0, data.uv1, frame_padding, bg_col, tint_col));
-    return 1;
-}
-
 int ScaledImage(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
-    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
-    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L,  11, 0.5f), luaL_optnumber(L, 12, 0.5f));
-    float frame_rounding = luaL_optnumber(L, 13, 0.0f);
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    ImGuiImageScaleMode fit_mode = luaL_optinteger(L, 5, ImGuiImageScaleMode_LetterBox);
+    bool keep_size = lua_toboolean(L, 6);
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 7, 0.5f), luaL_optnumber(L, 8, 0.5f));
+    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
+    const ImVec4& border_col = GColor::toVec4(luaL_optinteger(L, 11, 0), luaL_optnumber(L, 12, 0.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 13, 0), luaL_optnumber(L, 14, 0.0f));
 
-    ImGui::ScaledImage(data.texture, image_size, data.texture_size, button_size, anchor, data.uv0, data.uv1, tint, border, frame_rounding);
-    return 0;
-}
-
-int ScaledImageFilled(lua_State* L)
-{
-    GTextureData data = getTexture(L, 2);
-    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
-    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 0.0f));
-    const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 13, 0.5f), luaL_optnumber(L, 14, 0.5f));
-    float frame_rounding = luaL_optnumber(L, 15, 0.0f);
-
-    ImGui::ScaledImageFilled(data.texture, image_size, data.texture_size, button_size, anchor, data.uv0, data.uv1, bg_col, tint, border, frame_rounding);
+    ImGui::ScaledImage(data.texture_size, data.texture, size, fit_mode, keep_size, anchor, tint_col, border_col, bg_col, data.uv0, data.uv1);
     return 0;
 }
 
 int ScaledImageButton(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
-    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    ImGuiButtonFlags flags = luaL_optinteger(L, 7, 0);
-    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 1.0f));
-    const ImVec4& bg = GColor::toVec4(luaL_optinteger(L, 10, 0), luaL_optnumber(L, 11, 0.0f));
-    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 12, 0.5f), luaL_optnumber(L, 13, 0.5f));
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+    int fit_mode = luaL_optinteger(L, 5, 0);
+    bool keep_size = lua_toboolean(L, 6);
+    int flags = luaL_optinteger(L, 7, 0);
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 8, 1.0f), luaL_optnumber(L, 9, 1.0f));
+    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 10, 0xffffff), luaL_optnumber(L, 11, 1.0f));
+    const ImVec4& border_col = GColor::toVec4(luaL_optinteger(L, 12, 0), luaL_optnumber(L, 13, 0.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 14, 0), luaL_optnumber(L, 15, 0.0f));
 
-    lua_pushboolean(L, ImGui::ScaledImageButton(data.texture, image_size, data.texture_size, button_size, tint, bg, flags, anchor, data.uv0, data.uv1));
+    bool pressed = ImGui::ScaledImageButton(data.texture_size, data.texture, size, fit_mode, keep_size, flags, anchor, tint_col, border_col, bg_col, data.uv0, data.uv1);
+
+    lua_pushboolean(L, pressed);
     return 1;
 }
 
@@ -3755,14 +3726,18 @@ int ScaledImageButtonWithText(lua_State* L)
 {
     GTextureData data = getTexture(L, 2);
     const char* label = luaL_checkstring(L, 3);
-    const ImVec2& image_size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-    const ImVec2& button_size = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-    ImGuiDir image_side = luaL_optinteger(L, 8, ImGuiDir_Left);
-    ImGuiButtonFlags flags = luaL_optinteger(L, 9, 0);
-    const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 10, 0xffffff), luaL_optnumber(L, 11, 1.0f));
-    const ImVec4& bg = GColor::toVec4(luaL_optinteger(L, 12, 0), luaL_optnumber(L, 13, 0.0f));
+    const ImVec2& size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+    const ImVec2& button_size = ImVec2(luaL_optnumber(L, 6, 0.0f), luaL_optnumber(L, 7, 0.0f));
+    ImGuiButtonFlags flags = luaL_optinteger(L, 8, 0);
+    ImGuiImageScaleMode fit_mode = luaL_optinteger(L, 9, 0);
+    bool keep_size = lua_toboolean(L, 10);
+    const ImVec2& anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+    int image_side = luaL_optinteger(L, 13, ImGuiDir_Left);
+    const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 14, 0xffffff), luaL_optnumber(L, 15, 1.0f));
+    const ImVec4& boreder_col = GColor::toVec4(luaL_optinteger(L, 16, 0), luaL_optnumber(L, 17, 0.0f));
+    const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 18, 0), luaL_optnumber(L, 19, 0.0f));
 
-    lua_pushboolean(L, ImGui::ScaledImageButtonWithText(data.texture, label, image_size, data.texture_size, button_size, tint, bg, image_side, flags, data.uv0, data.uv1));
+    lua_pushboolean(L, ImGui::ScaledImageButtonWithText(data.texture_size, data.texture, label, size, button_size, flags, fit_mode, keep_size, anchor, image_side, tint_col, boreder_col, bg_col, data.uv0, data.uv1));
     return 1;
 }
 
@@ -10193,8 +10168,6 @@ int DrawList_AddImage(lua_State* L)
 
     ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
     ImVec2 area = p_max - p_min;
-    ImGui::FitImage(p_min, p_max, area, area, data.texture_size, ImVec2(0.5f, 0.5f), ImGui::GetStyle().FramePadding);
-
     list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
     return 0;
 }
@@ -10227,12 +10200,12 @@ int DrawList_AddImageRounded(lua_State* L)
     ImDrawFlags rounding_corners = luaL_optinteger(L, 10, ImDrawFlags_RoundCornersAll);
 
     ImVec2 area = p_max - p_min;
-    ImGui::FitImage(p_min, p_max, area, area, data.texture_size, ImVec2(0.5f, 0.5f));
-
     ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
     list->AddImageRounded(data.texture, p_min, p_max, data.uv0, data.uv1, col, rounding, rounding_corners);
     return 0;
 }
+
+// TODO: add scaled images to draw lists
 
 int DrawList_PathClear(lua_State* L)
 {
@@ -12333,12 +12306,9 @@ int loader(lua_State* L)
         /// Images +
 
         {"image", Image},
-        {"imageFilled", ImageFilled},
         {"imageButton", ImageButton},
-        {"imageButtonWithText", ImageButtonWithText},
 
         {"scaledImage", ScaledImage},
-        {"scaledImageFilled", ScaledImageFilled},
         {"scaledImageButton", ScaledImageButton},
         {"scaledImageButtonWithText", ScaledImageButtonWithText},
 
