@@ -1,5 +1,10 @@
 #ifndef IMGUI_DISABLE
 
+#ifndef DPRINTF
+#include "debugapi.h"
+#define DPRINTF( format, ...) do { char buffer[1024]; sprintf(buffer, format, __VA_ARGS__); OutputDebugStringA( buffer ); } while(0)
+#endif
+
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -7,7 +12,6 @@
 #include "imgui_src/imgui.h"
 #include "imgui_src/imgui_internal.h"
 //#include "imgui_src/imgui_widgets.cpp"
-#include <math.h>
 
 //=============== CODE BORROWED FROM IMGUI_WIDGETS.CPP
 static const ImGuiDataTypeInfo GDataTypeInfo[] =
@@ -54,11 +58,6 @@ static const char* PatchFormatStringFloatToInt(const char* fmt)
 }
 
 //END OF BORROWED CODE
-
-#ifndef DPRINTF
-#include "debugapi.h"
-#define DPRINTF( format, ...) do { char buffer[1024]; sprintf(buffer, format, __VA_ARGS__); OutputDebugStringA( buffer ); } while(0)
-#endif
 
 namespace ImGui
 {

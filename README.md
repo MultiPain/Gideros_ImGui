@@ -631,16 +631,27 @@ ImGui:bullet()
 
 ## Widgets: Images
 ```lua
--- Images are streched
+-- Images are streched (ImGui default functions)
 ImGui:image(texture, w, h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0])
-ImGui:imageFilled(texture, w, h, [tint_color = 0xffffff, 1, bg_color = 0xffffff, 0, border_color = 0xffffff, 0])
 pressFlag = ImGui:imageButton(texture, w, h, [padding = -1, tintColor = 0xffffff, 1, borderColor = 0xffffff, 0])
-pressFlag = ImGui:imageButtonWithText(texture, text, w, h, [padding = -1, bg_color = 0xffffff, 0, tintColor = 0xffffff, 1])
--- Scales image to fit space (keeps aspect ratio)
-ImGui:scaledImage(texture, bg_w, bg_h, img_w, img_h, [tintColor = 0xffffff, 1, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5, frame_round = 0])
-ImGui:scaledImageFilled(texture, bg_w, bg_h, img_w, img_h, [tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, borderColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5, frame_round = 0])
-pressFlag = ImGui:scaledImageButton(texture, img_w, img_h, bg_w, bg_h, [ImGuiButtonFlags = 0, tintColor = 0xffffff, 1, bgColor = 0xffffff, 0, anchorX = 0.5, anchorY = 0.5])
-pressFlag = ImGui:scaledImageButtonWithText(texture, text, img_w, img_h, bg_w, bg_h, [ImGuiDir = ImGui.Dir_Left, ImGuiButtonFlags = 0, tintColor = 0xffffff, 1,  bgColor = 0xffffff, 0])
+-- Images are scaled (extended by @MultiPain)
+-- padding deprecated (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
+ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
+				  anchor_x = 0.5, anchor_y = 0.5, 
+				  tint_col = 0xffffff, tint_alpha = 1, 
+				  border_col = 0, border_alpha = 0, 
+				  bg_col = 0, bg_alpha = 0])
+pressFlag = ImGui:scaledImageButton(texture, w, h [, fit_mode = ImGuiImageScaleMode_LetterBox, keep_size = false, 
+									ImGuiButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
+									tint_col = 0xffffff, tint_alpha = 1, 
+									border_col = 0, border_alpha = 0, 
+									bg_col = 0, bg_alpha = 0])
+pressFlag = ImGui:scaledImageButtonWithText(texture, label, image_w, image_h [, button_w = 0, button_h = 0, 
+											ImGuiButtonFlags = 0, fit_mode = ImGuiImageScaleMode_LetterBox, keep_size = false, 
+											anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
+											tint_col = 0xffffff, tint_alpha = 1, 
+											border_col = 0, border_alpha = 0, 
+											bg_col = 0, bg_alpha = 0])
 ```
 
 ## Widgets: Combo Box
@@ -656,14 +667,17 @@ value, isChanged = ImGui:dragFloat(label, value, [incStep = 1, min = 0, max = 0,
 value1, value2, isChanged = ImGui:dragFloat2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, isChanged = ImGui:dragFloat3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:dragFloat4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
-valueMin, valueMax, isChanged = ImGui:dragFloatRange2(label, valueMin, valueMax, [incStep = 1, min = 0, max = 0, formatMinString = "%.3f", formatMaxString = formatMinString, ImGuiSliderFlags = 0])
- 
+valueMin, valueMax, isChanged = ImGui:dragFloatRange2(label, valueMin, valueMax, [incStep = 1, min = 0, max = 0, formatMinString = "%.3f", ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:dragFloatT(label, table [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+
 value, isChanged = ImGui:dragInt(label, value, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, isChanged = ImGui:dragInt2(label, value1, value2, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, isChanged = ImGui:dragInt3(label, value1, value2, value3, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:dragInt4(label, value1, value2, value3, value4, [incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 v_current_min, v_current_max, flag = ImGui:dragIntRange2(label, v_current_min, v_current_max, [v_speed = 1, v_min = 0, v_max = 0, format = "%d", format_max = nil, ImGuiSliderFlags = 0])
-ImGui:dragScalar(label, ImGuiDataType, value, v_speed, [v_min = nil, v_max = nil, format = nil, ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:dragIntT(label, table [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 ```
 
 ## Widgets: Sliders
@@ -673,28 +687,32 @@ value1, value2, isChanged = ImGui:sliderFloat2(label, value1, value2, [min = 0, 
 value1, value2, value3, isChanged = ImGui:sliderFloat3(label, value1, value2, value3, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:sliderFloat4(label, value1, value2, value3, value4, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 valueInRad, isChanged = ImGui:sliderAngle(label, valueInRad, [min_degrees = -360, max_degrees = 360, formatString = "%.0f deg", ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:sliderFloatT(label, table [, min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:sliderInt(label, value, [min = 0, max = 0, formatString = "%d, ImGuiSliderFlags = 0"])
 value1, value2, isChanged = ImGui:sliderInt2(label, value1, value2, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, isChanged = ImGui:sliderInt3(label, value1, value2, value3, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:sliderInt4(label, value1, value2, value3, value4, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
-value, isChanged = ImGui:sliderScalar(label, ImGuiDataType, value, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:sliderIntT(label, table, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:vSliderFloat(label, w, h, value, min, max, [formatString = "%.3f", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:vSliderInt(label, w, h, value, min, max, [formatString = "%d", ImGuiSliderFlags = 0])
-value, isChanged = ImGui:vSliderScalar(label, w, h, ImGuiDataType, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
 
 value, isChanged = ImGui:filledSliderFloat(label, mirrorFlag, value, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, isChanged = ImGui:filledSliderFloat2(label, mirrorFlag, value1, value2, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, isChanged = ImGui:filledSliderFloat3(label, mirrorFlag, value1, value2, value3, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:filledSliderFloat4(label, mirrorFlag, value1, value2, value3, value4, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:filledSliderFloatT(label, mirrorFlag, table, [min = 0, max = 0, formatString = "%.3f", ImGuiSliderFlags = 0])
 valueInRad, isChanged = ImGui:filledSliderAngle(label, mirrorFlag, valueInRad, [min_degrees = -360, max_degrees = 360, formatString = "%.0f deg", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:filledSliderInt(label, mirrorFlag, value, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, isChanged = ImGui:filledSliderInt2(label, mirrorFlag, value1, value2, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, isChanged = ImGui:filledSliderInt3(label, mirrorFlag, value1, value2, value3, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value1, value2, value3, value4, isChanged = ImGui:filledSliderInt4(label, mirrorFlag, value1, value2, value3, value4, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
-value, isChanged = ImGui:filledSliderScalar(label, mirrorFlag, ImGuiDataType, value, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
+-- table must be an array of any size > 0
+isChanged = ImGui:filledSliderIntT(label, mirrorFlag, table, [min = 0, max = 0, formatString = "%d", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:vFilledSliderFloat(label, mirrorFlag, w, h, value, min, max, [formatString = "%.3f", ImGuiSliderFlags = 0])
 value, isChanged = ImGui:vFilledSliderInt(label, mirrorFlag, w, h, value, min, max, [formatString = "%d", ImGuiSliderFlags = 0])
-value, isChanged = ImGui:vFilledSliderScalar(label, mirrorFlag, w, h, ImGuiDataType, [min = nil, max = nil, formatString = nil, ImGuiSliderFlags = 0])
 ```
 
 ## Widgets: Input with Keyboard
@@ -706,12 +724,15 @@ value,  flag = ImGui:inputFloat(label, value, [step = 0, step_fast = 0, format =
 value1, value2, flag = ImGui:inputFloat2(label, value1, value2, [format = "%.3f", ImGuiInputTextFlags = 0])
 value1, value2, value3, flag = ImGui:inputFloat3(label, value1, value2, value3, [format = "%.3f", ImGuiInputTextFlags = 0])
 value1, value2, value3, value4, flag = ImGui:inputFloat4(label, value1, value2, value3, value4, [format = "%.3f", ImGuiInputTextFlags = 0])
+-- table must be an array of any size > 0
+flag = ImGui:inputFloatT(label, table, [format = "%.3f", ImGuiInputTextFlags = 0])
 value,  flag = ImGui:inputInt(label, value, [step = 0, step_fast = 0, ImGuiInputTextFlags = 0])
 value1, value2, flag = ImGui:inputInt2(label, value1, value2, [ImGuiInputTextFlags = 0])
 value1, value2, value3, flag = ImGui:inputInt3(label, value1, value2, value3, [ImGuiInputTextFlags = 0])
 value1, value2, value3, value4, flag = ImGui:inputInt4(label, value1, value2, value3, value4, [ImGuiInputTextFlags = 0])
+-- table must be an array of any size > 0
+flag = ImGui:inputIntT(label, table [, format = "%d", ImGuiInputTextFlags = 0])
 value, flag = ImGui:inputDouble(label, value, [step = 0, step_fast = 0, format = "%.6f", ImGuiInputTextFlags = 0])
-value, flag = ImGui:inputScalar(label, ImGuiDataType, value, v_min, v_max, format, [ImGuiInputTextFlags = 0])
 ```
 
 ### Input text callbacks
@@ -1884,6 +1905,13 @@ ImGui.TE_CurrentLineFillInactive
 ImGui.TE_CurrentLineEdge
 ```
 
+## ImageScaleMode
+```lua
+ImGui.ImageScaleMode_LetterBox
+ImGui.ImageScaleMode_FitWidth
+ImGui.ImageScaleMode_FitHeight
+ImGui.ImageScaleMode_Stretch
+```
 
 ## DRAW LISTS
 
