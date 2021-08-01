@@ -22,9 +22,9 @@ SOURCES += \
     imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
     TextEditor.cpp \
-    implot.cpp \
-    implot_demo.cpp \
-    implot_items.cpp\
+    implot_src/implot.cpp \
+    implot_src/implot_demo.cpp \
+    implot_src/implot_items.cpp\
     ../../Src/2dsg/bitmapdata.cpp \
     ../../Src/2dsg/Matrices.cpp \
     ../../Src/2dsg/mouseevent.cpp \
@@ -41,8 +41,8 @@ HEADERS += \
     imgui_src/imstb_truetype.h \
     imgui_user.h \
     TextEditor.h \
-    implot.h \
-    implot_internal.h \
+    implot_src/implot.h \
+    implot_src/implot_internal.h \
     ../../Src/2dsg/bitmapdata.h \
     ../../Src/2dsg/mouseevent.h \
     ../../Src/2dsg/touchevent.h \
