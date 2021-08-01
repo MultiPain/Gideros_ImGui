@@ -649,13 +649,13 @@ ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, ke
 		  tint_col = 0xffffff, tint_alpha = 1, 
 		  border_col = 0, border_alpha = 0, 
 		  bg_col = 0, bg_alpha = 0])
-pressFlag = ImGui:scaledImageButton(texture, w, h [, fit_mode = ImGuiImageScaleMode_LetterBox, keep_size = false, 
+pressFlag = ImGui:scaledImageButton(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
 				    ImGuiButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
 				    tint_col = 0xffffff, tint_alpha = 1, 
 				    border_col = 0, border_alpha = 0, 
 				    bg_col = 0, bg_alpha = 0])
 pressFlag = ImGui:scaledImageButtonWithText(texture, label, image_w, image_h [, button_w = 0, button_h = 0, 
-					    ImGuiButtonFlags = 0, fit_mode = ImGuiImageScaleMode_LetterBox, keep_size = false, 
+					    ImGuiButtonFlags = 0, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
 					    anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
 					    tint_col = 0xffffff, tint_alpha = 1, 
 					    border_col = 0, border_alpha = 0, 
