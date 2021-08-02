@@ -1,5 +1,5 @@
 #include "imgui_src/imgui.h"
-#include "imgui_src/imgui_internal.h"
+//#include "imgui_src/imgui_internal.h"
 
 typedef int ImGuiImageScaleMode;
 
@@ -36,7 +36,7 @@ enum ImGuiImageScaleMode_
 
 namespace ImGui
 {
-    IMGUI_API void FitImage(ImRect& bb, const ImVec2& rect_size,
+    IMGUI_API void FitImage(ImVec2& min, ImVec2& max, const ImVec2& rect_size,
                             const ImVec2& texture_size, const ImVec2& anchor,
                             ImGuiImageScaleMode fit_mode, bool keep_size);
     IMGUI_API void ScaledImage(const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,

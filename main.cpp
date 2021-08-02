@@ -10272,7 +10272,7 @@ int DrawList_AddScaledImage(lua_State* L)
 
 
     ImRect bb(p_min, p_max);
-    ImGui::FitImage(bb, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
+    ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
     list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
     return 0;
 }
@@ -10291,7 +10291,7 @@ int DrawList_AddScaledImageRounded(lua_State* L)
     bool keep_size = lua_toboolean(L, 14);
 
     ImRect bb(p_min, p_max);
-    ImGui::FitImage(bb, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
+    ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
     list->AddImageRounded(data.texture, bb.Min, bb.Max, data.uv0, data.uv1, col, rounding, rounding_corners);
     return 0;
 }
@@ -11746,6 +11746,8 @@ int loader(lua_State* L)
         {"addImage", DrawList_AddImage},
         {"addImageQuad", DrawList_AddImageQuad},
         {"addImageRounded", DrawList_AddImageRounded},
+        {"addScaledImage", DrawList_AddScaledImage},
+        {"addScaledImageRounded", DrawList_AddScaledImageRounded},
         {"pathClear", DrawList_PathClear},
         {"pathLineTo", DrawList_PathLineTo},
         {"pathLineToMergeDuplicate", DrawList_PathLineToMergeDuplicate},
