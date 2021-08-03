@@ -95,7 +95,7 @@ namespace ImGui
 
     void ScaledImage(const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,
                      ImGuiImageScaleMode fit_mode, bool keep_size, const ImVec2& anchor,
-                     const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
+                     const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
                      const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiWindow* window = GetCurrentWindow();
@@ -119,7 +119,7 @@ namespace ImGui
             window->DrawList->PushClipRect(bb.Min, bb.Max);
             FitImage(bb.Min, bb.Max, size, texture_size, anchor, fit_mode, keep_size);
             window->DrawList->AddImage(texture_id, bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), uv0, uv1, GetColorU32(tint_col));
-            window->DrawList->AddRect(backup_min, backup_max, GetColorU32(border_col));
+            window->DrawList->AddRect(backup_min, backup_max, GetColorU32(border_col), 0.0f, 0, border_size);
             window->DrawList->PopClipRect();
         }
         else
@@ -133,7 +133,7 @@ namespace ImGui
 
     bool ScaledImageButtonEx(const ImVec2& texture_size, ImTextureID texture_id, ImGuiID id, const ImVec2& size_arg,
                              ImGuiImageScaleMode fit_mode, bool keep_size, ImGuiButtonFlags flags, const ImVec2& anchor,
-                             const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
+                             const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
                              const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiContext& g = *GImGui;
@@ -168,13 +168,13 @@ namespace ImGui
         window->DrawList->AddImage(texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
         window->DrawList->PopClipRect();
         if (border_col.w > 0.0f)
-            window->DrawList->AddRect(backup_bb.Min + padding, backup_bb.Max - padding, GetColorU32(border_col));
+            window->DrawList->AddRect(backup_bb.Min + padding, backup_bb.Max - padding, GetColorU32(border_col), 0.0f, 0, border_size);
         return pressed;
     }
 
     bool ScaledImageButton(const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,
                            ImGuiImageScaleMode fit_mode, bool keep_size, ImGuiButtonFlags flags, const ImVec2& anchor,
-                           const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
+                           const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
                            const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiContext& g = *GImGui;
@@ -186,13 +186,13 @@ namespace ImGui
         const ImGuiID id = window->GetID("#image");
         PopID();
 
-        return ScaledImageButtonEx(texture_size, texture_id, id, size, fit_mode, keep_size, flags, anchor, tint_col, border_col, bg_col, uv0, uv1);
+        return ScaledImageButtonEx(texture_size, texture_id, id, size, fit_mode, keep_size, flags, anchor, tint_col, border_col, border_size, bg_col, uv0, uv1);
     }
 
     bool ScaledImageButtonWithText(const ImVec2& texture_size, ImTextureID texture_id, const char* label, const ImVec2& image_size_arg,
                                    const ImVec2& button_size, ImGuiButtonFlags flags,
                                    ImGuiImageScaleMode fit_mode, bool keep_size, const ImVec2& anchor, ImGuiDir image_side,
-                                   const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
+                                   const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
                                    const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiWindow* window = GetCurrentWindow();
@@ -227,6 +227,8 @@ namespace ImGui
         RenderNavHighlight(bb, id);
         RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
 
+        bb.Min.x = ImMax(bb.Min.x + padding.x, 0.0f);
+        bb.Max -= padding;
 
         if (g.LogEnabled)
             LogSetNextTextDecoration("[", "]");
@@ -262,7 +264,7 @@ namespace ImGui
             {
                 ImVec2 backup_min = bb.Min;
                 bb.Min.x = ImClamp(bb.Min.x + image_width, bb.Min.x, bb.Max.x);
-                ibb = ImRect(backup_min + padding, ImVec2(bb.Min.x - padding.x, bb.Max.y - padding.y));
+                ibb = ImRect(backup_min, ImVec2(bb.Min.x , bb.Max.y));
             }
             break;
         }
@@ -275,7 +277,8 @@ namespace ImGui
         window->DrawList->PopClipRect();
 
         if (border_col.w > 0.0f)
-            window->DrawList->AddRect(backup_ibb.Min, backup_ibb.Max, GetColorU32(border_col));
+            window->DrawList->AddRect(backup_ibb.Min, backup_ibb.Max, GetColorU32(border_col), 0.0f, 0, border_size);
+
         RenderTextClipped(bb.Min + padding, bb.Max - padding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
 
         return pressed;
