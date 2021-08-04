@@ -95,7 +95,7 @@ namespace ImGui
 
     void ScaledImage(const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,
                      ImGuiImageScaleMode fit_mode, bool keep_size, const ImVec2& anchor,
-                     const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
+                     const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
                      const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiWindow* window = GetCurrentWindow();
@@ -119,7 +119,7 @@ namespace ImGui
             window->DrawList->PushClipRect(bb.Min, bb.Max);
             FitImage(bb.Min, bb.Max, size, texture_size, anchor, fit_mode, keep_size);
             window->DrawList->AddImage(texture_id, bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), uv0, uv1, GetColorU32(tint_col));
-            window->DrawList->AddRect(backup_min, backup_max, GetColorU32(border_col), 0.0f, 0, border_size);
+            window->DrawList->AddRect(backup_min, backup_max, GetColorU32(border_col));
             window->DrawList->PopClipRect();
         }
         else
@@ -131,9 +131,9 @@ namespace ImGui
         }
     }
 
-    bool ScaledImageButtonEx(const ImVec2& texture_size, ImTextureID texture_id, ImGuiID id, const ImVec2& size_arg,
+    bool ScaledImageButtonEx(const float sx, const float sy, const ImVec2& texture_size, ImTextureID texture_id, ImGuiID id, const ImVec2& size_arg,
                              ImGuiImageScaleMode fit_mode, bool keep_size, ImGuiButtonFlags flags, const ImVec2& anchor,
-                             const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
+                             const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
                              const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiContext& g = *GImGui;
@@ -152,7 +152,7 @@ namespace ImGui
             return false;
 
         bool hovered, held;
-        bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+        bool pressed = ButtonBehavior(bb, id, &hovered, &held);
 
         // Render bg frame
         const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
@@ -167,19 +167,23 @@ namespace ImGui
         ImRect backup_bb = bb;
 
         window->DrawList->PushClipRect(bb.Min, bb.Max, true);
+        ImVec2 scale(sx,sy);
+        bb.Min *= scale;
+        bb.Max *= scale;
         FitImage(bb.Min, bb.Max, bb.GetSize(), texture_size, anchor, fit_mode, keep_size);
+
         window->DrawList->AddImage(texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
         window->DrawList->PopClipRect();
 
         if (border_col.w > 0.0f)
-            window->DrawList->AddRect(backup_bb.Min, backup_bb.Max, GetColorU32(border_col), 0.0f, 0, border_size);
+            window->DrawList->AddRect(backup_bb.Min, backup_bb.Max, GetColorU32(border_col));
 
         return pressed;
     }
 
-    bool ScaledImageButton(const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,
+    bool ScaledImageButton(const float sx, const float sy, const ImVec2& texture_size, ImTextureID texture_id, const ImVec2& size,
                            ImGuiImageScaleMode fit_mode, bool keep_size, ImGuiButtonFlags flags, const ImVec2& anchor,
-                           const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
+                           const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
                            const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiContext& g = *GImGui;
@@ -191,13 +195,13 @@ namespace ImGui
         const ImGuiID id = window->GetID("#image");
         PopID();
 
-        return ScaledImageButtonEx(texture_size, texture_id, id, size, fit_mode, keep_size, flags, anchor, tint_col, border_col, border_size, bg_col, uv0, uv1);
+        return ScaledImageButtonEx(sx, sy, texture_size, texture_id, id, size, fit_mode, keep_size, flags, anchor, tint_col, border_col, bg_col, uv0, uv1);
     }
 
     bool ScaledImageButtonWithText(const ImVec2& texture_size, ImTextureID texture_id, const char* label, const ImVec2& image_size_arg,
                                    const ImVec2& button_size, ImGuiButtonFlags flags,
                                    ImGuiImageScaleMode fit_mode, bool keep_size, const ImVec2& anchor, ImGuiDir image_side,
-                                   const ImVec4& tint_col, const ImVec4& border_col, const float& border_size, const ImVec4& bg_col,
+                                   const ImVec4& tint_col, const ImVec4& border_col, const ImVec4& bg_col,
                                    const ImVec2& uv0, const ImVec2& uv1)
     {
         ImGuiWindow* window = GetCurrentWindow();
@@ -235,9 +239,6 @@ namespace ImGui
         // Calculate image area
         bb.Min = ImVec2(ImMax(bb.Min.x, bb.Min.x + padding.x), ImMax(bb.Min.y, bb.Min.y + padding.y));
         bb.Max = ImVec2(ImMin(bb.Max.x, bb.Max.x - padding.x), ImMin(bb.Max.y, bb.Max.y - padding.y));
-
-        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(1,1,1,1)));
-
         if (g.LogEnabled)
             LogSetNextTextDecoration("[", "]");
 
@@ -274,8 +275,10 @@ namespace ImGui
             }
             break;
         }
+
         if (bg_col.w > 0.0f)
             window->DrawList->AddRectFilled(ibb.Min, ibb.Max, GetColorU32(bg_col));
+
         ImRect backup_ibb = ibb;
         window->DrawList->PushClipRect(ibb.Min, ibb.Max, true);
         FitImage(ibb.Min, ibb.Max, ibb.GetSize(), texture_size, anchor, fit_mode, keep_size);
@@ -283,7 +286,15 @@ namespace ImGui
         window->DrawList->PopClipRect();
 
         if (border_col.w > 0.0f)
-            window->DrawList->AddRect(backup_ibb.Min, backup_ibb.Max, GetColorU32(border_col), 0.0f, 0, border_size);
+        {
+            if (backup_ibb.Min.x < backup_ibb.Max.x || backup_ibb.Min.y < backup_ibb.Max.y)
+            {
+                ImVec2 _b = backup_ibb.Min;
+                backup_ibb.Min = backup_ibb.Max;
+                backup_ibb.Max = _b;
+            }
+            window->DrawList->AddRect(backup_ibb.Min, backup_ibb.Max, GetColorU32(border_col));
+        }
 
         RenderTextClipped(bb.Min, bb.Max, label, NULL, &label_size, style.ButtonTextAlign, &bb);
 
