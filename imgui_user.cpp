@@ -103,8 +103,6 @@ namespace ImGui
             return;
 
         ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
-        if (border_col.w > 0.0f)
-            bb.Max += ImVec2(2, 2);
         ItemSize(bb);
         if (!ItemAdd(bb, 0))
             return;
@@ -112,23 +110,14 @@ namespace ImGui
         if (bg_col.w > 0.0f)
             window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(bg_col));
 
+        ImRect backup_bb = bb;
+        window->DrawList->PushClipRect(bb.Min, bb.Max, true);
+        FitImage(bb.Min, bb.Max, size, texture_size, anchor, fit_mode, keep_size);
+        window->DrawList->AddImage(texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
+        window->DrawList->PopClipRect();
+
         if (border_col.w > 0.0f)
-        {
-            ImVec2 backup_min = bb.Min;
-            ImVec2 backup_max = bb.Max;
-            window->DrawList->PushClipRect(bb.Min, bb.Max);
-            FitImage(bb.Min, bb.Max, size, texture_size, anchor, fit_mode, keep_size);
-            window->DrawList->AddImage(texture_id, bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), uv0, uv1, GetColorU32(tint_col));
-            window->DrawList->AddRect(backup_min, backup_max, GetColorU32(border_col));
-            window->DrawList->PopClipRect();
-        }
-        else
-        {
-            window->DrawList->PushClipRect(bb.Min, bb.Max, true);
-            FitImage(bb.Min, bb.Max, size, texture_size, anchor, fit_mode, keep_size);
-            window->DrawList->AddImage(texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col));
-            window->DrawList->PopClipRect();
-        }
+            window->DrawList->AddRect(backup_bb.Min, backup_bb.Max, GetColorU32(border_col));
     }
 
     bool ScaledImageButtonEx(const float sx, const float sy, const ImVec2& texture_size, ImTextureID texture_id, ImGuiID id, const ImVec2& size_arg,
@@ -286,15 +275,7 @@ namespace ImGui
         window->DrawList->PopClipRect();
 
         if (border_col.w > 0.0f)
-        {
-            if (backup_ibb.Min.x < backup_ibb.Max.x || backup_ibb.Min.y < backup_ibb.Max.y)
-            {
-                ImVec2 _b = backup_ibb.Min;
-                backup_ibb.Min = backup_ibb.Max;
-                backup_ibb.Max = _b;
-            }
             window->DrawList->AddRect(backup_ibb.Min, backup_ibb.Max, GetColorU32(border_col));
-        }
 
         RenderTextClipped(bb.Min, bb.Max, label, NULL, &label_size, style.ButtonTextAlign, &bb);
 
