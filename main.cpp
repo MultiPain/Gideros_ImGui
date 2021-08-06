@@ -10119,11 +10119,10 @@ int DrawList_AddText(lua_State* L)
 {
     ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 4), luaL_optnumber(L, 5, 1.0f));
-    const char* text_begin = luaL_checkstring(L, 6);
-    const char* text_end = luaL_optstring(L, 7, NULL);
+    const char* text = luaL_checkstring(L, 6);
 
     ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
-    list->AddText(pos, col, text_begin, text_end);
+    list->AddText(pos, col, text);
 
     return 0;
 }
@@ -10135,7 +10134,7 @@ int DrawList_AddFontText(lua_State* L)
     double font_size = luaL_checknumber(L, 3);
     ImVec2 pos = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
     ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
-    const char* text_begin = luaL_checkstring(L, 8);
+    const char* text = luaL_checkstring(L, 8);
     double wrap_width = luaL_optnumber(L, 9, 0.0f);
     ImVec4* cpu_fine_clip_rect = NULL;
     if (lua_gettop(L) > 9)
@@ -10143,7 +10142,7 @@ int DrawList_AddFontText(lua_State* L)
         ImVec4 rect = ImVec4(luaL_checknumber(L, 10), luaL_checknumber(L, 11), luaL_checknumber(L, 12), luaL_checknumber(L, 13));
         cpu_fine_clip_rect = &rect;
     }
-    list->AddText(font, font_size, pos, col, text_begin, NULL, wrap_width, cpu_fine_clip_rect);
+    list->AddText(font, font_size, pos, col, text, NULL, wrap_width, cpu_fine_clip_rect);
     return 0;
 }
 
