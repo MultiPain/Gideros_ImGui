@@ -3,11 +3,11 @@
 
 # Constructor
 ```lua
--- fontAtlas: copy fonts
--- mouseListeners: adds internal mouse event listeners
--- keyboardListeners: adds internal keyboard event listeners
--- touchListeners: adds internal touch event listeners
-ImGui.new([fontAtlas = nil, mouseListeners = true, keyboardListeners = true, touchListeners = false])
+-- font_atlas: copy fonts
+-- mouse_listeners: adds internal mouse event listeners
+-- keyboard_listeners: adds internal keyboard event listeners
+-- touch_listeners: adds internal touch event listeners
+ImGui.new([font_atlas = nil, mouse_listeners = true, keyboard_listeners = true, touch_listeners = false])
 ```
 ## EXPERIMENTAL
 ```lua
@@ -401,8 +401,8 @@ w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
 IO:resetMouseDown() -- reset mouse buttons state
 IO:resetKeysDown() -- reset key states (including ALT/SHIFT/CTRL/SUPER (META))
-IO:setModKeyDown(keyCode, bool) -- set ALT/SHIFT/CTRL/SUPER (META) key state
-IO:setKeysDown(keyCode, bool) -- set any key state
+IO:setModKeyDown(key_code, bool) -- set ALT/SHIFT/CTRL/SUPER (META) key state
+IO:setKeysDown(key_code, bool) -- set any key state
 IO:addInputCharactersUTF8(text) -- adds text to active text input widget
 IO:setMouseWheel(number) -- emulate wheel scrolling
 IO:setMousePos(x, y) -- sets mouse position (data only, no visual changes)
@@ -475,18 +475,18 @@ ImGui:setWindowFontScale(scale)
 Can be used to set minimum and maximum window size, plus contraint the size if needed
 ```lua
 -- call this function before ImGui:beginWindow()
-ImGui:setNextWindowSizeConstraints(minW, minH, maxW, maxH [, resizeCallback, userData]))
+ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h [, resize_callback, user_data]))
 -- resizeCallback is a function:
-function (callbackData [, userData])
+function (callbackData [, user_data])
 	-- get window position
 	local x, y = callbackData:getPos()
 	-- get currrent size
-	local currentWidth, currentHeight = callbackData:getCurrentSize()
+	local current_width, current_height = callbackData:getCurrentSize()
 	-- get desired size
-	local deseridWidth, deseridHeight = callbackData:getDesiredSize()
+	local deserid_width, deserid_height = callbackData:getDesiredSize()
 	-- do some math, and return desired size
 	-- ...
-	return desiredWidth, desiredHeight
+	return desired_width, desired_height
 end
 ```
 
@@ -494,8 +494,8 @@ end
 ```lua
 require "ImGui"
 
-local function stepSize(callbackData, step)
-	local w, h = callbackData:getDesiredSize()
+local function stepSize(callback_data, step)
+	local w, h = callback_data:getDesiredSize()
 	w = (w // step) * step
 	h = (h // step) * step
 	return w, h
@@ -572,7 +572,7 @@ ImGui:popButtonRepeat()
 ## Cursor / Layout
 ```lua
 ImGui:separator()
-ImGui:sameLine([offsetX = 0, spacing = -1])
+ImGui:sameLine([offset_x = 0, spacing = -1])
 ImGui:newLine()
 ImGui:spacing()
 ImGui:dummy(w, h)
@@ -600,10 +600,10 @@ frameH = ImGui:getFrameHeightWithSpacing()
 ## ID stack/scopes
 ```lua
 ImGui:pushID(anyValue) 
-ImGui:pushID(strBegin, strEnd)
+ImGui:pushID(str)
 ImGui:popID()
-number = ImGui:getID(anyValue)
-number = ImGui:getID(strBegin, strEnd)
+number = ImGui:getID(any_value)
+number = ImGui:getID(string)
 ```
 
 ## Widgets: Text
@@ -621,21 +621,21 @@ ImGui:bulletText(text)
 ```lua
 flag = ImGui:button(text [, w = 0, h = 0])
 flag = ImGui:smallButton(text)
-flag = ImGui:invisibleButton(stringID [, w = 0, h = 0])
-flag = ImGui:arrowButton(stringID [, ImGui.Dir = 0])
+flag = ImGui:invisibleButton(string_ID [, w = 0, h = 0])
+flag = ImGui:arrowButton(string_ID [, ImGui.Dir = 0])
 flag = ImGui:checkbox(text, flag)
-flags, isChanged = ImGui:checkboxFlags(label [, flags = 0, falgs_value = 0])
-number, isChanged = ImGui:radioButton(text, number, number)
-isChanged = ImGui:radioButton(text, flag)
-ImGui:progressBar(fraction [, anchorX = -1, anchorY = 0, overlayString = nil])
+flags, is_changed = ImGui:checkboxFlags(label [, flags = 0, flags_value = 0])
+number, is_changed = ImGui:radioButton(text, number, number)
+is_changed = ImGui:radioButton(text, flag)
+ImGui:progressBar(fraction [, anchor_x = -1, anchor_y = 0, overlay_string = nil])
 ImGui:bullet()
 ```
 
 ## Widgets: Images
 ```lua
 -- Images are streched (ImGui default functions)
-ImGui:image(texture, w, h [, tintColor = 0xffffff, tintAlpha = 1, borderColor = 0xffffff, borderAlpha = 0])
-pressFlag = ImGui:imageButton(texture, w, h [, padding = -1, tintColor = 0xffffff, tintAlpha = 1, borderColor = 0xffffff, borderAlpha = 0])
+ImGui:image(texture, w, h [, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+pressFlag = ImGui:imageButton(texture, w, h [, padding = -1, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
 -- Images are scaled (extended by @MultiPain)
 -- padding deprecated (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
 ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
@@ -661,70 +661,70 @@ pressFlag = ImGui:scaledImageButtonWithText(texture, label, image_w, image_h [, 
 
 ## Widgets: Combo Box
 ```lua
-openFlag = ImGui:beginCombo(text, previewText [, ImGui.ComboFlags = 0])
+openFlag = ImGui:beginCombo(text, preview_text [, ImGui.ComboFlags = 0])
 ImGui:endCombo()
-currentItem, isOpen = ImGui:combo(label, currentItem, items) -- items (table): {"item1", "item2", ...}
+current_item, is_open = ImGui:combo(label, current_item, items) -- items (table): {"item1", "item2", ...}
 ```
 
 ## Widgets: Drags 
 ```lua
-value, isChanged = ImGui:dragFloat(label, value [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, isChanged = ImGui:dragFloat2(label, value1, value2 [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:dragFloat3(label, value1, value2, value3 [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:dragFloat4(label, value1, value2, value3, value4 [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-valueMin, valueMax, isChanged = ImGui:dragFloatRange2(label, valueMin, valueMax [, incStep = 1, min = 0, max = 0, formatMinString = "%.3f", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:dragFloat(label, value [, inc_step = 1, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, is_changed = ImGui:dragFloat2(label, value1, value2 [, inc_step = 1, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:dragFloat3(label, value1, value2, value3 [, inc_step = 1, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:dragFloat4(label, value1, value2, value3, value4 [, inc_step = 1, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value_min, value_max, is_changed = ImGui:dragFloatRange2(label, value_min, value_max [, inc_step = 1, min = 0, max = 0, format_min_string = "%.3f", ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:dragFloatT(label, table [, incStep = 1, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
+is_changed = ImGui:dragFloatT(label, table [, inc_step = 1, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
 
-value, isChanged = ImGui:dragInt(label, value [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, isChanged = ImGui:dragInt2(label, value1, value2 [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:dragInt3(label, value1, value2, value3 [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:dragInt4(label, value1, value2, value3, value4 [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:dragInt(label, value [, inc_step = 1, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, is_changed = ImGui:dragInt2(label, value1, value2 [, inc_step = 1, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:dragInt3(label, value1, value2, value3 [, inc_step = 1, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:dragInt4(label, value1, value2, value3, value4 [, inc_step = 1, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
 v_current_min, v_current_max, flag = ImGui:dragIntRange2(label, v_current_min, v_current_max [, v_speed = 1, v_min = 0, v_max = 0, format = "%d", format_max = nil, ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:dragIntT(label, table [, incStep = 1, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
+is_changed = ImGui:dragIntT(label, table [, inc_step = 1, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
 ```
 
 ## Widgets: Sliders
 ```lua
-value, isChanged = ImGui:sliderFloat(label, value [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, isChanged = ImGui:sliderFloat2(label, value1, value2 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:sliderFloat3(label, value1, value2, value3 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:sliderFloat4(label, value1, value2, value3, value4 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-valueInRad, isChanged = ImGui:sliderAngle(label, valueInRad [, min_degrees = -360, max_degrees = 360, formatString = "%.0f deg", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:sliderFloat(label, value [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, is_changed = ImGui:sliderFloat2(label, value1, value2 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:sliderFloat3(label, value1, value2, value3 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:sliderFloat4(label, value1, value2, value3, value4 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value_in_rad, is_changed = ImGui:sliderAngle(label, value_in_rad [, min_degrees = -360, max_degrees = 360, format_string = "%.0f deg", ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:sliderFloatT(label, table [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:sliderInt(label, value [, min = 0, max = 0, formatString = "%d, ImGui.SliderFlags = 0"])
-value1, value2, isChanged = ImGui:sliderInt2(label, value1, value2 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:sliderInt3(label, value1, value2, value3 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:sliderInt4(label, value1, value2, value3, value4 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
+is_changed = ImGui:sliderFloatT(label, table [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:sliderInt(label, value [, min = 0, max = 0, format_string = "%d, ImGui.SliderFlags = 0"])
+value1, value2, is_changed = ImGui:sliderInt2(label, value1, value2 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:sliderInt3(label, value1, value2, value3 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:sliderInt4(label, value1, value2, value3, value4 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:sliderIntT(label, table [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:vSliderFloat(label, w, h, value, min, max [, formatString = "%.3f", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:vSliderInt(label, w, h, value, min, max [, formatString = "%d", ImGui.SliderFlags = 0])
+is_changed = ImGui:sliderIntT(label, table [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:vSliderFloat(label, w, h, value, min, max [, format_string = "%.3f", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:vSliderInt(label, w, h, value, min, max [, format_string = "%d", ImGui.SliderFlags = 0])
 
-value, isChanged = ImGui:filledSliderFloat(label, mirrorFlag, value [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, isChanged = ImGui:filledSliderFloat2(label, mirrorFlag, value1, value2 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:filledSliderFloat3(label, mirrorFlag, value1, value2, value3 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:filledSliderFloat4(label, mirrorFlag, value1, value2, value3, value4 [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:filledSliderFloat(label, mirror_flag, value [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, is_changed = ImGui:filledSliderFloat2(label, mirror_flag, value1, value2 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:filledSliderFloat3(label, mirror_flag, value1, value2, value3 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:filledSliderFloat4(label, mirror_flag, value1, value2, value3, value4 [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:filledSliderFloatT(label, mirrorFlag, table [, min = 0, max = 0, formatString = "%.3f", ImGui.SliderFlags = 0])
-valueInRad, isChanged = ImGui:filledSliderAngle(label, mirrorFlag, valueInRad [, min_degrees = -360, max_degrees = 360, formatString = "%.0f deg", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:filledSliderInt(label, mirrorFlag, value [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, isChanged = ImGui:filledSliderInt2(label, mirrorFlag, value1, value2 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, isChanged = ImGui:filledSliderInt3(label, mirrorFlag, value1, value2, value3 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value1, value2, value3, value4, isChanged = ImGui:filledSliderInt4(label, mirrorFlag, value1, value2, value3, value4 [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
+is_changed = ImGui:filledSliderFloatT(label, mirror_flag, table [, min = 0, max = 0, format_string = "%.3f", ImGui.SliderFlags = 0])
+value_in_rad, is_changed = ImGui:filledSliderAngle(label, mirror_flag, value_in_rad [, min_degrees = -360, max_degrees = 360, format_string = "%.0f deg", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:filledSliderInt(label, mirror_flag, value [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, is_changed = ImGui:filledSliderInt2(label, mirror_flag, value1, value2 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, is_changed = ImGui:filledSliderInt3(label, mirror_flag, value1, value2, value3 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value1, value2, value3, value4, is_changed = ImGui:filledSliderInt4(label, mirror_flag, value1, value2, value3, value4 [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
 -- table must be an array of any size > 0
-isChanged = ImGui:filledSliderIntT(label, mirrorFlag, table [, min = 0, max = 0, formatString = "%d", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:vFilledSliderFloat(label, mirrorFlag, w, h, value, min, max [, formatString = "%.3f", ImGui.SliderFlags = 0])
-value, isChanged = ImGui:vFilledSliderInt(label, mirrorFlag, w, h, value, min, max [, formatString = "%d", ImGui.SliderFlags = 0])
+is_changed = ImGui:filledSliderIntT(label, mirror_flag, table [, min = 0, max = 0, format_string = "%d", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:vFilledSliderFloat(label, mirror_flag, w, h, value, min, max [, format_string = "%.3f", ImGui.SliderFlags = 0])
+value, is_changed = ImGui:vFilledSliderInt(label, mirror_flag, w, h, value, min, max [, format_string = "%d", ImGui.SliderFlags = 0])
 ```
 
 ## Widgets: Input with Keyboard
 ```lua
-text, flag = ImGui:inputText(label, text, bufferSize [, ImGui.InputTextFlags = 0])
-text, flag = ImGui:inputTextMultiline(label, text, bufferSize [, w = 0, h = 0, ImGui.InputTextFlags = 0])
-text, flag = ImGui:inputTextWithHint(label, text, hint, bufferSize [, ImGui.InputTextFlags = 0])
+text, flag = ImGui:inputText(label, text, buffer_size [, ImGui.InputTextFlags = 0])
+text, flag = ImGui:inputTextMultiline(label, text, buffer_size [, w = 0, h = 0, ImGui.InputTextFlags = 0])
+text, flag = ImGui:inputTextWithHint(label, text, hint, buffer_size [, ImGui.InputTextFlags = 0])
 value,  flag = ImGui:inputFloat(label, value [, step = 0, step_fast = 0, format = "%.3f", ImGui.InputTextFlags = 0])
 value1, value2, flag = ImGui:inputFloat2(label, value1, value2 [, format = "%.3f", ImGui.InputTextFlags = 0])
 value1, value2, value3, flag = ImGui:inputFloat3(label, value1, value2, value3 [, format = "%.3f", ImGui.InputTextFlags = 0])
@@ -742,40 +742,40 @@ value, flag = ImGui:inputDouble(label, value [, step = 0, step_fast = 0, format 
 
 ### Input text callbacks
 ```lua
-ImGui:inputText(label, text, bufferSize [, ImGui.InputTextFlags = 0, callbackFunction, userData])
-ImGui:inputTextMultiline(label, text, bufferSize [, ImGui.InputTextFlags = 0, callbackFunction, userData])
-ImGui:inputTextWithHint(label, text, hint, bufferSize [, ImGui.InputTextFlags = 0, callbackFunction, userData])
+ImGui:inputText(label, text, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
+ImGui:inputTextMultiline(label, text, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
+ImGui:inputTextWithHint(label, text, hint, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
 
-callbackFunction = function(CallbackData, userData)
+callbackFunction = function(callback_data, userData)
 	-- do something with data
 	-- see below
 end
 ```
-### CallbackData
+### callback_data
 ```lua
-ImGuiInputTextFlags = CallbackData:getEventFlag()
-ImGuiInputTextFlags = CallbackData:getFlags()
-number = CallbackData:getEventChar()
-CallbackData:setEventChar(number)
-number = CallbackData:getEventKey()
-string = CallbackData:getBuf()
-CallbackData:setBuf(string)
-number = CallbackData:getBufTextLen()
-CallbackData:setBufTextLen(number)
-number = CallbackData:getBufSize()
-bool = CallbackData:getBufDirty()
-CallbackData:setBufDirty(bool)
-number = CallbackData:getCursorPos()
-CallbackData:setCursorPos(number)
-number = CallbackData:getSelectionStart()
-CallbackData:setSelectionStart(number)
-number = CallbackData:getSelectionEnd()
-CallbackData:setSelectionEnd(number)
-CallbackData:deleteChars(position, bytesCount)
-CallbackData:insertChars(position, text)
-CallbackData:selectAll()
-CallbackData:clearSelection()
-bool = CallbackData:hasSelection()
+ImGuiInputTextFlags = callback_data:getEventFlag()
+ImGuiInputTextFlags = callback_data:getFlags()
+number = callback_data:getEventChar()
+callback_data:setEventChar(number)
+number = callback_data:getEventKey()
+string = callback_data:getBuf()
+callback_data:setBuf(string)
+number = callback_data:getBufTextLen()
+callback_data:setBufTextLen(number)
+number = callback_data:getBufSize()
+bool = callback_data:getBufDirty()
+callback_data:setBufDirty(bool)
+number = callback_data:getCursorPos()
+callback_data:setCursorPos(number)
+number = callback_data:getSelectionStart()
+callback_data:setSelectionStart(number)
+number = callback_data:getSelectionEnd()
+callback_data:setSelectionEnd(number)
+callback_data:deleteChars(position, bytesCount)
+callback_data:insertChars(position, text)
+callback_data:selectAll()
+callback_data:clearSelection()
+bool = callback_data:hasSelection()
 ```
 
 ### Example
@@ -797,11 +797,11 @@ end
 -- Replace all chars if UP/DOWN arrow is pressed
 function myCallback2(data)
 	local key = data:getEventKey()
-	if (key == KeyCode.UP) then
+	if (key == key_code.UP) then
 		data:deleteChars(0, data:getBufTextLen())
 		data:insertChars(0, "Pressed Up!")
 		data:selectAll()
-	elseif (key == KeyCode.DOWN) then
+	elseif (key == key_code.DOWN) then
 		data:deleteChars(0, data:getBufTextLen())
 		data:insertChars(0, "Pressed Down!")
 		data:selectAll()
@@ -853,23 +853,23 @@ stage:addEventListener("enterFrame", enterFrame)
 
 ## Widgets: Color Editor/Picker
 ```lua
-hexColor, isTouchingFlag = ImGui:colorEdit3(label, color [, ImGui.ColorEditFlags = 0]) -- alpha ignored, no need to pass it!
-hexColor, alpha, isTouchingFlag = ImGui:colorEdit4(label, color [, alpha = 1, ImGui.ColorEditFlags = 0])
-hexColor, isTouchingFlag = ImGui:colorPicker3(label, color [, ImGui.ColorEditFlags = 0])
-hexColor, alpha, originalColor, originalAlpha, isTouchingFlag = ImGui:colorPicker4(label, color [, alpha = 1, originalColor = 0xffffff, originalAlpha = 1, ImGui.ColorEditFlags = 0])
-isHoveringFlag = ImGui:colorButton(stringID, color [, alpha = 1, ImGui.ColorEditFlags = 0, w = 0, h = 0])
+hexColor, is_touching = ImGui:colorEdit3(label, color [, ImGui.ColorEditFlags = 0]) -- alpha ignored, no need to pass it!
+hexColor, alpha, is_touching = ImGui:colorEdit4(label, color [, alpha = 1, ImGui.ColorEditFlags = 0])
+hexColor, is_touching = ImGui:colorPicker3(label, color [, ImGui.ColorEditFlags = 0])
+hexColor, alpha, originalColor, originalAlpha, is_touching = ImGui:colorPicker4(label, color [, alpha = 1, original_color = 0xffffff, original_alpha = 1, ImGui.ColorEditFlags = 0])
+isHoveringFlag = ImGui:colorButton(string_ID, color [, alpha = 1, ImGui.ColorEditFlags = 0, w = 0, h = 0])
 ImGui:setColorEditOptions(ImGui.ColorEditFlags)
 ```
 
 ## Widgets: Trees
 ```lua
-isOpenFlag = ImGui:treeNode(label [, formatString])
-ImGui:treeNodeEx(label, ImGui.TreeNodeFlags [, formatString])
+is_openFlag = ImGui:treeNode(label [, format_string])
+ImGui:treeNodeEx(label, ImGui.TreeNodeFlags [, format_string])
 ImGui:treePush(str_id)
 ImGui:treePop()
 number = ImGui:getTreeNodeToLabelSpacing()
-isOpenFlag, p_open = ImGui:collapsingHeader(label, p_open [, ImGui.TreeNodeFlags = 0])
-isOpenFlag = ImGui:collapsingHeader(label [, ImGui.TreeNodeFlags = 0])
+is_openFlag, p_open = ImGui:collapsingHeader(label, p_open [, ImGui.TreeNodeFlags = 0])
+is_openFlag = ImGui:collapsingHeader(label [, ImGui.TreeNodeFlags = 0])
 ImGui:setNextItemOpen(is_open, ImGui.Cond)
 ```
 
@@ -880,7 +880,7 @@ result?, selected = ImGui:selectable(label, selected [, ImGui.SelectableFlags = 
 
 ## Widgets: List Boxes
 ```lua
-current_item, isOpenFlag = ImGui:listBox(label, current_item, itemTable [, max_visible_items = -1]) -- itemTable: {"Item0", "Item1", ...}
+current_item, is_openFlag = ImGui:listBox(label, current_item, item_table [, max_visible_items = -1]) -- item_table: {"Item0", "Item1", ...}
 result? = ImGui:listBoxHeader(label [, w = 0, h = 0])
 result? = ImGui:listBoxHeader2(label, items_count)
 ImGui:listBoxFooter()
@@ -888,15 +888,15 @@ ImGui:listBoxFooter()
 
 ## Widgets: Data Plotting
 ```lua
-ImGui:plotLines(label, pointsTable [, values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0]) -- pointsTable: {0.01, 0.5, 10, -50, ...}
-ImGui:plotHistogram(label, pointsTable [, values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0])"plotLines"
+ImGui:plotLines(label, points_table [, values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0]) -- points_table: {0.01, 0.5, 10, -50, ...}
+ImGui:plotHistogram(label, points_table [, values_offset = 0, overlay_text = nil, scale_min = math.huge, scale_max = math.huge, w = 0, h = 0])"plotLines"
 ```
 
 ## Widgets: Value() Helpers
 ```lua
 ImGui:value(prefix, bool)
 ImGui:value(prefix, number)
-ImGui:value(prefix, float, formatString)
+ImGui:value(prefix, float, format_string)
 ```
 
 ## Widgets: Menus
@@ -907,8 +907,8 @@ result? = ImGui:beginMainMenuBar()
 ImGui:endMainMenuBar()
 result? = ImGui:beginMenu(label, enabledFlag)
 ImGui:endMenu()
-result? = ImGui:menuItem(label [, shortcut = nil, selected = false, enabled = true])
-selected, result? = ImGui:menuItemWithShortcut(label, shortcut [, selected = false, enabled = true])
+result? = ImGui:menuItem(label [, shortcut_string = nil, selected = false, enabled = true])
+selected, result? = ImGui:menuItemWithShortcut(label, shortcut_string [, selected = false, enabled = true])
 ImGui:beginTooltip()
 ImGui:endTooltip()
 ImGui:setTooltip(text)
@@ -1089,7 +1089,7 @@ flag = ImGuiPayload:isDelivery()
 
 ## Clipping
 ```lua
-ImGui:pushClipRect(minX, minY, maxX, maxY, intersect_with_current_clip_rect)
+ImGui:pushClipRect(min_x, min_y, max_x, max_y, intersect_with_current_clip_rect)
 ImGui:popClipRect()
 ```
 
@@ -1118,7 +1118,7 @@ ImGui:setItemAllowOverlap()
 
 ## Miscellaneous Utilities
 ```lua
-flag = ImGui:isRectVisible(w, h [, maxX, maxY])
+flag = ImGui:isRectVisible(w, h [, max_x, max_y])
 number = ImGui:getTime()
 number = ImGui:getFrameCount()
 str = ImGui:getStyleColorName(idx)
@@ -1148,7 +1148,7 @@ flag = ImGui:isMouseDown(mouse_button)
 flag = ImGui:isMouseClicked(mouse_button [, repeat = false])
 flag = ImGui:isMouseReleased(mouse_button)
 flag = ImGui:isMouseDoubleClicked(mouse_button)
-flag = ImGui:isMouseHoveringRect(minX, minY, maxX, maxY [, clip = true])
+flag = ImGui:isMouseHoveringRect(min_x, min_y, max_x, max_y [, clip = true])
 flag = ImGui:isMousePosValid([x = inf, y = inf])
 flag = ImGui:isAnyMouseDown()
 x, y = ImGui:getMousePos()
@@ -1172,20 +1172,20 @@ ImGui:endFrame()
 
 ## Demos
 ```lua
-isOpenFlag = ImGui:showUserGuide()
-isOpenFlag = ImGui:showDemoWindow()
-isOpenFlag = ImGui:showAboutWindow()
-isOpenFlag = ImGui:showStyleEditor()
-isOpenFlag = ImGui:showFontSelector()
-isOpenFlag = ImGui:showMetricsWindow()
-isOpenFlag = ImGui:showStyleSelector()
+is_openFlag = ImGui:showUserGuide()
+is_openFlag = ImGui:showDemoWindow()
+is_openFlag = ImGui:showAboutWindow()
+is_openFlag = ImGui:showStyleEditor()
+is_openFlag = ImGui:showFontSelector()
+is_openFlag = ImGui:showMetricsWindow()
+is_openFlag = ImGui:showStyleSelector()
 ImGui:showLuaStyleEditor()
 ```
 
 ## TextEditor
 ```lua
 -- otherTextEditor: another "ImGuiTextEditor" instance to copy setting 
-TextEditor = ImGuiTextEditor.new([otherTextEditor])
+TextEditor = ImGuiTextEditor.new([other_text_editor])
 ```
 ## Functions
 ```lua
@@ -1294,7 +1294,7 @@ TextEditor:moveEnd([select = false])
 
 TextEditor:setSelectionStart(line, column)
 TextEditor:setSelectionEnd(line, column)
-TextEditor:setSelection(startLine, startColumn, endLine, endColumn)
+TextEditor:setSelection(start_line, start_column, end_line, end_column)
 TextEditor:selectWordUnderCursor()
 TextEditor:selectAll()
 bool = TextEditor:hasSelection()
@@ -1705,17 +1705,17 @@ ImGui.DragDropFlags_None
 ImGui.DragDropFlags_SourceNoDisableHover
 ```
 
-### CornerFlags
+### corner_flags
 ```lua
-ImGui.CornerFlags_None
-ImGui.CornerFlags_TopLeft
-ImGui.CornerFlags_TopRight
-ImGui.CornerFlags_BotLeft
-ImGui.CornerFlags_BotRight
-ImGui.CornerFlags_Top
-ImGui.CornerFlags_Bot
-ImGui.CornerFlags_Left
-ImGui.CornerFlags_Right
+ImGui.corner_flags_None
+ImGui.corner_flags_TopLeft
+ImGui.corner_flags_TopRight
+ImGui.corner_flags_BotLeft
+ImGui.corner_flags_BotRight
+ImGui.corner_flags_Top
+ImGui.corner_flags_Bot
+ImGui.corner_flags_Left
+ImGui.corner_flags_Right
 ImGui.CornerFlags_All
 ```
 
@@ -1956,23 +1956,23 @@ DrawList:addNgon(center_x, center_y, radius, color [, alpha = 1, num_segments = 
 DrawList:addNgonFilled(center_x, center_y, radius, color [, alpha = 1, num_segments = 12])
 DrawList:addText(x, y, color, alpha, text) -- x, y (number), text_begin (string), text_end (string)
 DrawList:addFontText(font, font_size, pos_x, pos_y, color, alpha, text [, wrap_with = 0, cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
-DrawList:addPolyline(pointsTable, color, alpha, closed, thickness) -- pointsTable (table), color (number), closed (bool), thickness (number)
-DrawList:addConvexPolyFilled(pointsTable, color) -- pointsTable (table), color (number)
+DrawList:addPolyline(points_table, color, alpha, closed, thickness) -- points_table (table), color (number), closed (bool), thickness (number)
+DrawList:addConvexPolyFilled(points_table, color) -- points_table (table), color (number)
 DrawList:addBezierCubic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, alpha, thickness [, num_segments = 0])
 DrawList:addBezierQuadratic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, alpha, thickness [, num_segments = 0])
-DrawList:addImage(texture, x, y, x + w, y + h [, tintColor = 0xffffff, tintAlpha = 1]) 
-DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h [, tintColor = 0xffffff, tintAlpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = 
-DrawList:addImageRounded(texture, x, y, x + w, y + h, tintColor, tintAlpha, roundRadius [, CornerFlags = ImGui.CorenerFlags_All])
+DrawList:addImage(texture, x, y, x + w, y + h [, tint_color = 0xffffff, tint_alpha = 1]) 
+DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h [, tint_color = 0xffffff, tint_alpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = 
+DrawList:addImageRounded(texture, x, y, x + w, y + h, tint_color, tint_alpha, round_radius [, corner_flags = ImGui.CorenerFlags_All])
 DrawList:pathClear()
 DrawList:pathLineTo(x, y)
 DrawList:pathLineToMergeDuplicate(x, y)
 DrawList:pathFillConvex(color)
 DrawList:pathStroke(color, alpha, closed [, thickness = 1])
-DrawList:pathArcTo(centerX, centerY, radius, a_min, a_max [, num_segments = 10])
-DrawList:pathArcToFast(centerX, centerY, radius, a_min, a_max)
+DrawList:pathArcTo(center_x, center_y, radius, a_min, a_max [, num_segments = 10])
+DrawList:pathArcToFast(center_x, center_y, radius, a_min, a_max)
 DrawList:pathBezierCubicCurveTo(p2x, p2y, p3x, p3y, p4x, p4y [, num_segments = 0])
 DrawList:pathBezierQuadraticCurveTo(p2x, p2y, p3x, p3y [, num_segments = 0])
-DrawList:pathRect(minX, minY, maxX, maxY [, rounding = 0, ImDrawCornerFlags = 0])
+DrawList:pathRect(min_x, min_y, max_x, max_y [, rounding = 0, ImGui.CornerFlags = 0])
 -- CUSTOM
 -- rotate any draw list item around its center point
 DrawList:rotateBegin()
@@ -2015,11 +2015,11 @@ function onEnterFrame(e)
 	UI:newFrame(e.deltaTime)
 	UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)
 	UI:invisibleButton("canvas", w, h)
-	local minX, minY = UI:getItemRectMin()
-	local maxX, maxY = UI:getItemRectMax()
+	local min_x, min_y = UI:getItemRectMin()
+	local max_x, max_y = UI:getItemRectMax()
 	local draw_list = UI:getWindowDrawList()
-	draw_list:pushClipRect(minX, minY, maxX, maxY)
-	FX(draw_list,minX,minY,maxX,maxY,w,h,UI:getTime())
+	draw_list:pushClipRect(min_x, min_y, max_x, max_y)
+	FX(draw_list,min_x,min_y,max_x,max_y,w,h,UI:getTime())
 	draw_list:popClipRect()
 	UI:endWindow()
 	UI:render()
