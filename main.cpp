@@ -1896,14 +1896,28 @@ int destroyImGui(lua_State* L)
 
 #ifdef IMPLOT_API
 
+class GImPlot
+{
+public:
+    ImPlotContext* ctx;
+    GImPlot()
+    {
+        ctx = ImPlot::CreateContext();
+    }
+    ~GImPlot()
+    {
+        ImPlot::DestroyContext(ctx);
+    }
+};
+
 int initImPlot(lua_State* L)
 {
-    ImPlotContext* ctx = ImPlot::CreateContext();
-    g_pushInstance(L, "ImPlot", ctx);
+    GImPlot* plot = new GImPlot();
+    g_pushInstance(L, "ImPlot", plot);
 
     luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
     lua_pushvalue(L, -2);
-    luaL_rawsetptr(L, -2, ctx);
+    luaL_rawsetptr(L, -2, plot);
     lua_pop(L, 1);
 
     return 1;
@@ -1912,15 +1926,15 @@ int initImPlot(lua_State* L)
 int destroyImPlot(lua_State* L)
 {
     void* ptr = *(void**)lua_touserdata(L, 1);
-    ImPlotContext* ctx = static_cast<ImPlotContext*>(ptr);
-    ImPlot::DestroyContext(ctx);
+    GImPlot* plot = static_cast<GImPlot*>(ptr);
+    delete plot;
     return 0;
 }
 
 void UpdatePlotContext(lua_State* L)
 {
-    ImPlotContext* ctx = getPtr<ImPlotContext>(L, "ImPlotContext");
-    ImPlot::SetCurrentContext(ctx);
+    GImPlot* plot = getPtr<GImPlot>(L, "ImPlot");
+    ImPlot::SetCurrentContext(plot->ctx);
 }
 
 // Plot

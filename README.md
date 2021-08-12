@@ -399,14 +399,22 @@ number = IO:getMouseDownSec(mouse_button)
 IO:setDisplaySize(w, h)
 w, h = IO:getDisplaySize()
 number = IO:getDeltaTime()
-IO:resetMouseDown() -- reset mouse buttons state
-IO:resetKeysDown() -- reset key states (including ALT/SHIFT/CTRL/SUPER (META))
-IO:setModKeyDown(key_code, bool) -- set ALT/SHIFT/CTRL/SUPER (META) key state
-IO:setKeysDown(key_code, bool) -- set any key state
-IO:addInputCharactersUTF8(text) -- adds text to active text input widget
-IO:setMouseWheel(number) -- emulate wheel scrolling
-IO:setMousePos(x, y) -- sets mouse position (data only, no visual changes)
-IO:setMouseDown(index, state) -- set mouse state, where index: 0 - left mouse, 1 - right, 2 - middle, 3 - unused, 4 - unused.
+-- reset mouse buttons state
+IO:resetMouseDown()
+-- reset key states (including ALT/SHIFT/CTRL/SUPER (META))
+IO:resetKeysDown()
+-- set ALT/SHIFT/CTRL/SUPER (META) key state
+IO:setModKeyDown(key_code, bool) 
+-- set any key state
+IO:setKeysDown(key_code, bool)
+-- adds text to active text input widget
+IO:addInputCharactersUTF8(text)
+-- emulate wheel scrolling
+IO:setMouseWheel(number)
+-- sets mouse position (data only, no visual changes)
+IO:setMousePos(x, y)
+-- set mouse state, where index: 0 - left mouse, 1 - right, 2 - middle, 3 - unused, 4 - unused.
+IO:setMouseDown(index, state) 
 ```
 
 # Context
@@ -434,9 +442,12 @@ number = ImGui:getDragDropPayloadDataSize()
 ## Windows
 ```lua
 p_open, draw = ImGui:beginWindow(label, p_open [, ImGui.WindowFlags = 0])
-draw = ImGui:beginWindow(label, nil [, ImGui.WindowFlags = 0]) -- do not show "X" button
-p_open, draw = ImGui:beginFullScreenWindow(label, p_open [, ImGui.WindowFlags = 0]) -- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
-draw = ImGui:beginFullScreenWindow(label, nil [, ImGui.WindowFlags = 0]) -- do not show "X" button
+-- do not show "X" button
+draw = ImGui:beginWindow(label, nil [, ImGui.WindowFlags = 0])
+-- start a window with no borders, no paddings, no rounding and ImGui.WindowFlags_Fullscreen flag
+p_open, draw = ImGui:beginFullScreenWindow(label, p_open [, ImGui.WindowFlags = 0]) 
+-- do not show "X" button
+draw = ImGui:beginFullScreenWindow(label, nil [, ImGui.WindowFlags = 0]) 
 ImGui:endWindow()
 ```
 
@@ -640,7 +651,6 @@ pressFlag = ImGui:imageButton(texture, w, h [, padding = -1, tint_color = 0xffff
 -- padding deprecated (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
 ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
 		  anchor_x = 0.5, anchor_y = 0.5, 
-		  clip_offset_x = 0, clip_offset_y = 0,
 		  tint_col = 0xffffff, tint_alpha = 1, 
 		  border_col = 0, border_alpha = 0, 
 		  bg_col = 0, bg_alpha = 0])
