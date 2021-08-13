@@ -752,11 +752,11 @@ value, flag = ImGui:inputDouble(label, value [, step = 0, step_fast = 0, format 
 
 ### Input text callbacks
 ```lua
-ImGui:inputText(label, text, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
-ImGui:inputTextMultiline(label, text, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
-ImGui:inputTextWithHint(label, text, hint, buffer_size [, ImGui.InputTextFlags = 0, callbackFunction, userData])
+ImGui:inputText(label, text, buffer_size [, ImGui.InputTextFlags = 0, callback_function, user_data])
+ImGui:inputTextMultiline(label, text, buffer_size [, ImGui.InputTextFlags = 0, callback_function, user_data])
+ImGui:inputTextWithHint(label, text, hint, buffer_size [, ImGui.InputTextFlags = 0, callback_function, user_data])
 
-callbackFunction = function(callback_data, userData)
+callback_function = function(callback_data, user_data)
 	-- do something with data
 	-- see below
 end
@@ -915,7 +915,7 @@ result? = ImGui:beginMenuBar()
 ImGui:endMenuBar()
 result? = ImGui:beginMainMenuBar()
 ImGui:endMainMenuBar()
-result? = ImGui:beginMenu(label, enabledFlag)
+result? = ImGui:beginMenu(label, enabled_flag)
 ImGui:endMenu()
 result? = ImGui:menuItem(label [, shortcut_string = nil, selected = false, enabled = true])
 selected, result? = ImGui:menuItemWithShortcut(label, shortcut_string [, selected = false, enabled = true])
@@ -1249,8 +1249,8 @@ TextEditor:loadPalette{
 ]]
 
 -- see below
-TextEditor:setErrorMarkers(ErrorMarkers)
-TextEditor:setBreakpoints(Breakpoints)
+TextEditor:setErrorMarkers(error_markers)
+TextEditor:setBreakpoints(breakpoints)
 
 TextEditor:render(string_id [, w = 0, h = 0, border = 0])
 
@@ -1999,6 +1999,7 @@ list:rotateEnd(math.pi/2.2)
 <img src="https://user-images.githubusercontent.com/1312968/99901217-4697fa80-2cb5-11eb-9e80-c469cc69b848.gif"></br>
 ```lua
 -- reference: https://github.com/ocornut/imgui/issues/3606#issuecomment-731726406
+require "ImGui"
 UI = ImGui.new()
 IO = UI:getIO()
 local w = 320
@@ -2006,6 +2007,8 @@ local h = 180
 IO:setDisplaySize(w*2,h*2)
 
 local cos,sin,sqrt=math.cos,math.sin,math.sqrt
+local HSV2RGB=ImGui.colorConvertHSVtoRGB
+local RGB2HEX=ImGui.colorConvertRGBtoHEX
 local p = {-1,-1, 1,-1, 1,1, -1,1}
 local function conv(z,szx,szy,ox,oy,vx,vy) return ((vx/z)*szx*5+szx*0.5)+ox,((vy/z)*szy*5+szy*0.5)+oy end
 local function R(vx, vy, ng) ng*=0.1 local cosn = cos(ng) local sinn = sin(ng) return vx*cosn-vy*sinn, vx*sinn+vy*cosn end
@@ -2016,14 +2019,23 @@ local function FX(d,ax,ay,bx,by,sw,sh,t)
 		local z=21-i-(t-(t//1))*2
 		local ng,ot0,ot1=-t*2.1+z,-t+z*0.2,-t+(z+1)*0.2
 		local s,of,pts={cos((t+z)*0.1)*0.2+1,sin((t+z)*0.1)*0.2+1,cos((t+z+1)*0.1)*0.2+1,sin((t+z+1)*0.1)*0.2+1},{cos(ot0)*0.3,sin(ot0)*0.3,cos(ot1)*0.3,sin(ot1)*0.3},{}
-		for j=0,7 do local i,n = ((j%4)+1)*2,j//4 pts[j*2+1],pts[j*2+2]=conv((z+n)*2,sw,sh,ax,ay,R(p[i-1]*s[n*2+1]+of[n*2+1],p[i-0]*s[n*2+2]+of[n*2+2],ng+n)) end
-		for j=0,3 do local it=((((i&1) ~= 0) and 0.5 or 0.6)+j*0.05)*((21-z)/21) d:addConvexPolyFilled({pts[j*2+1],pts[j*2+2],pts[((j+1)%4)*2+1],pts[((j+1)%4)*2+2],pts[(((j+1)%4)+4)*2+1],pts[(((j+1)%4)+4)*2+2],pts[(j+4)*2+1],pts[(j+4)*2+2]},UI:colorConvertRGBtoHEX(UI:colorConvertHSVtoRGB(0.6+sin(t*0.03)*0.5,1,sqrt(it)))) end
+		for j=0,7 do 
+			local i,n = ((j%4)+1)*2,j//4 
+			pts[j*2+1],pts[j*2+2]=conv((z+n)*2,sw,sh,ax,ay,R(p[i-1]*s[n*2+1]+of[n*2+1],p[i-0]*s[n*2+2]+of[n*2+2],ng+n)) 
+		end
+		for j=0,3 do 
+			local it=((((i&1) ~= 0) and 0.5 or 0.6)+j*0.05)*((21-z)/21) 
+			d:addConvexPolyFilled(
+				{pts[j*2+1],pts[j*2+2],pts[((j+1)%4)*2+1],pts[((j+1)%4)*2+2],pts[(((j+1)%4)+4)*2+1],pts[(((j+1)%4)+4)*2+2],pts[(j+4)*2+1],pts[(j+4)*2+2]},
+				RGB2HEX(HSV2RGB(0.6+sin(t*0.03)*0.5,1,sqrt(it)))
+			)
+		end
 	end
 end
 
 function onEnterFrame(e)
 	UI:newFrame(e.deltaTime)
-	UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)
+	if (UI:beginWindow("FX", nil, ImGui.WindowFlags_AlwaysAutoResize)) then
 	UI:invisibleButton("canvas", w, h)
 	local min_x, min_y = UI:getItemRectMin()
 	local max_x, max_y = UI:getItemRectMax()
@@ -2031,6 +2043,7 @@ function onEnterFrame(e)
 	draw_list:pushClipRect(min_x, min_y, max_x, max_y)
 	FX(draw_list,min_x,min_y,max_x,max_y,w,h,UI:getTime())
 	draw_list:popClipRect()
+	end
 	UI:endWindow()
 	UI:render()
 	UI:endFrame()
