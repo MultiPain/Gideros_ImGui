@@ -442,12 +442,28 @@ static lua_Number getfield(lua_State* L, const char* key)
     lua_pop(L, 1);
     return result;
 }
+static int getfieldi(lua_State* L, const char* key)
+{
+    lua_getfield(L, -1, key);
+    int result = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    return result;
+}
 
 static lua_Number getsubfield(lua_State* L, const char* field, const char* key)
 {
     lua_getfield(L, -1, field);
     lua_getfield(L, -1, key);
     lua_Number result = lua_tonumber(L, -1);
+    lua_pop(L, 2);
+    return result;
+}
+
+static int getsubfieldi(lua_State* L, const char* field, const char* key)
+{
+    lua_getfield(L, -1, field);
+    lua_getfield(L, -1, key);
+    int result = lua_tointeger(L, -1);
     lua_pop(L, 2);
     return result;
 }
@@ -1367,6 +1383,15 @@ class EventListener : public EventDispatcher
 private:
     GidImGui* gidImGui;
 
+    void updateModifiers(int modifiers)
+    {
+        ImGuiIO& io = gidImGui->ctx->IO;
+        io.KeyAlt = modifiers & GINPUT_ALT_MODIFIER;
+        io.KeyCtrl = modifiers & GINPUT_CTRL_MODIFIER;
+        io.KeyShift = modifiers & GINPUT_SHIFT_MODIFIER;
+        io.KeySuper = modifiers & GINPUT_META_MODIFIER;
+    }
+
     void keyUpOrDown(int keyCode, bool state)
     {
         ImGuiIO& io = gidImGui->ctx->IO;
@@ -1392,11 +1417,12 @@ private:
         }
     }
 
-    void mouseUpOrDown(float x, float y, int button, bool state)
+    void mouseUpOrDown(float x, float y, int button, bool state, int modifiers)
     {
         ImGuiIO& io = gidImGui->ctx->IO;
         io.MouseDown[button] = state;
         io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+        updateModifiers(modifiers);
     }
 
     void scaleMouseCoords(float& x, float& y)
@@ -1448,12 +1474,12 @@ public:
         float x = (float)event->x;
         float y = (float)event->y;
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), true);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), true, event->modifiers);
     }
 
-    void mouseDown(float x, float y, int button)
+    void mouseDown(float x, float y, int button, int modifiers)
     {
-        mouseUpOrDown(x, y, convertGiderosMouseButton(button), true);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
     }
 
     void mouseUp(MouseEvent* event)
@@ -1461,17 +1487,24 @@ public:
         float x = (float)event->x;
         float y = (float)event->y;
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), false);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), false, event->modifiers);
     }
 
-    void mouseUp(float x, float y, int button)
+    void mouseUp(float x, float y, int button, int modifiers)
     {
-        mouseUpOrDown(x, y, convertGiderosMouseButton(button), false);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(button), false, modifiers);
     }
 
-    void mouseMove(float x, float y, int button)
+    void mouseMove(float x, float y, int button, int modifiers)
     {
-        mouseUpOrDown(x, y, convertGiderosMouseButton(button), true);
+        mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
+    }
+
+    void mouseHover(float x, float y, int modifiers)
+    {
+        ImGuiIO& io = gidImGui->ctx->IO;
+        io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+        updateModifiers(modifiers);
     }
 
     void mouseHover(MouseEvent* event)
@@ -1479,13 +1512,15 @@ public:
         float x = (float)event->x;
         float y = (float)event->y;
         scaleMouseCoords(x, y);
-        mouseHover(x, y);
+        mouseHover(x, y, event->modifiers);
     }
 
-    void mouseHover(float x, float y)
+    void mouseWheel(float x, float y, int wheel, int modifiers)
     {
         ImGuiIO& io = gidImGui->ctx->IO;
+        io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
         io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+        updateModifiers(modifiers);
     }
 
     void mouseWheel(MouseEvent* event)
@@ -1493,14 +1528,7 @@ public:
         float x = (float)event->x;
         float y = (float)event->y;
         scaleMouseCoords(x, y);
-        mouseWheel(x, y, event->wheel);
-    }
-
-    void mouseWheel(float x, float y, int wheel)
-    {
-        ImGuiIO& io = gidImGui->ctx->IO;
-        io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
-        io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+        mouseWheel(x, y, event->wheel, event->modifiers);
     }
 
     ///////////////////////////////////////////////////
@@ -1514,12 +1542,12 @@ public:
         float x = event->event->touch.x;
         float y = event->event->touch.y;
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, 0, true);
+        mouseUpOrDown(x, y, 0, true, event->event->touch.modifiers);
     }
 
-    void touchesBegin(float x, float y)
+    void touchesBegin(float x, float y, int modifiers)
     {
-        mouseUpOrDown(x, y, 0, true);
+        mouseUpOrDown(x, y, 0, true, modifiers);
     }
 
     void touchesEnd(TouchEvent* event)
@@ -1537,12 +1565,12 @@ public:
             y = event->event->touch.y;
         }
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, 0, false);
+        mouseUpOrDown(x, y, 0, false, event->event->touch.modifiers);
     }
 
-    void touchesEnd(float x, float y)
+    void touchesEnd(float x, float y, int modifiers)
     {
-        mouseUpOrDown(x, y, 0, false);
+        mouseUpOrDown(x, y, 0, false, modifiers);
     }
 
     void touchesMove(TouchEvent* event)
@@ -1550,12 +1578,12 @@ public:
         float x = event->event->touch.x;
         float y = event->event->touch.y;
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, 0, true);
+        mouseUpOrDown(x, y, 0, true, event->event->touch.modifiers);
     }
 
-    void touchesMove(float x, float y)
+    void touchesMove(float x, float y, int modifiers)
     {
-        mouseUpOrDown(x, y, 0, true);
+        mouseUpOrDown(x, y, 0, true, modifiers);
     }
 
     void touchesCancel(TouchEvent* event)
@@ -1573,12 +1601,12 @@ public:
             y = event->event->touch.y;
         }
         scaleMouseCoords(x, y);
-        mouseUpOrDown(x, y, 0, false);
+        mouseUpOrDown(x, y, 0, false, event->event->touch.modifiers);
     }
 
-    void touchesCancel(float x, float y)
+    void touchesCancel(float x, float y, int modifiers)
     {
-        mouseUpOrDown(x, y, 0, false);
+        mouseUpOrDown(x, y, 0, false, modifiers);
     }
 
     ///////////////////////////////////////////////////
@@ -2660,8 +2688,9 @@ int MouseHover(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
+    int modifiers = getfieldi(L, "modifiers");
 
-    imgui->eventListener->mouseHover(event_x, event_y);
+    imgui->eventListener->mouseHover(event_x, event_y, modifiers);
 
     return 0;
 }
@@ -2673,8 +2702,9 @@ int MouseMove(lua_State* L)
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
     int button = getfield(L, "button");
+    int modifiers = getfieldi(L, "modifiers");
 
-    imgui->eventListener->mouseMove(event_x, event_y, button);
+    imgui->eventListener->mouseMove(event_x, event_y, button, modifiers);
 
     return 0;
 }
@@ -2685,9 +2715,10 @@ int MouseDown(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int button = getfield(L, "button");
+    int button = getfieldi(L, "button");
+    int modifiers = getfieldi(L, "modifiers");
 
-    imgui->eventListener->mouseDown(event_x, event_y, button);
+    imgui->eventListener->mouseDown(event_x, event_y, button, modifiers);
 
     return 0;
 }
@@ -2698,9 +2729,10 @@ int MouseUp(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int button = getfield(L, "button");
+    int button = getfieldi(L, "button");
+    int modifiers = getfieldi(L, "modifiers");
 
-    imgui->eventListener->mouseUp(event_x, event_y, button);
+    imgui->eventListener->mouseUp(event_x, event_y, button, modifiers);
 
     return 0;
 }
@@ -2711,9 +2743,10 @@ int MouseWheel(lua_State* L)
 
     float event_x = getfield(L, "x");
     float event_y = getfield(L, "y");
-    int wheel = getfield(L, "wheel");
+    int wheel = getfieldi(L, "wheel");
+    int modifiers = getfieldi(L, "modifiers");
 
-    imgui->eventListener->mouseWheel(event_x, event_y, wheel);
+    imgui->eventListener->mouseWheel(event_x, event_y, wheel, modifiers);
 
     return 0;
 }
@@ -2725,7 +2758,8 @@ int TouchCancel(lua_State* L)
     GidImGui* imgui = getImgui(L);
     float x = getsubfield(L, "touch", "x");
     float y = getsubfield(L, "touch", "y");
-    imgui->eventListener->touchesCancel(x, y);
+    int modifiers = getsubfieldi(L, "touch", "modifiers");
+    imgui->eventListener->touchesCancel(x, y, modifiers);
     return 0;
 }
 
@@ -2734,7 +2768,8 @@ int TouchMove(lua_State* L)
     GidImGui* imgui = getImgui(L);
     float x = getsubfield(L, "touch", "x");
     float y = getsubfield(L, "touch", "y");
-    imgui->eventListener->touchesMove(x, y);
+    int modifiers = getsubfieldi(L, "touch", "modifiers");
+    imgui->eventListener->touchesMove(x, y, modifiers);
     return 0;
 }
 
@@ -2743,7 +2778,8 @@ int TouchBegin(lua_State* L)
     GidImGui* imgui = getImgui(L);
     float x = getsubfield(L, "touch", "x");
     float y = getsubfield(L, "touch", "y");
-    imgui->eventListener->touchesBegin(x, y);
+    int modifiers = getsubfieldi(L, "touch", "modifiers");
+    imgui->eventListener->touchesBegin(x, y, modifiers);
     return 0;
 }
 
@@ -2752,7 +2788,8 @@ int TouchEnd(lua_State* L)
     GidImGui* imgui = getImgui(L);
     float x = getsubfield(L, "touch", "x");
     float y = getsubfield(L, "touch", "y");
-    imgui->eventListener->touchesEnd(x, y);
+    int modifiers = getsubfieldi(L, "touch", "modifiers");
+    imgui->eventListener->touchesEnd(x, y, modifiers);
     return 0;
 }
 
