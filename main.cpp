@@ -7278,7 +7278,7 @@ int Payload_GetStringData(lua_State* L)
 
 int Payload_GetColor3Data(lua_State* L)
 {
-    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload", 1);
+    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload");
     float* v = (float*)(payload->Data);
     GColor color = GColor::toHex(v[0], v[1], v[2], 1.0);
     lua_pushinteger(L, color.hex);
@@ -7287,7 +7287,7 @@ int Payload_GetColor3Data(lua_State* L)
 
 int Payload_GetColor4Data(lua_State* L)
 {
-    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload", 1);
+    ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload");
     float* v = (float*)(payload->Data);
     GColor color = GColor::toHex(v[0], v[1], v[2], v[3]);
     lua_pushinteger(L, color.hex);
@@ -7999,20 +7999,18 @@ int Style_old_SetColor(lua_State* L)
 
 int Style_SetColor(lua_State* L)
 {
+    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
     int idx = luaL_checkinteger(L, 2);
     LUA_ASSERT(idx >= 0 && idx <= ImGuiCol_COUNT, "Color index is out of bounds.");
-
-    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
     style.Colors[idx] = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
     return 0;
 }
 
 int Style_GetColor(lua_State* L)
 {
+    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
     int idx = luaL_checkinteger(L, 2);
     LUA_ASSERT(idx >= 0 && idx <= ImGuiCol_COUNT, "Color index is out of bounds.");
-
-    ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
     GColor color = GColor::toHex(style.Colors[idx]);
     lua_pushinteger(L, color.hex);
     lua_pushnumber(L, color.alpha);
@@ -8634,7 +8632,7 @@ int IO_SetConfigDockingTransparentPayload(lua_State* L)
 int IO_SetFontDefault(lua_State* L)
 {
     ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-    ImFont* font = getPtr<ImFont>(L, "ImFont", 2); // getFont(L, 2)
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 2);
     if (font)
         io.FontDefault = font;
     return 0;
@@ -9565,7 +9563,7 @@ void loadFontConfig(lua_State* L, int index, ImFontConfig &config, ImFontAtlas* 
 
 int PushFont(lua_State* L)
 {
-    ImFont* font = getPtr<ImFont>(L, "ImFont");
+    ImFont* font = getPtr<ImFont>(L, "ImFont", 2);
     LUA_ASSERT(font, "Font is nil");
     ImGui::PushFont(font);
     return 0;
@@ -9746,9 +9744,9 @@ int FontAtlas_IsBuilt(lua_State* L)
 
 int FontAtlas_AddCustomRectRegular(lua_State* L)
 {
+    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
     int width  = luaL_checkinteger(L, 2);
     int height = luaL_checkinteger(L, 3);
-    ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
     lua_pushinteger(L, atlas->AddCustomRectRegular(width, height));
     return 1;
 }
@@ -11301,7 +11299,7 @@ int initErrorMarkers(lua_State* L)
 
 int EM_MAdd(lua_State* L)
 {
-    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers", 1);
+    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers");
     int lineNumber = luaL_checkinteger(L, 2);
     std::string message(luaL_checkstring(L, 3));
     (*markers)[lineNumber] = message;
@@ -11310,7 +11308,7 @@ int EM_MAdd(lua_State* L)
 
 int EM_MRemove(lua_State* L)
 {
-    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers", 1);
+    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers");
     int lineNumber = luaL_checkinteger(L, 2);
     markers->erase(lineNumber);
     return 0;
@@ -11318,7 +11316,7 @@ int EM_MRemove(lua_State* L)
 
 int EM_MGet(lua_State* L)
 {
-    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers", 1);
+    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers");
     int lineNumber = luaL_checkinteger(L, 2);
     TextEditor::ErrorMarkers::iterator it = markers->find(lineNumber);
     if (it == markers->end())
@@ -11336,7 +11334,7 @@ int EM_MGet(lua_State* L)
 
 int EM_MSize(lua_State* L)
 {
-    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers", 1);
+    TextEditor::ErrorMarkers* markers = getPtr<TextEditor::ErrorMarkers>(L, "ImGuiErrorMarkers");
     lua_pushnumber(L, markers->size());
     return 1;
 }
@@ -11357,7 +11355,7 @@ int initBreakpoints(lua_State* L)
 
 int EM_BAdd(lua_State* L)
 {
-    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints", 1);
+    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints");
     int lineNumber = luaL_checkinteger(L, 2);
     points->insert(lineNumber);
     return 0;
@@ -11365,7 +11363,7 @@ int EM_BAdd(lua_State* L)
 
 int EM_BRemove(lua_State* L)
 {
-    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints", 1);
+    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints");
     int lineNumber = luaL_checkinteger(L, 2);
     points->erase(lineNumber);
     return 0;
@@ -11373,7 +11371,7 @@ int EM_BRemove(lua_State* L)
 
 int EM_BGet(lua_State* L)
 {
-    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints", 1);
+    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints");
     int lineNumber = luaL_checkinteger(L, 2);
     TextEditor::Breakpoints::iterator it = points->find(lineNumber);
     it == points->end() ? lua_pushnil(L) : lua_pushinteger(L, *it);
@@ -11382,7 +11380,7 @@ int EM_BGet(lua_State* L)
 
 int EM_BSize(lua_State* L)
 {
-    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints", 1);
+    TextEditor::Breakpoints* points = getPtr<TextEditor::Breakpoints>(L, "ImGuiBreakpoints");
     lua_pushnumber(L, points->size());
     return 1;
 }
