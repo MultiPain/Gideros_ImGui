@@ -300,6 +300,8 @@ Style:setAntiAliasedLinesUseTex(flag)
 flag = Style:getAntiAliasedLinesUseTex()
 Style:setAntiAliasedFill(flag)
 flag = Style:getAntiAliasedFill()
+Style:setDisabledAlpha(number)
+alpha = Style:getDisabledAlpha()
 ```
 
 ## DEFAULT STYLES 
@@ -449,6 +451,12 @@ p_open, draw = ImGui:beginFullScreenWindow(label, p_open [, ImGui.WindowFlags = 
 -- do not show "X" button
 draw = ImGui:beginFullScreenWindow(label, nil [, ImGui.WindowFlags = 0]) 
 ImGui:endWindow()
+```
+
+## Disabled groups
+```lua
+ImGui:beginDisabled(disabledFlag)
+ImGui:endDisabled()
 ```
 
 ## Child Windows
@@ -1494,6 +1502,7 @@ ImGui.StyleVar_SelectableTextAlign
 ImGui.StyleVar_PopupRounding
 ImGui.StyleVar_ButtonTextAlign
 ImGui.StyleVar_CellPadding
+ImGui.StyleVar_DisabledAlpha
 ```
 
 ### Col
@@ -1811,6 +1820,8 @@ ImGui.TableColumnFlags_IsEnabled
 ImGui.TableColumnFlags_IsVisible
 ImGui.TableColumnFlags_IsSorted
 ImGui.TableColumnFlags_IsHovered
+ImGui.TableColumnFlags_Disabled
+ImGui.TableColumnFlags_NoHeaderLabel
 ```
 
 
