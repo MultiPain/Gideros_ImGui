@@ -135,6 +135,47 @@ inline T* getPtr(lua_State* L, const char* name, int idx = 1)
 	return static_cast<T*>(g_getInstance(L, name, idx));
 }
 
+template <typename T>
+T* getTableValues(lua_State* L, int idx, unsigned int len)
+{
+	T* values = new T[len];
+	lua_pushvalue(L, idx);
+	for (unsigned int i = 0; i < len; i++)
+	{
+		lua_rawgeti(L, idx, i+1);
+		
+		T v = luaL_checknumber(L, -1);
+		values[i] = v;
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+	return values;
+}
+
+template <>
+const char** getTableValues<const char*>(lua_State* L, int idx, unsigned int len)
+{
+	const char** values = new const char*[len];
+	lua_pushvalue(L, idx);
+	for (unsigned int i = 0; i < len; i++)
+	{
+		lua_rawgeti(L, idx, i+1);
+		
+		const char* v = luaL_checkstring(L, -1);
+		values[i] = v;
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+	return values;
+}
+
+template <typename T>
+T* getTableValues(lua_State* L, int idx)
+{
+	unsigned int len = luaL_getn(L, idx);
+	T* values = getTableValues<T>(L, idx, len);
+	return values;
+}
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// TEXTURES / COLORS
@@ -442,6 +483,7 @@ static lua_Number getfield(lua_State* L, const char* key)
 	lua_pop(L, 1);
 	return result;
 }
+
 static int getfieldi(lua_State* L, const char* key)
 {
 	lua_getfield(L, -1, key);
@@ -528,48 +570,6 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 	data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
 	delete callbackData;
 	lua_pop(L, 2);
-}
-
-template <typename T>
-T* getTableValues(lua_State* L, int idx, unsigned int len)
-{
-	T* values = new T[len];
-	lua_pushvalue(L, idx);
-	for (unsigned int i = 0; i < len; i++)
-	{
-		lua_rawgeti(L, idx, i+1);
-		
-		T v = luaL_checknumber(L, -1);
-		values[i] = v;
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	return values;
-}
-
-template <>
-const char** getTableValues<const char*>(lua_State* L, int idx, unsigned int len)
-{
-	const char** values = new const char*[len];
-	lua_pushvalue(L, idx);
-	for (unsigned int i = 0; i < len; i++)
-	{
-		lua_rawgeti(L, idx, i+1);
-		
-		const char* v = luaL_checkstring(L, -1);
-		values[i] = v;
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	return values;
-}
-
-template <typename T>
-T* getTableValues(lua_State* L, int idx)
-{
-	unsigned int len = luaL_getn(L, idx);
-	T* values = getTableValues<T>(L, idx, len);
-	return values;
 }
 
 lua_Number getTableValue(lua_State* L, int idx, int tid, lua_Number def)
