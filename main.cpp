@@ -517,16 +517,6 @@ ImGuiID checkID(lua_State* L, int idx = 2)
 	return (ImGuiID)id;
 }
 
-static bool* getPopen(lua_State* L, int idx, int top = 2)
-{
-	if (lua_gettop(L) > top && lua_type(L, idx) != LUA_TNIL)
-	{
-		bool flag = lua_toboolean(L, idx);
-		return new bool(flag);
-	}
-	return NULL;
-}
-
 static int InputTextCallback(ImGuiInputTextCallbackData* data)
 {
 	CallbackData* callbackData = (CallbackData*)data->UserData;
@@ -2873,20 +2863,17 @@ int EndFrame(lua_State* _UNUSED(L))
 int Begin(lua_State* L)
 {
 	const char* name = luaL_checkstring(L, 2);
-	bool* p_open = getPopen(L, 3);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-	bool draw_flag = ImGui::Begin(name, p_open, flags);
-	int ret = 1;
-	
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 3))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		ret++;
+		lua_pushboolean(L, ImGui::Begin(name, NULL, flags));
+		return 1;
 	}
-	
+	bool p_open = lua_toboolean(L, 3);
+	bool draw_flag = ImGui::Begin(name, &p_open, flags);
 	lua_pushboolean(L, draw_flag);
-	return ret;
+	lua_pushboolean(L, p_open);
+	return 2;
 }
 
 int End(lua_State* _UNUSED(L))
@@ -2898,13 +2885,11 @@ int End(lua_State* _UNUSED(L))
 // @MultiPain
 int BeginFullScreenWindow(lua_State* L)
 {
+	GidImGui* imgui = getImgui(L);
 	const char* name = luaL_checkstring(L, 2);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 	flags |= ImGuiWindowFlags_FullScreen;
 	
-	bool* p_open = getPopen(L, 3);
-	
-	GidImGui* imgui = getImgui(L);
 	ImGuiIO& IO = imgui->ctx->IO;
 	
 	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
@@ -2913,20 +2898,23 @@ int BeginFullScreenWindow(lua_State* L)
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	
-	bool draw_flag = ImGui::Begin(name, p_open, flags);
 	
-	ImGui::PopStyleVar(2);
-	
-	int ret = 1;
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 3))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		ret++;
+		bool draw_flag = ImGui::Begin(name, NULL, flags);
+		ImGui::PopStyleVar(2);
+		lua_pushboolean(L, draw_flag);
+		return 1;
 	}
-	
-	lua_pushboolean(L, draw_flag);
-	return ret;
+	else
+	{
+		bool p_open = lua_toboolean(L, 3);
+		bool draw_flag = ImGui::Begin(name, &p_open, flags);
+		ImGui::PopStyleVar(2);
+		lua_pushboolean(L, draw_flag);
+		lua_pushboolean(L, p_open);
+		return 2;
+	}
 }
 
 int BeginDisabled(lua_State* L)
@@ -5221,21 +5209,18 @@ int GetTreeNodeToLabelSpacing(lua_State* L)
 int CollapsingHeader(lua_State* L)
 {
 	const char* label = luaL_checkstring(L, 2);
-	bool* p_open = getPopen(L, 3);
 	ImGuiTreeNodeFlags flags = luaL_optinteger(L, 4, 0);
 	
-	bool flag = ImGui::CollapsingHeader(label, p_open, flags);
-	
-	int ret = 1;
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 3))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		ret++;
+		lua_pushboolean(L, ImGui::CollapsingHeader(label, NULL, flags));
+		return 1;
 	}
 	
-	lua_pushboolean(L, flag);
-	return ret;
+	bool p_open = lua_toboolean(L, 3); 
+	lua_pushboolean(L, ImGui::CollapsingHeader(label, &p_open, flags));
+	lua_pushboolean(L, p_open);
+	return 2;
 }
 
 int SetNextItemOpen(lua_State* L)
@@ -5512,12 +5497,16 @@ int BeginPopup(lua_State* L)
 int BeginPopupModal(lua_State* L)
 {
 	const char* name = luaL_checkstring(L, 2);
-	bool* p_open = getPopen(L, 3);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
-	bool draw_flag = ImGui::BeginPopupModal(name, p_open, flags);
-	delete p_open;
-	lua_pushboolean(L, draw_flag);
-	return 1;
+	if (lua_isnoneornil(L, 3))
+	{
+		lua_pushboolean(L, ImGui::BeginPopupModal(name, NULL, flags));
+		return 1;
+	}
+	bool p_open = lua_toboolean(L, 3);
+	lua_pushboolean(L, ImGui::BeginPopupModal(name, &p_open, flags));
+	lua_pushboolean(L, p_open);
+	return 2;
 }
 
 int EndPopup(lua_State* _UNUSED(L))
@@ -6160,20 +6149,17 @@ int EndTabBar(lua_State* _UNUSED(L))
 int BeginTabItem(lua_State* L)
 {
 	const char* label = luaL_checkstring(L, 2);
-	bool* p_open = getPopen(L, 3);
 	ImGuiTabItemFlags flags = luaL_optinteger(L, 4, 0);
 	
-	bool flag = ImGui::BeginTabItem(label, p_open, flags);
-	
-	int ret = 1;
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 3))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		ret++;
+		lua_pushboolean(L, ImGui::BeginTabItem(label, NULL, flags));
+		return 1;
 	}
-	lua_pushboolean(L, flag);
-	return ret;
+	bool p_open = lua_toboolean(L, 3);
+	lua_pushboolean(L, ImGui::BeginTabItem(label, &p_open, flags));
+	lua_pushboolean(L, p_open);
+	return 2;
 }
 
 int EndTabItem(lua_State* _UNUSED(L))
@@ -7925,28 +7911,28 @@ int ShowUserGuide(lua_State* _UNUSED(L))
 
 int ShowDemoWindow(lua_State* L)
 {
-	bool* p_open = getPopen(L, 2, 1);
-	ImGui::ShowDemoWindow(p_open);
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 2))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		return 1;
+		ImGui::ShowDemoWindow();
+		return 0;
 	}
-	return 0;
+	bool p_open = lua_toboolean(L, 3);
+	ImGui::ShowDemoWindow(&p_open);
+	lua_pushboolean(L, p_open);
+	return 1;
 }
 
 int ShowAboutWindow(lua_State* L)
 {
-	bool* p_open = getPopen(L, 2, 1);
-	ImGui::ShowAboutWindow(p_open);
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 2))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		return 1;
+		ImGui::ShowAboutWindow();
+		return 0;
 	}
-	return 0;
+	bool p_open = lua_toboolean(L, 3);
+	ImGui::ShowAboutWindow(&p_open);
+	lua_pushboolean(L, p_open);
+	return 1;
 }
 
 int ShowStyleEditor(lua_State* _UNUSED(L))
@@ -7964,15 +7950,15 @@ int ShowFontSelector(lua_State* L)
 
 int ShowMetricsWindow(lua_State* L)
 {
-	bool* p_open = getPopen(L, 2, 1);
-	ImGui::ShowMetricsWindow(p_open);
-	if (p_open != NULL)
+	if (lua_isnoneornil(L, 2))
 	{
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		return 1;
+		ImGui::ShowMetricsWindow();
+		return 0;
 	}
-	return 0;
+	bool p_open = lua_toboolean(L, 3);
+	ImGui::ShowMetricsWindow(&p_open);
+	lua_pushboolean(L, p_open);
+	return 1;
 }
 
 int ShowStyleSelector(lua_State* L)
@@ -11708,23 +11694,19 @@ static ExampleAppLog logapp;
 int ShowLog(lua_State* L)
 {
 	const char* title = luaL_checkstring(L, 2);
-	bool* p_open = getPopen(L, 3);
 	ImGuiWindowFlags window_flags = luaL_optinteger(L, 4, ImGuiWindowFlags_None);
 	
-	logapp.Draw(title, p_open, window_flags);
-	
-	if (p_open != nullptr)
+	if (lua_isnoneornil(L, 3))
 	{
-		logapp.Shown = *p_open;
-		lua_pushboolean(L, *p_open);
-		delete p_open;
-		return 1;
-	}
-	else
-	{
+		logapp.Draw(title, NULL, window_flags);
 		logapp.Shown = true;
 		return 0;
 	}
+	bool p_open = lua_toboolean(L, 3);
+	logapp.Draw(title, &p_open, window_flags);
+	logapp.Shown = p_open;
+	lua_pushboolean(L, p_open);
+	return 1;
 }
 
 int WriteLog(lua_State* L)
