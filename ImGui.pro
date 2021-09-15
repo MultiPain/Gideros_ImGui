@@ -30,6 +30,7 @@ SOURCES += \
     ../../Src/2dsg/mouseevent.cpp \
     ../../Src/2dsg/touchevent.cpp \
     ../../Src/2dsg/keyboardevent.cpp \
+	../../Src/luabinding/stackchecker.cpp \
     main.cpp
 
 HEADERS += \
@@ -46,7 +47,8 @@ HEADERS += \
     ../../Src/2dsg/bitmapdata.h \
     ../../Src/2dsg/mouseevent.h \
     ../../Src/2dsg/touchevent.h \
-    ../../Src/2dsg/keyboardevent.h
+    ../../Src/2dsg/keyboardevent.h  \
+	../../Src/luabinding/stackchecker.h
 
 LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs
 
