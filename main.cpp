@@ -46,11 +46,9 @@
 #define PLUGIN_NAME "ImGui_pre_build"
 #include "implot_src/implot.h" // WIP
 #else
-#define PLUGIN_NAME "ImGui"
 #define STACK_CHECKER(L, pre, delta) ((void)0)
+#define PLUGIN_NAME "ImGui"
 #endif
-
-#define CC 0.0039215686274509803921568627451f
 
 #define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
 #define LUA_ASSERTF(EXP, FMT, ...) if (!(EXP)) { lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L); }
@@ -59,8 +57,9 @@
 #define LUA_PRINTF(FMT, ...) lua_getglobal(L, "print"); lua_pushfstring(L, FMT, __VA_ARGS__); lua_call(L, 1, 0);
 #define LUA_PRINT(MSG) lua_getglobal(L, "print"); lua_pushstring(L, MSG); lua_call(L, 1, 0);
 
-#define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
+#define CC 0.0039215686274509803921568627451f
 
+#define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
 #define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
 
 static lua_State* L;
@@ -5709,8 +5708,9 @@ int CollapsingHeader(lua_State* L)
 	STACK_CHECKER(L, "collapsingHeader", 2);
 	
 	bool p_open = lua_toboolean(L, 3); 
+	bool result = ImGui::CollapsingHeader(label, &p_open, flags);
 	lua_pushboolean(L, p_open);
-	lua_pushboolean(L, ImGui::CollapsingHeader(label, &p_open, flags));
+	lua_pushboolean(L, result);
 	return 2;
 }
 
@@ -6037,7 +6037,8 @@ int BeginPopupModal(lua_State* L)
 		return 1;
 	}
 	bool p_open = lua_toboolean(L, 3);
-	lua_pushboolean(L, ImGui::BeginPopupModal(name, &p_open, flags));
+	bool result = ImGui::BeginPopupModal(name, &p_open, flags);
+	lua_pushboolean(L, result);
 	return 1;
 }
 
@@ -6842,8 +6843,9 @@ int BeginTabItem(lua_State* L)
 	}
 	STACK_CHECKER(L, "beginTabItem", 2);
 	bool p_open = lua_toboolean(L, 3);
+	bool result = ImGui::BeginTabItem(label, &p_open, flags);
 	lua_pushboolean(L, p_open);
-	lua_pushboolean(L, ImGui::BeginTabItem(label, &p_open, flags));
+	lua_pushboolean(L, result);
 	return 2;
 }
 
