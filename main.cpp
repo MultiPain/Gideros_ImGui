@@ -6027,20 +6027,18 @@ int BeginPopup(lua_State* L)
 
 int BeginPopupModal(lua_State* L)
 {
+	STACK_CHECKER(L, "beginPopupModal", 1);
 
 	const char* name = luaL_checkstring(L, 2);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 	if (lua_isnoneornil(L, 3))
 	{
-		STACK_CHECKER(L, "beginPopupModal", 1);
 		lua_pushboolean(L, ImGui::BeginPopupModal(name, NULL, flags));
 		return 1;
 	}
-	STACK_CHECKER(L, "beginPopupModal", 2);
 	bool p_open = lua_toboolean(L, 3);
-	lua_pushboolean(L, p_open);
 	lua_pushboolean(L, ImGui::BeginPopupModal(name, &p_open, flags));
-	return 2;
+	return 1;
 }
 
 int EndPopup(lua_State* _UNUSED(L))
