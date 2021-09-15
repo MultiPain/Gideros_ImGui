@@ -9012,7 +9012,7 @@ int ShowAboutWindow(lua_State* L)
 		return 0;
 	}
 	STACK_CHECKER(L, "showAboutWindow", 1);
-	bool p_open = lua_toboolean(L, 3);
+	bool p_open = lua_toboolean(L, 2);
 	ImGui::ShowAboutWindow(&p_open);
 	lua_pushboolean(L, p_open);
 	return 1;
@@ -9045,7 +9045,7 @@ int ShowMetricsWindow(lua_State* L)
 		return 0;
 	}
 	STACK_CHECKER(L, "showMetricsWindow", 1);
-	bool p_open = lua_toboolean(L, 3);
+	bool p_open = lua_toboolean(L, 2);
 	ImGui::ShowMetricsWindow(&p_open);
 	lua_pushboolean(L, p_open);
 	return 1;
