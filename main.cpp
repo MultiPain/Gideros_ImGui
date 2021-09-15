@@ -525,6 +525,7 @@ static int InputTextCallback(ImGuiInputTextCallbackData* data)
 {
 	CallbackData* callbackData = (CallbackData*)data->UserData;
 	lua_State* L = callbackData->_L;
+	STACK_CHECKER(L, "InputTextCallback", 0);
 	
 	lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
 	g_pushInstance(L, "ImGuiInputTextCallbackData", data);
@@ -547,6 +548,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 {
 	CallbackData* callbackData = (CallbackData*)data->UserData;
 	lua_State* L = callbackData->_L;
+	STACK_CHECKER(L, "NextWindowSizeConstraintCallback", 2);
 	
 	lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
 	g_pushInstance(L, "ImGuiSizeCallbackData", data);
