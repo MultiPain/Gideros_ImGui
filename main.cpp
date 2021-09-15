@@ -363,34 +363,33 @@ struct GColor {
 class CallbackData
 {
 	public:
-		int functionIndex;
-		int argumentIndex;
+		int functionIndex = -1;
+		int argumentIndex = -1;
+		
 		lua_State* _L;
 		
 		CallbackData(lua_State* L, int index)
-		{
-			functionIndex = -1;
-			argumentIndex = -1;
+		{			
 			_L = L;
 			
 			if (lua_gettop(_L) == index + 1)
 			{
-				setCallbackArg(argumentIndex);
+				argumentIndex = luaL_ref(_L, LUA_REGISTRYINDEX);
 			}
 			
-			luaL_checktype(_L, index, LUA_TFUNCTION);
-			setCallbackArg(functionIndex);
+			functionIndex = luaL_ref(_L, LUA_REGISTRYINDEX);
 		}
 		
-	private:
-		void setCallbackArg(int &arg)
+		~CallbackData()
 		{
-			if (arg != -1)
+			if (functionIndex != -1)
 			{
-				luaL_unref(_L, LUA_REGISTRYINDEX, arg);
-				arg = -1;
+				luaL_unref(_L, LUA_REGISTRYINDEX, functionIndex);
 			}
-			arg = luaL_ref(_L, LUA_REGISTRYINDEX);
+			if (argumentIndex != -1)
+			{
+				luaL_unref(_L, LUA_REGISTRYINDEX, argumentIndex);
+			}
 		}
 };
 
@@ -537,21 +536,18 @@ static int InputTextCallback(ImGuiInputTextCallbackData* data)
 	else
 	{
 		lua_call(L, 1, 0);
-	}
-	delete callbackData;
-	
+	}	
 	return 0;
 }
 
 static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 {
-	CallbackData* callbackData = (CallbackData*)data->UserData;
+	CallbackData* callbackData = static_cast<CallbackData*>(data->UserData);
 	lua_State* L = callbackData->_L;
-	STACK_CHECKER(L, "NextWindowSizeConstraintCallback", 2);
+	STACK_CHECKER(L, "NextWindowSizeConstraintCallback", 0);
 	
 	lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->functionIndex);
 	g_pushInstance(L, "ImGuiSizeCallbackData", data);
-	
 	if (callbackData->argumentIndex != -1)
 	{
 		lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->argumentIndex);
@@ -561,9 +557,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 	{
 		lua_call(L, 1, 2);
 	}
-	
 	data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
-	delete callbackData;
 	lua_pop(L, 2);
 }
 
@@ -1361,6 +1355,8 @@ class GidImGui
 		EventListener* eventListener;
 		ImGuiContext* ctx;
 		SpriteProxy* proxy;
+		CallbackData* resizeCallback;
+		CallbackData* inputCallback;
 		
 		bool resetTouchPosOnEnd;
 		
@@ -1714,6 +1710,8 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 {
 	
 	ctx = ImGui::CreateContext(atlas);
+	resizeCallback = nullptr;
+	inputCallback = nullptr;
 	
 	resetTouchPosOnEnd = false;
 	
@@ -2975,7 +2973,7 @@ int NewFrame(lua_State* L)
 	return 0;
 }
 
-int Render(lua_State* _UNUSED(L))
+int Render(lua_State* L)
 {
 	STACK_CHECKER(L, "render", 0);
 
@@ -2983,9 +2981,20 @@ int Render(lua_State* _UNUSED(L))
 	return 0;
 }
 
-int EndFrame(lua_State* _UNUSED(L))
+int EndFrame(lua_State* L)
 {
 	STACK_CHECKER(L, "endFrame", 0);
+	GidImGui* imgui = getImgui(L);
+	if (imgui->resizeCallback != nullptr)
+	{
+		delete imgui->resizeCallback;
+		imgui->resizeCallback = nullptr;
+	}
+	if (imgui->inputCallback != nullptr)
+	{
+		delete imgui->inputCallback;
+		imgui->inputCallback = nullptr;
+	}
 
 	ImGui::EndFrame();
 	return 0;
@@ -2999,7 +3008,7 @@ int EndFrame(lua_State* _UNUSED(L))
 
 int Begin(lua_State* L)
 {
-
+	
 	const char* name = luaL_checkstring(L, 2);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 4, 0);
 	if (lua_isnoneornil(L, 3))
@@ -3009,7 +3018,7 @@ int Begin(lua_State* L)
 		return 1;
 	}
 	STACK_CHECKER(L, "beginWindow", 2);
-	bool p_open = lua_toboolean(L, 3);
+	bool p_open = lua_toboolean(L, 3) > 0;
 	bool draw_flag = ImGui::Begin(name, &p_open, flags);
 	lua_pushboolean(L, p_open);
 	lua_pushboolean(L, draw_flag);
@@ -3248,15 +3257,14 @@ int SetNextWindowSize(lua_State* L)
 
 int SetNextWindowSizeConstraints(lua_State* L)
 {
-	STACK_CHECKER(L, "setNextWindowSizeConstraints", 0);
-
+	GidImGui* imgui = getImgui(L);
 	ImVec2 size_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
 	ImVec2 size_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
 	
-	if (lua_gettop(L) > 5)
+	if (lua_type(L, 6) == LUA_TFUNCTION)
 	{
-		CallbackData* data = new CallbackData(L, 6);
-		ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)data);
+		imgui->resizeCallback = new CallbackData(L, 6);
+		ImGui::SetNextWindowSizeConstraints(size_min, size_max, NextWindowSizeConstraintCallback, (void *)imgui->resizeCallback);		
 	}
 	else
 	{
@@ -5235,7 +5243,7 @@ int VFilledSliderInt(lua_State* L)
 int InputText(lua_State* L)
 {
 	STACK_CHECKER(L, "inputText", 2);
-
+	GidImGui* imgui = getImgui(L);
 	const char* label = luaL_checkstring(L, 2);
 	const char* text = luaL_checkstring(L, 3);
 	int buffer_size = luaL_checkinteger(L, 4);
@@ -5246,8 +5254,8 @@ int InputText(lua_State* L)
 	
 	if (lua_gettop(L) > 5)
 	{
-		CallbackData* data = new CallbackData(L, 6);
-		result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void*)data);
+		imgui->inputCallback = new CallbackData(L, 6);
+		result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void*)imgui->inputCallback);
 	}
 	else
 	{
