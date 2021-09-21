@@ -3,7 +3,7 @@
 // Nav settings
 
 #define _UNUSED(n)
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+//#pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
 
@@ -65,7 +65,6 @@
 static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
-static std::map<int, const char*> giderosCursorMap;
 
 namespace ImGui_impl
 {
@@ -438,7 +437,7 @@ static int convertGiderosMouseButton(const int button)
 		return -1;
 	}
 }
-
+/*
 static int getKeyboardModifiers(lua_State *L)
 {
 	lua_getglobal(L, "application");
@@ -450,6 +449,7 @@ static int getKeyboardModifiers(lua_State *L)
 	lua_remove(L, -1);
 	return mod;
 }
+*/
 
 static lua_Number getAppProperty(lua_State *L, const char* name)
 {
@@ -3076,6 +3076,7 @@ int BeginDisabled(lua_State* L)
 
 	int disabled = lua_toboolean(L, 2);
 	ImGui::BeginDisabled(disabled);
+	return 0;
 }
 
 int EndDisabled(lua_State* L)
@@ -3083,6 +3084,7 @@ int EndDisabled(lua_State* L)
 	STACK_CHECKER(L, "endDisabled", 1);
 
 	ImGui::EndDisabled();
+	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -6244,6 +6246,7 @@ int TableSetColumnEnabled(lua_State* L)
 	luaL_checktype(L, 3, LUA_TBOOLEAN);
 	bool v = lua_toboolean(L, 3);
 	ImGui::TableSetColumnEnabled(col, v);
+	return 0;
 }
 
 int TableHeadersRow(lua_State* _UNUSED(L))
@@ -11183,7 +11186,7 @@ int FontAtlas_Build(lua_State* L)
 	int width, height;
 	atlas->GetTexDataAsRGBA32(&pixels, &width, &height);
 	
-	g_id id = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, NULL);
+	g_id id = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, nullptr, 0);
 	atlas->TexID = (void *)id;
 	
 	return 0;
@@ -12183,7 +12186,22 @@ int UpdateMouseCursor(lua_State* L)
 #if defined(QT_CORE_LIB) || defined(WINSTORE)
 	GidImGui* imgui = getImgui(L);
 	ImGuiMouseCursor cursor = imgui->ctx->MouseCursor;
-	setApplicationCursor(L, giderosCursorMap[cursor]);
+	const char* giderosCursor = "arrow";
+	
+	switch (cursor)
+	{
+		case ImGuiMouseCursor_Hand:       giderosCursor = "pointingHand"; break;
+		case ImGuiMouseCursor_None:       giderosCursor = "blank";		  break;
+		case ImGuiMouseCursor_ResizeEW:   giderosCursor = "sizeHor";	  break;
+		case ImGuiMouseCursor_ResizeNS:   giderosCursor = "sizeVer";	  break;
+		case ImGuiMouseCursor_ResizeAll:  giderosCursor = "sizeAll";	  break;
+		case ImGuiMouseCursor_TextInput:  giderosCursor = "IBeam";		  break;
+		case ImGuiMouseCursor_NotAllowed: giderosCursor = "forbidden";	  break;
+		case ImGuiMouseCursor_ResizeNESW: giderosCursor = "sizeBDiag";	  break;
+		case ImGuiMouseCursor_ResizeNWSE: giderosCursor = "sizeFDiag";	  break;
+	}
+	
+	setApplicationCursor(L, giderosCursor);
 #endif
 	return 0;
 }
@@ -13407,7 +13425,7 @@ struct ExampleAppLog
 		LineOffsets.push_back(0);
 	}
 
-	void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
+	void    AddLog(const char* fmt, ...) //IM_FMTARGS(2)
 	{
 		int old_size = Buf.size();
 		va_list args;
@@ -14731,18 +14749,6 @@ int loader(lua_State* L)
 static void g_initializePlugin(lua_State* L)
 {
 	::L = L;
-	
-	giderosCursorMap[ImGuiMouseCursor_Hand]        = "pointingHand";
-	giderosCursorMap[ImGuiMouseCursor_None]        = "blank";
-	giderosCursorMap[ImGuiMouseCursor_Arrow]       = "arrow";
-	giderosCursorMap[ImGuiMouseCursor_ResizeEW]    = "sizeHor";
-	giderosCursorMap[ImGuiMouseCursor_ResizeNS]    = "sizeVer";
-	giderosCursorMap[ImGuiMouseCursor_ResizeAll]   = "sizeAll";
-	giderosCursorMap[ImGuiMouseCursor_TextInput]   = "IBeam";
-	giderosCursorMap[ImGuiMouseCursor_NotAllowed]  = "forbidden";
-	giderosCursorMap[ImGuiMouseCursor_ResizeNESW]  = "sizeBDiag";
-	giderosCursorMap[ImGuiMouseCursor_ResizeNWSE]  = "sizeFDiag";
-	
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
 	
