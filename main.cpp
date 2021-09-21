@@ -1360,7 +1360,7 @@ public:
 	bool resetTouchPosOnEnd;
 
 	void doDraw(const CurrentTransform&, float sx, float sy, float ex, float ey);
-	void emptyCallbackList();
+	void emptyCallbacksList();
 private:
 	VertexBuffer<Point2f> vertices;
 	VertexBuffer<Point2f> texcoords;
@@ -1787,7 +1787,7 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 
 GidImGui::~GidImGui()
 {
-	emptyCallbackList();
+	emptyCallbacksList();
 	ImGui::DestroyContext(this->ctx);
 	delete proxy;
 }
@@ -1870,7 +1870,7 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 	
 }
 
-void GidImGui::emptyCallbackList()
+void GidImGui::emptyCallbacksList()
 {
 	for (int i = callbacks.size() - 1; i >= 0; i--)
 	{
@@ -2994,7 +2994,7 @@ int EndFrame(lua_State* L)
 	STACK_CHECKER(L, "endFrame", 0);
 
 	GidImGui* imgui = getImgui(L);
-	imgui->emptyCallbackList();
+	imgui->emptyCallbacksList();
 	ImGui::EndFrame();
 	return 0;
 }
@@ -10147,7 +10147,7 @@ int IO_IsNavVisible(lua_State* L)
 
 int IO_SetNavInputsDownDuration(lua_State *L)
 {
-	STACK_CHECKER(L, "setNavNavInputsDownDuration", 0);
+	STACK_CHECKER(L, "setNavInputsDownDuration", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	int index = getNavButtonIndex(L);
@@ -10157,7 +10157,7 @@ int IO_SetNavInputsDownDuration(lua_State *L)
 
 int IO_GetNavInputsDownDuration(lua_State *L)
 {
-	STACK_CHECKER(L, "getNavNavInputsDownDuration", 1);
+	STACK_CHECKER(L, "getNavInputsDownDuration", 1);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	int index = getNavButtonIndex(L);
@@ -10167,7 +10167,7 @@ int IO_GetNavInputsDownDuration(lua_State *L)
 
 int IO_SetNavInputsDownDurationPrev(lua_State *L)
 {
-	STACK_CHECKER(L, "setNavNavInputsDownDurationPrev", 0);
+	STACK_CHECKER(L, "setNavInputsDownDurationPrev", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	int index = getNavButtonIndex(L);
@@ -10177,7 +10177,7 @@ int IO_SetNavInputsDownDurationPrev(lua_State *L)
 
 int IO_GetNavInputsDownDurationPrev(lua_State *L)
 {
-	STACK_CHECKER(L, "getNavNavInputsDownDurationPrev", 1);
+	STACK_CHECKER(L, "getNavInputsDownDurationPrev", 1);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	int index = getNavButtonIndex(L);
@@ -13748,10 +13748,10 @@ int loader(lua_State* L)
 		/// NAVIGATION +
 		{"setNavInput", IO_SetNavInput},
 		{"getNavInput", IO_GetNavInput},
-		{"setNavNavInputsDownDuration", IO_SetNavInputsDownDuration},
-		{"getNavNavInputsDownDuration", IO_GetNavInputsDownDuration},
-		{"setNavNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
-		{"getNavNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
+		{"setNavInputsDownDuration", IO_SetNavInputsDownDuration},
+		{"getNavInputsDownDuration", IO_GetNavInputsDownDuration},
+		{"setNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
+		{"getNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
 		{"isNavActive", IO_IsNavActive},
 		{"isNavVisible", IO_IsNavVisible},
 		/// NAVIGATION -
