@@ -549,7 +549,6 @@ scaleX, scaleY = ImGui:getContentRegionMax()
 w, h = ImGui:getContentRegionAvail()
 x, y = ImGui:getWindowContentRegionMin()
 x, y = ImGui:getWindowContentRegionMax()
-w = ImGui:getWindowContentRegionWidth()
 ```
 
 ## Windows Scrolling
@@ -1193,12 +1192,13 @@ ImGui:endFrame()
 ## Demos
 ```lua
 is_openFlag = ImGui:showUserGuide()
-is_openFlag = ImGui:showDemoWindow()
-is_openFlag = ImGui:showAboutWindow()
+is_openFlag = ImGui:showDemoWindow([p_open])
+is_openFlag = ImGui:showAboutWindow([p_open])
 is_openFlag = ImGui:showStyleEditor()
 is_openFlag = ImGui:showFontSelector()
-is_openFlag = ImGui:showMetricsWindow()
-is_openFlag = ImGui:showStyleSelector()
+is_openFlag = ImGui:showMetricsWindow([p_open])
+is_openFlag = ImGui:showStyleSelector(label)
+is_openFlag = ImGui:ShowStackToolWindow([p_open])
 ImGui:showLuaStyleEditor()
 ```
 
@@ -1366,6 +1366,7 @@ ImGui.FocusedFlags_AnyWindow
 ImGui.FocusedFlags_RootWindow
 ImGui.FocusedFlags_RootAndChildWindows
 ImGui.FocusedFlags_None
+ImGui.FocusedFlags_NoPopupHierarchy
 ```
 
 ### PopupFlags
