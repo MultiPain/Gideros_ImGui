@@ -641,6 +641,7 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImGuiFocusedFlags_RootWindow, "FocusedFlags_RootWindow");
 	BIND_IENUM(L, ImGuiFocusedFlags_RootAndChildWindows, "FocusedFlags_RootAndChildWindows");
 	BIND_IENUM(L, ImGuiFocusedFlags_None, "FocusedFlags_None");
+	BIND_IENUM(L, ImGuiFocusedFlags_NoPopupHierarchy, "FocusedFlags_NoPopupHierarchy");
 	
 	//ImGuiPopupFlags
 	BIND_IENUM(L, ImGuiPopupFlags_NoOpenOverExistingPopup, "PopupFlags_NoOpenOverExistingPopup");
@@ -3462,14 +3463,6 @@ int GetWindowContentRegionMax(lua_State* L)
 	lua_pushnumber(L, max.x);
 	lua_pushnumber(L, max.y);
 	return 2;
-}
-
-int GetWindowContentRegionWidth(lua_State* L)
-{
-	STACK_CHECKER(L, "getWindowContentRegionWidth", 1);
-
-	lua_pushnumber(L, ImGui::GetWindowContentRegionWidth());
-	return 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -9077,6 +9070,21 @@ int ShowStyleSelector(lua_State* L)
 	return 1;
 }
 
+int ShowStackToolWindow(lua_State* L)
+{
+	if (lua_isnoneornil(L, 2))
+	{
+		STACK_CHECKER(L, "showMetricsWindow", 0);
+		ImGui::ShowStackToolWindow();
+		return 0;
+	}
+	STACK_CHECKER(L, "showMetricsWindow", 1);
+	bool p_open = lua_toboolean(L, 2);
+	ImGui::ShowStackToolWindow(&p_open);
+	lua_pushboolean(L, p_open);
+	return 1;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// Style class
@@ -10053,8 +10061,18 @@ int IO_WantCaptureMouse(lua_State* L)
 	STACK_CHECKER(L, "wantCaptureMouse", 1);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	
+
 	lua_pushboolean(L, io.WantCaptureMouse);
+	return 1;
+}
+
+int IO_WantCaptureMouseUnlessPopupClose(lua_State* L)
+{
+	STACK_CHECKER(L, "wantCaptureMouse", 1);
+
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+
+	lua_pushboolean(L, io.WantCaptureMouseUnlessPopupClose);
 	return 1;
 }
 
@@ -13741,6 +13759,7 @@ int loader(lua_State* L)
 		{"resetKeysDown", IO_ResetKeysDown},
 		
 		{"wantCaptureMouse", IO_WantCaptureMouse},
+		{"wantCaptureMouseUnlessPopupClose", IO_WantCaptureMouseUnlessPopupClose},
 		{"wantCaptureKeyboard", IO_WantCaptureKeyboard},
 		{"wantTextInput", IO_WantTextInput},
 		{"wantSetMousePos", IO_WantSetMousePos},
@@ -14284,8 +14303,7 @@ int loader(lua_State* L)
 		{"getContentRegionAvail", GetContentRegionAvail},
 		{"getWindowContentRegionMin", GetWindowContentRegionMin},
 		{"getWindowContentRegionMax", GetWindowContentRegionMax},
-		{"getWindowContentRegionWidth", GetWindowContentRegionWidth},
-		
+
 		{"getScrollX", GetScrollX},
 		{"getScrollY", GetScrollY},
 		{"getScrollMaxX", GetScrollMaxX},
@@ -14586,6 +14604,7 @@ int loader(lua_State* L)
 		{"showMetricsWindow", ShowMetricsWindow},
 		{"showStyleSelector", ShowStyleSelector},
 		{"showLuaStyleEditor", ShowLuaStyleEditor},
+		{"showStackToolWindow", ShowStackToolWindow},
 		
 		// Logs
 		{"showLog", ShowLog},
