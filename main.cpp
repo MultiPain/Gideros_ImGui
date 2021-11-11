@@ -1374,6 +1374,11 @@ private:
 class EventListener : public EventDispatcher
 {
 private:
+		
+	// REMOVE ME
+	int prevMessage = 0;
+	int currMessage = 0;
+	
 	GidImGui* gidImGui;
 
 	void updateModifiers(int modifiers)
@@ -1543,6 +1548,9 @@ public:
 
 	void touchesBegin(TouchEvent* event)
 	{
+		prevMessage = currMessage;
+		currMessage = 1;
+		
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
@@ -1561,6 +1569,9 @@ public:
 
 	void touchesEnd(TouchEvent* event)
 	{
+		prevMessage = currMessage;
+		currMessage = 3;
+		
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1588,12 +1599,17 @@ public:
 
 	void touchesMove(TouchEvent* event)
 	{
+		prevMessage = currMessage;
+		currMessage = 2;
+		
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		IM_TRACEF("[MOVE] Button: %d, Converted: %d", touch.mouseButton, button);
+		
+		if (prevMessage != currMessage)
+			IM_TRACEF("[MOVE] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, true, touch.modifiers, touch.pressure);
 	}
 
@@ -1605,6 +1621,9 @@ public:
 
 	void touchesCancel(TouchEvent* event)
 	{
+		prevMessage = currMessage;
+		currMessage = 4;
+		
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
