@@ -12,7 +12,7 @@
 //-----------------------------------------------------------------------------
 
 //#define IS_BETA_BUILD // includes docking (droped for now)
-//#define IS_PRE_BUILD // test things
+#define IS_PRE_BUILD // test things
 
 #pragma once
 

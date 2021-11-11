@@ -1421,9 +1421,10 @@ private:
 			*/
 	}
 
-	void mouseUpOrDown(float x, float y, int button, bool state, int modifiers)
+	void mouseUpOrDown(float x, float y, int button, bool state, int modifiers, float pressure = 0.0f)
 	{
 		ImGuiIO& io = gidImGui->ctx->IO;
+		io.PenPressure = pressure;
 		io.MouseDown[button] = state;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
 		updateModifiers(modifiers);
@@ -1543,19 +1544,23 @@ public:
 
 	void touchesBegin(TouchEvent* event)
 	{
-		float x = event->event->touch.x;
-		float y = event->event->touch.y;
+		ginput_Touch touch = event->event->touch;
+		float x = touch.x;
+		float y = touch.y;
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, 0, true, event->event->touch.modifiers);
+		int button = convertGiderosMouseButton(touch.mouseButton);
+		mouseUpOrDown(x, y, button, true, event->event->touch.modifiers, touch.pressure);
 	}
 
-	void touchesBegin(float x, float y, int modifiers)
+	void touchesBegin(float x, float y, int modifiers, int touchButton, float pressure)
 	{
-		mouseUpOrDown(x, y, 0, true, modifiers);
+		int button = convertGiderosMouseButton(touchButton);
+		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesEnd(TouchEvent* event)
 	{
+		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
 		if (gidImGui->resetTouchPosOnEnd)
@@ -1565,33 +1570,39 @@ public:
 		}
 		else
 		{
-			x = event->event->touch.x;
-			y = event->event->touch.y;
+			x = touch.x;
+			y = touch.y;
 		}
+		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, 0, false, event->event->touch.modifiers);
+		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
-	void touchesEnd(float x, float y, int modifiers)
+	void touchesEnd(float x, float y, int modifiers, int touchButton, float pressure)
 	{
-		mouseUpOrDown(x, y, 0, false, modifiers);
+		int button = convertGiderosMouseButton(touchButton);
+		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}
 
 	void touchesMove(TouchEvent* event)
 	{
-		float x = event->event->touch.x;
-		float y = event->event->touch.y;
+		ginput_Touch touch = event->event->touch;
+		float x = touch.x;
+		float y = touch.y;
+		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, 0, true, event->event->touch.modifiers);
+		mouseUpOrDown(x, y, button, true, touch.modifiers, touch.pressure);
 	}
 
-	void touchesMove(float x, float y, int modifiers)
+	void touchesMove(float x, float y, int modifiers, int touchButton, float pressure)
 	{
-		mouseUpOrDown(x, y, 0, true, modifiers);
+		int button = convertGiderosMouseButton(touchButton);
+		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesCancel(TouchEvent* event)
 	{
+		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
 		if (gidImGui->resetTouchPosOnEnd)
@@ -1601,16 +1612,18 @@ public:
 		}
 		else
 		{
-			x = event->event->touch.x;
-			y = event->event->touch.y;
+			x = touch.x;
+			y = touch.y;
 		}
+		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, 0, false, event->event->touch.modifiers);
+		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
-	void touchesCancel(float x, float y, int modifiers)
+	void touchesCancel(float x, float y, int modifiers, int touchButton, float pressure)
 	{
-		mouseUpOrDown(x, y, 0, false, modifiers);
+		int button = convertGiderosMouseButton(touchButton);
+		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}
 
 	///////////////////////////////////////////////////
@@ -2879,7 +2892,9 @@ int TouchCancel(lua_State* L)
 	float x = getsubfield(L, "touch", "x");
 	float y = getsubfield(L, "touch", "y");
 	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	imgui->eventListener->touchesCancel(x, y, modifiers);
+	int button = getsubfieldi(L, "touch", "mouseButton");
+	float presure = getsubfield(L, "touch", "pressure");
+	imgui->eventListener->touchesCancel(x, y, modifiers, button, presure);
 	return 0;
 }
 
@@ -2891,7 +2906,9 @@ int TouchMove(lua_State* L)
 	float x = getsubfield(L, "touch", "x");
 	float y = getsubfield(L, "touch", "y");
 	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	imgui->eventListener->touchesMove(x, y, modifiers);
+	int button = getsubfieldi(L, "touch", "mouseButton");
+	float presure = getsubfield(L, "touch", "pressure");
+	imgui->eventListener->touchesMove(x, y, modifiers, button, presure);
 	return 0;
 }
 
@@ -2903,7 +2920,9 @@ int TouchBegin(lua_State* L)
 	float x = getsubfield(L, "touch", "x");
 	float y = getsubfield(L, "touch", "y");
 	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	imgui->eventListener->touchesBegin(x, y, modifiers);
+	int button = getsubfieldi(L, "touch", "mouseButton");
+	float presure = getsubfield(L, "touch", "pressure");
+	imgui->eventListener->touchesBegin(x, y, modifiers, button, presure);
 	return 0;
 }
 
@@ -2915,7 +2934,9 @@ int TouchEnd(lua_State* L)
 	float x = getsubfield(L, "touch", "x");
 	float y = getsubfield(L, "touch", "y");
 	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	imgui->eventListener->touchesEnd(x, y, modifiers);
+	int button = getsubfieldi(L, "touch", "mouseButton");
+	float pressure = getsubfield(L, "touch", "pressure");
+	imgui->eventListener->touchesEnd(x, y, modifiers, button, pressure);
 	return 0;
 }
 
@@ -10892,6 +10913,15 @@ int IO_ResetKeysDown(lua_State* L)
 	return 0;
 }
 
+int IO_GetPenPressure(lua_State* L)
+{
+	STACK_CHECKER(L, "getPenPressure", 1);
+	
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	lua_pushnumber(L, io.PenPressure);
+	return 1;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
 /// FONTS API
@@ -13850,6 +13880,8 @@ int loader(lua_State* L)
 		
 		{"getBackendPlatformName", IO_GetBackendPlatformName},
 		{"getBackendRendererName", IO_GetBackendRendererName},
+		
+		{"getPenPressure", IO_GetPenPressure},
 		
 		{NULL, NULL}
 	};
