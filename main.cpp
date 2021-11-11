@@ -419,9 +419,9 @@ static int convertGiderosMouseButton(const int button)
 {
 	switch (button)
 	{
+	case GINPUT_NO_BUTTON:
 	case GINPUT_LEFT_BUTTON:
 		return 0;
-	case GINPUT_NO_BUTTON:
 	case GINPUT_RIGHT_BUTTON:
 		return 1;
 	case GINPUT_MIDDLE_BUTTON:
@@ -1548,6 +1548,8 @@ public:
 		float y = touch.y;
 		scaleMouseCoords(x, y);
 		int button = convertGiderosMouseButton(touch.mouseButton);
+		
+		IM_TRACEF("[BEGIN] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, true, event->event->touch.modifiers, touch.pressure);
 	}
 
@@ -1574,6 +1576,7 @@ public:
 		}
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
+		IM_TRACEF("[END] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
@@ -1590,6 +1593,7 @@ public:
 		float y = touch.y;
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
+		IM_TRACEF("[MOVE] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, true, touch.modifiers, touch.pressure);
 	}
 
@@ -1616,6 +1620,7 @@ public:
 		}
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
+		IM_TRACEF("[CANCEL] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
