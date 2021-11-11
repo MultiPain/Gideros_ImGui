@@ -417,11 +417,11 @@ static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float
 
 static int convertGiderosMouseButton(const int button)
 {
-	LUA_ASSERTF(button >= 0, "Button index must be >= 0, but was: %d", button);
+	//LUA_ASSERTF(button >= 0, "Button index must be >= 0, but was: %d", button);
 	switch (button)
 	{
-	case GINPUT_NO_BUTTON:
-		return 4; // unused by ImGui itself
+	//case GINPUT_NO_BUTTON:
+	//	return 4; // unused by ImGui itself
 	case GINPUT_LEFT_BUTTON:
 		return 0;
 	case GINPUT_RIGHT_BUTTON:
@@ -433,7 +433,7 @@ static int convertGiderosMouseButton(const int button)
 	case 16:
 		return 4;
 	default:
-		LUA_THROW_ERRORF("Incorrect button index. Expected 0, 1, 2, 4, 8 or 16, but got: %d", button);
+		//LUA_THROW_ERRORF("Incorrect button index. Expected 0, 1, 2, 4, 8 or 16, but got: %d", button);
 		return -1;
 	}
 }
@@ -1423,6 +1423,8 @@ private:
 
 	void mouseUpOrDown(float x, float y, int button, bool state, int modifiers, float pressure = 0.0f)
 	{
+		if (button == -1)
+			return;
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.PenPressure = pressure;
 		io.MouseDown[button] = state;
