@@ -1467,6 +1467,22 @@ public:
 		return ImVec2(x, y);
 	}
 
+	void updateIOButton(int button)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.GiderosButtonCode = button;
+	}
+
+	void updateIOButton(MouseEvent* event)
+	{
+		updateIOButton(event->button);
+	}
+
+	void updateIOButton(TouchEvent* event)
+	{
+		updateIOButton(event->event->touch.mouseButton);
+	}
+
 	///////////////////////////////////////////////////
 	///
 	/// MOUSE
@@ -1475,6 +1491,9 @@ public:
 
 	void mouseDown(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1483,11 +1502,17 @@ public:
 
 	void mouseDown(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button);
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
 
 	void mouseUp(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1496,16 +1521,25 @@ public:
 
 	void mouseUp(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button);
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), false, modifiers);
 	}
 
 	void mouseMove(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button);
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
 
 	void mouseHover(float x, float y, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(0);
+
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
 		updateModifiers(modifiers);
@@ -1513,6 +1547,9 @@ public:
 
 	void mouseHover(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1521,6 +1558,9 @@ public:
 
 	void mouseWheel(float x, float y, int wheel, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(0);
+
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
@@ -1529,6 +1569,9 @@ public:
 
 	void mouseWheel(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1543,6 +1586,9 @@ public:
 
 	void touchesBegin(TouchEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
@@ -1553,12 +1599,18 @@ public:
 
 	void touchesBegin(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton);
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesEnd(TouchEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1579,12 +1631,18 @@ public:
 
 	void touchesEnd(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton);
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}
 
 	void touchesMove(TouchEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
@@ -1595,12 +1653,18 @@ public:
 
 	void touchesMove(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton);
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesCancel(TouchEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event);
+
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1621,6 +1685,9 @@ public:
 
 	void touchesCancel(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton);
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}

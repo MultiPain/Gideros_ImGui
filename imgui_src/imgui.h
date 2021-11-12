@@ -1949,6 +1949,8 @@ struct ImGuiIO
     ImWchar16   InputQueueSurrogate;            // For AddInputCharacterUTF16
     ImVector<ImWchar> InputQueueCharacters;     // Queue of _characters_ input (obtained by platform backend). Fill using AddInputCharacter() helper.
 
+	//DEBUG
+	int GiderosButtonCode = 0;
     IMGUI_API   ImGuiIO();
 };
 
