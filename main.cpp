@@ -419,9 +419,9 @@ static int convertGiderosMouseButton(const int button)
 {
 	switch (button)
 	{
-	case GINPUT_NO_BUTTON:
 	case GINPUT_LEFT_BUTTON:
 		return 0;
+	case GINPUT_NO_BUTTON:
 	case GINPUT_RIGHT_BUTTON:
 		return 1;
 	case GINPUT_MIDDLE_BUTTON:
@@ -1374,11 +1374,6 @@ private:
 class EventListener : public EventDispatcher
 {
 private:
-		
-	// REMOVE ME
-	int prevMessage = 0;
-	int currMessage = 0;
-	
 	GidImGui* gidImGui;
 
 	void updateModifiers(int modifiers)
@@ -1472,6 +1467,30 @@ public:
 		return ImVec2(x, y);
 	}
 
+	void updateIOButton(int button, bool state, const char* eventName)
+	{
+		if (button >= 0 && button <= 64)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.GiderosButtonCode[button] = state;
+			io.GiderosEventType[button] = eventName;
+		}
+		else
+		{
+			LUA_PRINTF("WARNING! Mouse button index out of range. Expected [0..64], but was: %d", button)
+		}
+	}
+
+	void updateIOButton(MouseEvent* event, bool state, const char* eventName)
+	{
+		updateIOButton(event->button, state, eventName);
+	}
+
+	void updateIOButton(TouchEvent* event, bool state, const char* eventName)
+	{
+		updateIOButton(event->event->touch.mouseButton, state, eventName);
+	}
+
 	///////////////////////////////////////////////////
 	///
 	/// MOUSE
@@ -1480,6 +1499,9 @@ public:
 
 	void mouseDown(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event, true, event->type());
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1488,11 +1510,17 @@ public:
 
 	void mouseDown(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button, true, "mouseDown");
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
 
 	void mouseUp(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event, false, event->type());
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1501,16 +1529,25 @@ public:
 
 	void mouseUp(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button, false, "mouseUp");
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), false, modifiers);
 	}
 
 	void mouseMove(float x, float y, int button, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(button, true, "mouseMove");
+
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
 
 	void mouseHover(float x, float y, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(0, false, "mouseHover");
+
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
 		updateModifiers(modifiers);
@@ -1518,6 +1555,9 @@ public:
 
 	void mouseHover(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event, false, event->type());
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1526,6 +1566,9 @@ public:
 
 	void mouseWheel(float x, float y, int wheel, int modifiers)
 	{
+		//DEBUG
+		updateIOButton(0, false, "mouseWheel");
+
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
@@ -1534,6 +1577,9 @@ public:
 
 	void mouseWheel(MouseEvent* event)
 	{
+		//DEBUG
+		updateIOButton(event, false, event->type());
+
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1548,30 +1594,31 @@ public:
 
 	void touchesBegin(TouchEvent* event)
 	{
-		prevMessage = currMessage;
-		currMessage = 1;
-		
+		//DEBUG
+		updateIOButton(event, true, event->type());
+
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
 		scaleMouseCoords(x, y);
 		int button = convertGiderosMouseButton(touch.mouseButton);
-		
-		IM_TRACEF("[BEGIN] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, true, event->event->touch.modifiers, touch.pressure);
 	}
 
 	void touchesBegin(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton, true, "touchesBegin");
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesEnd(TouchEvent* event)
 	{
-		prevMessage = currMessage;
-		currMessage = 3;
-		
+		//DEBUG
+		updateIOButton(event, false, event->type());
+
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1587,43 +1634,45 @@ public:
 		}
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		IM_TRACEF("[END] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
 	void touchesEnd(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton, false, "touchesEnd");
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}
 
 	void touchesMove(TouchEvent* event)
 	{
-		prevMessage = currMessage;
-		currMessage = 2;
-		
+		//DEBUG
+		updateIOButton(event, true, event->type());
+
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		
-		if (prevMessage != currMessage)
-			IM_TRACEF("[MOVE] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, true, touch.modifiers, touch.pressure);
 	}
 
 	void touchesMove(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton, true, "touchesMove");
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
 	}
 
 	void touchesCancel(TouchEvent* event)
 	{
-		prevMessage = currMessage;
-		currMessage = 4;
-		
+		//DEBUG
+		updateIOButton(event, false, event->type());
+
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1639,12 +1688,14 @@ public:
 		}
 		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		IM_TRACEF("[CANCEL] Button: %d, Converted: %d", touch.mouseButton, button);
 		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
 	}
 
 	void touchesCancel(float x, float y, int modifiers, int touchButton, float pressure)
 	{
+		//DEBUG
+		updateIOButton(touchButton, false, "touchesCancel");
+
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
 	}
