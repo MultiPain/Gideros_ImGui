@@ -5519,7 +5519,9 @@ static void ShowDemoWindowMisc()
                 ImGui::Text("Mouse pos: <INVALID>");
             ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
 			//DEBUG
-			ImGui::Text("Gideros code: %d", io.GiderosButtonCode);
+			ImGui::Text("Gideros code:");  for (int i = 0; i < IM_ARRAYSIZE(io.GiderosButtonCode); i++) if (io.GiderosButtonCode[i]) { ImGui::SameLine(); ImGui::Text("[%d]", i); }
+			ImGui::Text("Gideros state:"); for (int i = 0; i < IM_ARRAYSIZE(io.GiderosEventType);  i++) if (io.GiderosEventType[i])  { ImGui::SameLine(); ImGui::Text("[%d]: %s", i, io.GiderosEventType[i]);  }
+
             ImGui::Text("Mouse down:");     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDown(i))         { ImGui::SameLine(); ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
             ImGui::Text("Mouse clicked:");  for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseClicked(i))      { ImGui::SameLine(); ImGui::Text("b%d", i); }
             ImGui::Text("Mouse dblclick:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDoubleClicked(i)){ ImGui::SameLine(); ImGui::Text("b%d", i); }

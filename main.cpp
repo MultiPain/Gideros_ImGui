@@ -1467,20 +1467,28 @@ public:
 		return ImVec2(x, y);
 	}
 
-	void updateIOButton(int button)
+	void updateIOButton(int button, bool state, const char* eventName)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.GiderosButtonCode = button;
+		if (button >= 0 && button <= 64)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.GiderosButtonCode[button] = state;
+			io.GiderosEventType[button] = eventName;
+		}
+		else
+		{
+			LUA_PRINTF("WARNING! Mouse button index out of range. Expected [0..64], but was: %d", button)
+		}
 	}
 
-	void updateIOButton(MouseEvent* event)
+	void updateIOButton(MouseEvent* event, bool state, const char* eventName)
 	{
-		updateIOButton(event->button);
+		updateIOButton(event->button, state, eventName);
 	}
 
-	void updateIOButton(TouchEvent* event)
+	void updateIOButton(TouchEvent* event, bool state, const char* eventName)
 	{
-		updateIOButton(event->event->touch.mouseButton);
+		updateIOButton(event->event->touch.mouseButton, state, eventName);
 	}
 
 	///////////////////////////////////////////////////
@@ -1492,7 +1500,7 @@ public:
 	void mouseDown(MouseEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, true, event->type());
 
 		float x = (float)event->x;
 		float y = (float)event->y;
@@ -1503,7 +1511,7 @@ public:
 	void mouseDown(float x, float y, int button, int modifiers)
 	{
 		//DEBUG
-		updateIOButton(button);
+		updateIOButton(button, true, "mouseDown");
 
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
@@ -1511,7 +1519,7 @@ public:
 	void mouseUp(MouseEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, false, event->type());
 
 		float x = (float)event->x;
 		float y = (float)event->y;
@@ -1522,7 +1530,7 @@ public:
 	void mouseUp(float x, float y, int button, int modifiers)
 	{
 		//DEBUG
-		updateIOButton(button);
+		updateIOButton(button, false, "mouseUp");
 
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), false, modifiers);
 	}
@@ -1530,7 +1538,7 @@ public:
 	void mouseMove(float x, float y, int button, int modifiers)
 	{
 		//DEBUG
-		updateIOButton(button);
+		updateIOButton(button, true, "mouseMove");
 
 		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
 	}
@@ -1538,7 +1546,7 @@ public:
 	void mouseHover(float x, float y, int modifiers)
 	{
 		//DEBUG
-		updateIOButton(0);
+		updateIOButton(0, false, "mouseHover");
 
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
@@ -1548,7 +1556,7 @@ public:
 	void mouseHover(MouseEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, false, event->type());
 
 		float x = (float)event->x;
 		float y = (float)event->y;
@@ -1559,7 +1567,7 @@ public:
 	void mouseWheel(float x, float y, int wheel, int modifiers)
 	{
 		//DEBUG
-		updateIOButton(0);
+		updateIOButton(0, false, "mouseWheel");
 
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
@@ -1570,7 +1578,7 @@ public:
 	void mouseWheel(MouseEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, false, event->type());
 
 		float x = (float)event->x;
 		float y = (float)event->y;
@@ -1587,7 +1595,7 @@ public:
 	void touchesBegin(TouchEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, true, event->type());
 
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
@@ -1600,7 +1608,7 @@ public:
 	void touchesBegin(float x, float y, int modifiers, int touchButton, float pressure)
 	{
 		//DEBUG
-		updateIOButton(touchButton);
+		updateIOButton(touchButton, true, "touchesBegin");
 
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
@@ -1609,7 +1617,7 @@ public:
 	void touchesEnd(TouchEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, false, event->type());
 
 		ginput_Touch touch = event->event->touch;
 		float x;
@@ -1632,7 +1640,7 @@ public:
 	void touchesEnd(float x, float y, int modifiers, int touchButton, float pressure)
 	{
 		//DEBUG
-		updateIOButton(touchButton);
+		updateIOButton(touchButton, false, "touchesEnd");
 
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
@@ -1641,7 +1649,7 @@ public:
 	void touchesMove(TouchEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, true, event->type());
 
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
@@ -1654,7 +1662,7 @@ public:
 	void touchesMove(float x, float y, int modifiers, int touchButton, float pressure)
 	{
 		//DEBUG
-		updateIOButton(touchButton);
+		updateIOButton(touchButton, true, "touchesMove");
 
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, true, modifiers, pressure);
@@ -1663,7 +1671,7 @@ public:
 	void touchesCancel(TouchEvent* event)
 	{
 		//DEBUG
-		updateIOButton(event);
+		updateIOButton(event, false, event->type());
 
 		ginput_Touch touch = event->event->touch;
 		float x;
@@ -1686,7 +1694,7 @@ public:
 	void touchesCancel(float x, float y, int modifiers, int touchButton, float pressure)
 	{
 		//DEBUG
-		updateIOButton(touchButton);
+		updateIOButton(touchButton, false, "touchesCancel");
 
 		int button = convertGiderosMouseButton(touchButton);
 		mouseUpOrDown(x, y, button, false, modifiers, pressure);
