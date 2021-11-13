@@ -502,7 +502,7 @@ static ginput_Touch getTouchInfo(lua_State* L)
 	info.pressure = lua_tonumber(L, -1);
 	lua_pop(L, 1);
 	
-	lua_getfield(L, -1, "touchType");
+	lua_getfield(L, -1, "type");
 	const char* luaTouchType = lua_tostring(L, -1);
 	for (int i = 0; i < 4; i++) {
 		if (!strcmp(luaTouchType, touchTypes[i]))
@@ -1485,6 +1485,7 @@ public:
 
 	void mouseUpOrDown(ginput_Touch touch, bool state)
 	{
+		//LUA_PRINTF("POS: (%f; %f)\nBTN:%d\nSTATE: %d\nMODS: %d\nPRESSURE: %f\n=================", touch.x, touch.y, touch.mouseButton, state?1:0, touch.modifiers, touch.pressure);
 		mouseUpOrDown(touch.x, touch.y, touch.mouseButton, state, touch.modifiers, touch.pressure);
 	}
 	
