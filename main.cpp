@@ -65,6 +65,7 @@
 static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
+static const char* touchTypes[4]{"finger","pen","mouse","penTablet"};
 
 namespace ImGui_impl
 {
@@ -415,7 +416,7 @@ static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float
 		*ty = y;
 }
 
-static int convertGiderosMouseButton(const int button)
+static int convertMouseButton(const int button)
 {
 	switch (button)
 	{
@@ -475,38 +476,73 @@ static int luaL_optboolean(lua_State* L, int narg, int def)
 	return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
 }
 
-static lua_Number getfield(lua_State* L, const char* key)
+static ginput_Touch getTouchInfo(lua_State* L)
 {
-	lua_getfield(L, -1, key);
-	lua_Number result = lua_tonumber(L, -1);
+	ginput_Touch info;
+	
+	lua_getfield(L, -1, "touch");
+	
+	lua_getfield(L, -1, "x");
+	info.x = lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	return result;
-}
-
-static int getfieldi(lua_State* L, const char* key)
-{
-	lua_getfield(L, -1, key);
-	int result = lua_tointeger(L, -1);
+	
+	lua_getfield(L, -1, "y");
+	info.y = lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	return result;
+	
+	lua_getfield(L, -1, "modifiers");
+	info.modifiers = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "mouseButton");
+	info.mouseButton = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "pressure");
+	info.pressure = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "touchType");
+	const char* luaTouchType = lua_tostring(L, -1);
+	for (int i = 0; i < 4; i++) {
+		if (!strcmp(luaTouchType, touchTypes[i]))
+		{
+			info.touchType = i;
+			break;
+		}
+	}	
+	lua_pop(L, 1);
+	
+	lua_pop(L, 1); // pop "touch" table
+	
+	return info;
 }
 
-static lua_Number getsubfield(lua_State* L, const char* field, const char* key)
+static ginput_MouseEvent getMouseInfo(lua_State* L)
 {
-	lua_getfield(L, -1, field);
-	lua_getfield(L, -1, key);
-	lua_Number result = lua_tonumber(L, -1);
-	lua_pop(L, 2);
-	return result;
-}
-
-static int getsubfieldi(lua_State* L, const char* field, const char* key)
-{
-	lua_getfield(L, -1, field);
-	lua_getfield(L, -1, key);
-	int result = lua_tointeger(L, -1);
-	lua_pop(L, 2);
-	return result;
+	ginput_MouseEvent info;
+	
+	lua_getfield(L, -1, "x");
+	info.x = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "y");
+	info.y = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "button");
+	info.button = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "wheel");
+	info.wheel = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	
+	lua_getfield(L, -1, "modifiers");
+	info.modifiers = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	
+	return info;
 }
 
 ImGuiID checkID(lua_State* L, int idx = 2)
@@ -1396,36 +1432,16 @@ private:
 			io.KeyCtrl = state;
 		if (keyCode == GINPUT_KEY_ALT)
 			io.KeyAlt = state;
-		/*
-			int mod = getKeyboardModifiers(L);
-			
-			if (!mod)
-			{
-				if (keyCode == GINPUT_KEY_SHIFT)
-					io.KeyShift = state;
-				if (keyCode == GINPUT_KEY_CTRL)
-					io.KeyCtrl = state;
-				if (keyCode == GINPUT_KEY_ALT)
-					io.KeyAlt = state;
-			}
-			else
-			{
-				io.KeyAlt = mod & GINPUT_ALT_MODIFIER;
-				io.KeyCtrl = mod & GINPUT_CTRL_MODIFIER;
-				io.KeyShift = mod & GINPUT_SHIFT_MODIFIER;
-				io.KeySuper = mod & GINPUT_META_MODIFIER;
-			}
-			*/
 	}
 
-	void mouseUpOrDown(float x, float y, int button, bool state, int modifiers, float pressure = 0.0f)
+	void mouseUpOrDown(float x, float y, int giderosButton, bool state, int modifiers, float pressure = 0.0f)
 	{
-		if (button == -1)
-			return;
+		int imguiButton = convertMouseButton(giderosButton);
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.PenPressure = pressure;
-		io.MouseDown[button] = state;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+		io.PenPressure = pressure;
+		if (giderosButton)
+			io.MouseDown[imguiButton] = state;
 		updateModifiers(modifiers);
 	}
 
@@ -1467,30 +1483,16 @@ public:
 		return ImVec2(x, y);
 	}
 
-	void updateIOButton(int button, bool state, const char* eventName)
+	void mouseUpOrDown(ginput_Touch touch, bool state)
 	{
-		if (button >= 0 && button <= 64)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			io.GiderosButtonCode[button] = state;
-			io.GiderosEventType[button] = eventName;
-		}
-		else
-		{
-			LUA_PRINTF("WARNING! Mouse button index out of range. Expected [0..64], but was: %d", button)
-		}
+		mouseUpOrDown(touch.x, touch.y, touch.mouseButton, state, touch.modifiers, touch.pressure);
 	}
-
-	void updateIOButton(MouseEvent* event, bool state, const char* eventName)
+	
+	void mouseUpOrDown(ginput_MouseEvent mouse, bool state)
 	{
-		updateIOButton(event->button, state, eventName);
+		mouseUpOrDown(mouse.x, mouse.y, mouse.button, state, mouse.modifiers);
 	}
-
-	void updateIOButton(TouchEvent* event, bool state, const char* eventName)
-	{
-		updateIOButton(event->event->touch.mouseButton, state, eventName);
-	}
-
+	
 	///////////////////////////////////////////////////
 	///
 	/// MOUSE
@@ -1499,55 +1501,27 @@ public:
 
 	void mouseDown(MouseEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, true, event->type());
-
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), true, event->modifiers);
-	}
-
-	void mouseDown(float x, float y, int button, int modifiers)
-	{
-		//DEBUG
-		updateIOButton(button, true, "mouseDown");
-
-		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
+		mouseUpOrDown(x, y, event->button, true, event->modifiers);
 	}
 
 	void mouseUp(MouseEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, false, event->type());
-
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, convertGiderosMouseButton(event->button), false, event->modifiers);
-	}
-
-	void mouseUp(float x, float y, int button, int modifiers)
-	{
-		//DEBUG
-		updateIOButton(button, false, "mouseUp");
-
-		mouseUpOrDown(x, y, convertGiderosMouseButton(button), false, modifiers);
+		mouseUpOrDown(x, y, event->button, false, event->modifiers);
 	}
 
 	void mouseMove(float x, float y, int button, int modifiers)
 	{
-		//DEBUG
-		updateIOButton(button, true, "mouseMove");
-
-		mouseUpOrDown(x, y, convertGiderosMouseButton(button), true, modifiers);
+		mouseUpOrDown(x, y, button, true, modifiers);
 	}
 
 	void mouseHover(float x, float y, int modifiers)
 	{
-		//DEBUG
-		updateIOButton(0, false, "mouseHover");
-
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
 		updateModifiers(modifiers);
@@ -1555,9 +1529,6 @@ public:
 
 	void mouseHover(MouseEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, false, event->type());
-
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1566,9 +1537,6 @@ public:
 
 	void mouseWheel(float x, float y, int wheel, int modifiers)
 	{
-		//DEBUG
-		updateIOButton(0, false, "mouseWheel");
-
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
 		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
@@ -1577,9 +1545,6 @@ public:
 
 	void mouseWheel(MouseEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, false, event->type());
-
 		float x = (float)event->x;
 		float y = (float)event->y;
 		scaleMouseCoords(x, y);
@@ -1594,31 +1559,15 @@ public:
 
 	void touchesBegin(TouchEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, true, event->type());
-
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
 		scaleMouseCoords(x, y);
-		int button = convertGiderosMouseButton(touch.mouseButton);
-		mouseUpOrDown(x, y, button, true, event->event->touch.modifiers, touch.pressure);
-	}
-
-	void touchesBegin(float x, float y, int modifiers, int touchButton, float pressure)
-	{
-		//DEBUG
-		updateIOButton(touchButton, true, "touchesBegin");
-
-		int button = convertGiderosMouseButton(touchButton);
-		mouseUpOrDown(x, y, button, true, modifiers, pressure);
+		mouseUpOrDown(x, y, touch.mouseButton, true, event->event->touch.modifiers, touch.pressure);
 	}
 
 	void touchesEnd(TouchEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, false, event->type());
-
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1632,47 +1581,21 @@ public:
 			x = touch.x;
 			y = touch.y;
 		}
-		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
-	}
-
-	void touchesEnd(float x, float y, int modifiers, int touchButton, float pressure)
-	{
-		//DEBUG
-		updateIOButton(touchButton, false, "touchesEnd");
-
-		int button = convertGiderosMouseButton(touchButton);
-		mouseUpOrDown(x, y, button, false, modifiers, pressure);
+		mouseUpOrDown(x, y, touch.mouseButton, false, touch.modifiers, touch.pressure);
 	}
 
 	void touchesMove(TouchEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, true, event->type());
-
 		ginput_Touch touch = event->event->touch;
 		float x = touch.x;
 		float y = touch.y;
-		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, button, true, touch.modifiers, touch.pressure);
-	}
-
-	void touchesMove(float x, float y, int modifiers, int touchButton, float pressure)
-	{
-		//DEBUG
-		updateIOButton(touchButton, true, "touchesMove");
-
-		int button = convertGiderosMouseButton(touchButton);
-		mouseUpOrDown(x, y, button, true, modifiers, pressure);
+		mouseUpOrDown(x, y, touch.mouseButton, true, touch.modifiers, touch.pressure);		
 	}
 
 	void touchesCancel(TouchEvent* event)
 	{
-		//DEBUG
-		updateIOButton(event, false, event->type());
-
 		ginput_Touch touch = event->event->touch;
 		float x;
 		float y;
@@ -1686,18 +1609,8 @@ public:
 			x = touch.x;
 			y = touch.y;
 		}
-		int button = convertGiderosMouseButton(touch.mouseButton);
 		scaleMouseCoords(x, y);
-		mouseUpOrDown(x, y, button, false, touch.modifiers, touch.pressure);
-	}
-
-	void touchesCancel(float x, float y, int modifiers, int touchButton, float pressure)
-	{
-		//DEBUG
-		updateIOButton(touchButton, false, "touchesCancel");
-
-		int button = convertGiderosMouseButton(touchButton);
-		mouseUpOrDown(x, y, button, false, modifiers, pressure);
+		mouseUpOrDown(x, y, touch.mouseButton, false, touch.modifiers, touch.pressure);
 	}
 
 	///////////////////////////////////////////////////
@@ -2882,13 +2795,8 @@ int MouseHover(lua_State* L)
 	STACK_CHECKER(L, "onMouseHover", 0);
 
 	GidImGui* imgui = getImgui(L);
-	
-	float event_x = getfield(L, "x");
-	float event_y = getfield(L, "y");
-	int modifiers = getfieldi(L, "modifiers");
-	
-	imgui->eventListener->mouseHover(event_x, event_y, modifiers);
-	
+	ginput_MouseEvent mouse = getMouseInfo(L);		
+	imgui->eventListener->mouseHover(mouse.x, mouse.y, mouse.modifiers);
 	return 0;
 }
 
@@ -2897,14 +2805,8 @@ int MouseMove(lua_State* L)
 	STACK_CHECKER(L, "onMouseMove", 0);
 
 	GidImGui* imgui = getImgui(L);
-	
-	float event_x = getfield(L, "x");
-	float event_y = getfield(L, "y");
-	int button = getfield(L, "button");
-	int modifiers = getfieldi(L, "modifiers");
-	
-	imgui->eventListener->mouseMove(event_x, event_y, button, modifiers);
-	
+	ginput_MouseEvent mouse = getMouseInfo(L);	
+	imgui->eventListener->mouseUpOrDown(mouse, true);	
 	return 0;
 }
 
@@ -2913,14 +2815,8 @@ int MouseDown(lua_State* L)
 	STACK_CHECKER(L, "onMouseDown", 0);
 
 	GidImGui* imgui = getImgui(L);
-	
-	float event_x = getfield(L, "x");
-	float event_y = getfield(L, "y");
-	int button = getfieldi(L, "button");
-	int modifiers = getfieldi(L, "modifiers");
-	
-	imgui->eventListener->mouseDown(event_x, event_y, button, modifiers);
-	
+	ginput_MouseEvent mouse = getMouseInfo(L);	
+	imgui->eventListener->mouseUpOrDown(mouse, true);
 	return 0;
 }
 
@@ -2929,14 +2825,8 @@ int MouseUp(lua_State* L)
 	STACK_CHECKER(L, "onMouseUp", 0);
 
 	GidImGui* imgui = getImgui(L);
-	
-	float event_x = getfield(L, "x");
-	float event_y = getfield(L, "y");
-	int button = getfieldi(L, "button");
-	int modifiers = getfieldi(L, "modifiers");
-	
-	imgui->eventListener->mouseUp(event_x, event_y, button, modifiers);
-	
+	ginput_MouseEvent mouse = getMouseInfo(L);	
+	imgui->eventListener->mouseUpOrDown(mouse, false);
 	return 0;
 }
 
@@ -2945,14 +2835,8 @@ int MouseWheel(lua_State* L)
 	STACK_CHECKER(L, "onMouseWheel", 0);
 
 	GidImGui* imgui = getImgui(L);
-	
-	float event_x = getfield(L, "x");
-	float event_y = getfield(L, "y");
-	int wheel = getfieldi(L, "wheel");
-	int modifiers = getfieldi(L, "modifiers");
-	
-	imgui->eventListener->mouseWheel(event_x, event_y, wheel, modifiers);
-	
+	ginput_MouseEvent mouse = getMouseInfo(L);		
+	imgui->eventListener->mouseWheel(mouse.x, mouse.y, mouse.wheel, mouse.modifiers);
 	return 0;
 }
 
@@ -2963,12 +2847,8 @@ int TouchCancel(lua_State* L)
 	STACK_CHECKER(L, "onTouchCancel", 0);
 
 	GidImGui* imgui = getImgui(L);
-	float x = getsubfield(L, "touch", "x");
-	float y = getsubfield(L, "touch", "y");
-	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	int button = getsubfieldi(L, "touch", "mouseButton");
-	float presure = getsubfield(L, "touch", "pressure");
-	imgui->eventListener->touchesCancel(x, y, modifiers, button, presure);
+	ginput_Touch touch = getTouchInfo(L);
+	imgui->eventListener->mouseUpOrDown(touch, false);
 	return 0;
 }
 
@@ -2977,12 +2857,8 @@ int TouchMove(lua_State* L)
 	STACK_CHECKER(L, "onTouchMove", 0);
 
 	GidImGui* imgui = getImgui(L);
-	float x = getsubfield(L, "touch", "x");
-	float y = getsubfield(L, "touch", "y");
-	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	int button = getsubfieldi(L, "touch", "mouseButton");
-	float presure = getsubfield(L, "touch", "pressure");
-	imgui->eventListener->touchesMove(x, y, modifiers, button, presure);
+	ginput_Touch touch = getTouchInfo(L);
+	imgui->eventListener->mouseUpOrDown(touch, true);
 	return 0;
 }
 
@@ -2991,12 +2867,8 @@ int TouchBegin(lua_State* L)
 	STACK_CHECKER(L, "onTouchBegin", 0);
 
 	GidImGui* imgui = getImgui(L);
-	float x = getsubfield(L, "touch", "x");
-	float y = getsubfield(L, "touch", "y");
-	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	int button = getsubfieldi(L, "touch", "mouseButton");
-	float presure = getsubfield(L, "touch", "pressure");
-	imgui->eventListener->touchesBegin(x, y, modifiers, button, presure);
+	ginput_Touch touch = getTouchInfo(L);
+	imgui->eventListener->mouseUpOrDown(touch, true);
 	return 0;
 }
 
@@ -3005,12 +2877,8 @@ int TouchEnd(lua_State* L)
 	STACK_CHECKER(L, "onTouchEnd", 0);
 
 	GidImGui* imgui = getImgui(L);
-	float x = getsubfield(L, "touch", "x");
-	float y = getsubfield(L, "touch", "y");
-	int modifiers = getsubfieldi(L, "touch", "modifiers");
-	int button = getsubfieldi(L, "touch", "mouseButton");
-	float pressure = getsubfield(L, "touch", "pressure");
-	imgui->eventListener->touchesEnd(x, y, modifiers, button, pressure);
+	ginput_Touch touch = getTouchInfo(L);
+	imgui->eventListener->mouseUpOrDown(touch, false);
 	return 0;
 }
 
@@ -3022,7 +2890,9 @@ int KeyUp(lua_State* L)
 
 	GidImGui* imgui = getImgui(L);
 	
-	int keyCode = getfield(L, "keyCode");
+	lua_getfield(L, -1, "keyCode");
+	int keyCode = lua_tointeger(L, -1);
+	lua_pop(L, 1);
 	
 	imgui->eventListener->keyUp(keyCode);
 	
@@ -3035,7 +2905,9 @@ int KeyDown(lua_State* L)
 
 	GidImGui* imgui = getImgui(L);
 	
-	int keyCode = getfield(L, "keyCode");
+	lua_getfield(L, -1, "keyCode");
+	int keyCode = lua_tointeger(L, -1);
+	lua_pop(L, 1);
 	
 	imgui->eventListener->keyDown(keyCode);
 	
@@ -8477,7 +8349,7 @@ int IsItemClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isItemClicked", 1);
 
-	ImGuiMouseButton mouse_button = convertGiderosMouseButton(luaL_optinteger(L, 2, GINPUT_LEFT_BUTTON));
+	ImGuiMouseButton mouse_button = convertMouseButton(luaL_optinteger(L, 2, GINPUT_LEFT_BUTTON));
 	lua_pushboolean(L, ImGui::IsItemClicked(mouse_button));
 	return 1;
 }
@@ -8783,7 +8655,7 @@ int IsMouseDown(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDown", 1);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDown(button));
 	return 1;
 }
@@ -8792,7 +8664,7 @@ int IsMouseClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseClicked", 1);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	bool repeat = luaL_optboolean(L, 3, 0);
 	lua_pushboolean(L, ImGui::IsMouseClicked(button, repeat));
 	return 1;
@@ -8802,7 +8674,7 @@ int IsMouseReleased(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseReleased", 1);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseReleased(button));
 	return 1;
 }
@@ -8811,7 +8683,7 @@ int IsMouseDoubleClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDoubleClicked", 1);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDoubleClicked(button));
 	return 1;
 }
@@ -8868,7 +8740,7 @@ int IsMouseDragging(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDragging", 1);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	float lock_threshold = luaL_optnumber(L, 3, -1.0f);
 	lua_pushboolean(L, ImGui::IsMouseDragging(button, lock_threshold));
 	return 1;
@@ -8878,7 +8750,7 @@ int GetMouseDragDelta(lua_State* L)
 {
 	STACK_CHECKER(L, "getMouseDragDelta", 2);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	float lock_threshold = luaL_optnumber(L, 3, -1.0f);
 	ImVec2 pos = ImGui::GetMouseDragDelta(button, lock_threshold);
 	lua_pushnumber(L, pos.x);
@@ -8890,7 +8762,7 @@ int ResetMouseDragDelta(lua_State* L)
 {
 	STACK_CHECKER(L, "resetMouseDragDelta", 0);
 
-	ImGuiMouseButton button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	ImGui::ResetMouseDragDelta(button);
 	return 0;
 }
@@ -10098,7 +9970,7 @@ int IO_isMouseDown(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDown", 1);
 
-	int button = convertGiderosMouseButton(luaL_checkinteger(L, 2));
+	int button = convertMouseButton(luaL_checkinteger(L, 2));
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	lua_pushboolean(L, io.MouseDown[button]);
 	return  1;
@@ -10373,7 +10245,7 @@ int IO_GetMouseDownSec(lua_State* L)
 	STACK_CHECKER(L, "getMouseDownSec", 1);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int button = convertGiderosMouseButton(lua_tointeger(L, 2));
+	int button = convertMouseButton(lua_tointeger(L, 2));
 	
 	lua_pushnumber(L, io.MouseDownDuration[button]);
 	return 1;
