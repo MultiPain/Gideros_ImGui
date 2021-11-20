@@ -9582,6 +9582,43 @@ int Style_GetFramePadding(lua_State* L)
 	return 2;
 }
 
+int Style_SetCellPadding(lua_State* L)
+{
+	STACK_CHECKER(L, "setCellPadding", 0);
+
+	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
+	style.CellPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	return 0;
+}
+
+int Style_GetCellPadding(lua_State* L)
+{
+	STACK_CHECKER(L, "getCellPadding", 2);
+
+	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
+	lua_pushnumber(L, style.CellPadding.x);
+	lua_pushnumber(L, style.CellPadding.y);
+	return 2;
+}
+
+int Style_SetDisabledAlpha(lua_State* L)
+{
+	STACK_CHECKER(L, "setDisabledAlpha", 0);
+
+	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
+	style.DisabledAlpha = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int Style_GetDisabledAlpha(lua_State* L)
+{
+	STACK_CHECKER(L, "getDisabledAlpha", 1);
+
+	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
+	lua_pushnumber(L, style.DisabledAlpha);
+	return 1;
+}
+
 int Style_SetItemSpacing(lua_State* L)
 {
 	STACK_CHECKER(L, "setItemSpacing", 0);
@@ -9802,24 +9839,6 @@ int Style_GetAntiAliasedFill(lua_State* L)
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
 	lua_pushboolean(L, style.AntiAliasedFill);
-	return 1;
-}
-
-int Style_SetDisabledAlpha(lua_State* L)
-{
-	STACK_CHECKER(L, "setDisabledAlpha", 0);
-
-	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.DisabledAlpha = luaL_checknumber(L, 2);
-	return 0;
-}
-
-int Style_GetDisabledAlpha(lua_State* L)
-{
-	STACK_CHECKER(L, "getDisabledAlpha", 1);
-
-	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	lua_pushnumber(L, style.DisabledAlpha);
 	return 1;
 }
 
@@ -13655,6 +13674,8 @@ int loader(lua_State* L)
 		{"getAntiAliasedFill", Style_GetAntiAliasedFill},
 		{"setDisabledAlpha", Style_SetDisabledAlpha},
 		{"getDisabledAlpha", Style_GetDisabledAlpha},
+		{"setCellPadding", Style_SetCellPadding},
+		{"getCellPadding", Style_GetCellPadding},
 		
 		{NULL, NULL},
 	};
