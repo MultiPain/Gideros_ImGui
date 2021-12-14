@@ -10797,11 +10797,10 @@ int IO_SetMousePos(lua_State* L)
 {
 	STACK_CHECKER(L, "setMousePos", 0);
 
-	GidImGui* imgui = getImgui(L);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	float x = luaL_checknumber(L, 2);
 	float y = luaL_checknumber(L, 3);
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	io.MousePos = EventListener::translateMousePos(imgui->proxy, x, y);
+	io.MousePos = ImVec2(x, y);
 	return 0;
 }
 
