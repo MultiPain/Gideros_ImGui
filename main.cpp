@@ -1698,7 +1698,9 @@ static void _Draw(void* c, const CurrentTransform&t, float sx, float sy, float e
 
 static void _Destroy(void* c)
 {
+	IM_TRACE("Delete GidImGui...");
 	delete ((GidImGui* ) c);
+	IM_TRACE("OK");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1711,7 +1713,9 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 				   bool addMouseListeners = true, bool addKeyboardListeners = true, bool addTouchListeners = false)
 {
 	
+	IM_TRACE("Initialising ImGui's context...");
 	ctx = ImGui::CreateContext(atlas);
+	IM_TRACE("OK");
 
 	resetTouchPosOnEnd = false;
 	
@@ -1720,6 +1724,7 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	// Setup display size
 	io.DisplaySize.x = getAppProperty(L, "getContentWidth");
 	io.DisplaySize.y = getAppProperty(L, "getContentHeight");
+	IM_TRACEF("Set display size to: %f x %f", io.DisplaySize.x, io.DisplaySize.y);
 	
 	io.BackendPlatformName = "Gideros Studio";
 	io.BackendRendererName = "Gideros Studio";
@@ -1750,48 +1755,65 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	// Create font atlas
 	if (!atlas)
 	{
+		IM_TRACE("Initialising font atlas...");
 		unsigned char* pixels;
 		int width, height;
 		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 		g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
 		io.Fonts->TexID = (void*)texture;
+		IM_TRACE("OK");
 	}
 	
+	IM_TRACE("Create proxy...");
 	proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
+	IM_TRACE("OK");
+		
+	IM_TRACE("Create EventListener...");
 	eventListener = new EventListener(this);
+	IM_TRACE("OK");
 	
 	if (addMouseListeners)
 	{
+		IM_TRACE("Add mouse listeners");
 		proxy->addEventListener(MouseEvent::MOUSE_DOWN,     eventListener, &EventListener::mouseDown);
 		proxy->addEventListener(MouseEvent::MOUSE_UP,       eventListener, &EventListener::mouseUp);
 		proxy->addEventListener(MouseEvent::MOUSE_MOVE,     eventListener, &EventListener::mouseDown);
 		proxy->addEventListener(MouseEvent::MOUSE_HOVER,    eventListener, &EventListener::mouseHover);
 		proxy->addEventListener(MouseEvent::MOUSE_WHEEL,    eventListener, &EventListener::mouseWheel);
+		IM_TRACE("OK");
 	}
 	
 	if (addTouchListeners)
 	{
+		IM_TRACE("Add touch listeners");
 		proxy->addEventListener(TouchEvent::TOUCHES_BEGIN,  eventListener, &EventListener::touchesBegin);
 		proxy->addEventListener(TouchEvent::TOUCHES_END,    eventListener, &EventListener::touchesEnd);
 		proxy->addEventListener(TouchEvent::TOUCHES_MOVE,   eventListener, &EventListener::touchesMove);
 		proxy->addEventListener(TouchEvent::TOUCHES_CANCEL, eventListener, &EventListener::touchesCancel);
+		IM_TRACE("OK");
 	}
 	
 	if (addKeyboardListeners)
 	{
+		IM_TRACE("Add keyboard listeners");
 		proxy->addEventListener(KeyboardEvent::KEY_DOWN,    eventListener, &EventListener::keyDown);
 		proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
 		proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
+		IM_TRACE("OK");
 	}
 	
+	IM_TRACE("Add window resize listener");
 	proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
+	IM_TRACE("OK");
 }
 
 GidImGui::~GidImGui()
 {
+	IM_TRACE("Cleanup...");
 	emptyCallbacksList();
 	ImGui::DestroyContext(this->ctx);
 	delete proxy;
+	IM_TRACE("OK");
 }
 
 void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
@@ -1897,17 +1919,23 @@ GidImGui* getImgui(lua_State* L, int index = 1)
 
 int initImGui(lua_State* L) // ImGui.new() call
 {
+	IM_TRACE("initialising ImGui...");
 	LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
 	::application = application->getApplication();
+	IM_TRACE("OK");
 	
 	ImFontAtlas* atlas = NULL;
 	if (g_isInstanceOf(L, "ImFontAtlas", 1))
 	{
+		IM_TRACE("using font atlas...");
 		atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
+		IM_TRACE("OK");
 	}
 	
+	IM_TRACE("Create GidImGui...");
 	GidImGui* imgui = new GidImGui(application, atlas, luaL_optboolean(L, 2, 1), luaL_optboolean(L, 3, 1), luaL_optboolean(L, 4, 0));
 	g_pushInstance(L, "ImGui", imgui->proxy);
+	IM_TRACE("OK");
 	
 	luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	lua_pushvalue(L, -2);
@@ -1919,15 +1947,25 @@ int initImGui(lua_State* L) // ImGui.new() call
 
 int destroyImGui(lua_State* L)
 {
+	IM_TRACE("Destroying ImGui...");
 	void* ptr = *(void**)lua_touserdata(L, 1);
 	GidImGui* imgui = static_cast<GidImGui*>(static_cast<SpriteProxy *>(ptr)->getContext());
 	if (imgui->ctx->FontAtlasOwnedByContext && ImGui::GetCurrentContext()->FontAtlasOwnedByContext)
 	{
+		IM_TRACE("Deleting gideros font texture...?");
 		gtexture_delete((g_id)imgui->ctx->IO.Fonts->TexID);
+		IM_TRACE("OK");
+		
+		IM_TRACE("Destroying ImGui's context...");
 		ImGui::DestroyContext(imgui->ctx);
+		IM_TRACE("OK");
 	}
+	
+	IM_TRACE("Deleting EventListener...");
 	imgui->eventListener->removeEventListeners();
 	delete imgui->eventListener;
+	IM_TRACE("OK");
+	
 	return 0;
 }
 
@@ -14766,6 +14804,8 @@ int loader(lua_State* L)
 
 static void g_initializePlugin(lua_State* L)
 {
+	IM_TRACE("initializePlugin");
+	
 	::L = L;
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
@@ -14776,7 +14816,10 @@ static void g_initializePlugin(lua_State* L)
 	lua_pop(L, 2);
 }
 
-static void g_deinitializePlugin(lua_State* _UNUSED(L)) { }
+static void g_deinitializePlugin(lua_State* _UNUSED(L)) 
+{
+	IM_TRACE("deinitializePlugin");
+}
 
 #ifdef IS_BETA_BUILD
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
