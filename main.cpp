@@ -2084,9 +2084,13 @@ int ImPlot_PlotLine(lua_State* L)
 	float* values = getTableValues<float>(L, 3);
 	if (lua_type(L, 4) == LUA_TTABLE)
 	{
+		int x_len = luaL_getn(L, 3);
+		int y_len = luaL_getn(L, 4);
+		
 		float* y_values = getTableValues<float>(L, 4);
-		int count = luaL_checkinteger(L, 5);
-		int offset = luaL_optinteger(L, 6, 0);
+		int count = luaL_optinteger(L, 5, y_len);
+		count = ImMin(y_len, ImMin(count, x_len));
+		int offset = luaL_optinteger(L, 6, 0);		
 		ImPlot::PlotLine<float>(label, values, y_values, count, offset);
 		delete y_values;
 	}
@@ -2110,8 +2114,12 @@ int ImPlot_PlotScatter(lua_State* L)
 	float* values = getTableValues<float>(L, 3);
 	if (lua_type(L, 4) == LUA_TTABLE)
 	{
+		int x_len = luaL_getn(L, 3);
+		int y_len = luaL_getn(L, 4);
+		
 		float* y_values = getTableValues<float>(L, 4);
-		int count = luaL_checkinteger(L, 5);
+		int count = luaL_optinteger(L, 5, y_len);
+		count = ImMin(y_len, ImMin(count, x_len));
 		int offset = luaL_optinteger(L, 6, 0);
 		ImPlot::PlotScatter<float>(label, values, y_values, count, offset);
 		delete y_values;
@@ -10809,7 +10817,7 @@ int IO_GetBackendRendererName(lua_State* L)
 
 int IO_SetMouseDown(lua_State* L)
 {
-	STACK_CHECKER(L, "setMouseDown", 0);
+	STACK_CHECKER(L, "IO:setMouseDown", 0);
 
 	int buttonIndex = luaL_checkinteger(L, 2);
 	LUA_ASSERTF(buttonIndex >= 0 && buttonIndex < ImGuiMouseButton_COUNT,
@@ -10923,6 +10931,18 @@ int IO_GetPenPressure(lua_State* L)
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	lua_pushnumber(L, io.PenPressure);
 	return 1;
+}
+
+int SetMousePos(lua_State* L)
+{
+	STACK_CHECKER(L, "setMousePos", 0);
+
+	GidImGui* imgui = getImgui(L);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	
+	imgui->ctx->IO.MousePos = imgui->eventListener->translateMousePos(imgui->proxy, x, y);
+	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -14698,6 +14718,9 @@ int loader(lua_State* L)
 		{"getDragDropPayloadSourceId", CTX_GetDragDropPayloadSourceId},
 		{"getDragDropPayloadDataType", CTX_GetDragDropPayloadDataType},
 		{"getDragDropPayloadDataSize", CTX_GetDragDropPayloadDataSize},
+		
+		
+		{"setMousePos", SetMousePos},
 		
 	#ifdef IS_BETA_BUILD
 		{"dockSpace", DockSpace},
