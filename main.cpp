@@ -38,9 +38,9 @@
 #include "imgui_src/imgui_internal.h"
 #include "TextEditor.h" // https://github.com/BalazsJako/ImGuiColorTextEdit
 
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 #define PLUGIN_NAME "ImGui_beta"
-#elif defined(IS_PRE_BUILD)
+#elif defined(IS_BETA_BUILD)
 #include "stackchecker.h"
 #define STACK_CHECKER(L, pre, delta) StackChecker checker(L, pre, delta);
 #define PLUGIN_NAME "ImGui_pre_build"
@@ -179,6 +179,15 @@ T* getTableValues(lua_State* L, int idx)
 	T* values = getTableValues<T>(L, idx, len);
 	return values;
 }
+
+template<typename T>
+inline void destroyObject(lua_State* L)
+{
+	void* udata = *(void**)lua_touserdata(L, 1);
+	T* ptr = static_cast<T*>(udata);
+	delete ptr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// TEXTURES / COLORS
@@ -839,7 +848,7 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImGuiCol_TableRowBg, "Col_TableRowBg");
 	BIND_IENUM(L, ImGuiCol_TableRowBgAlt, "Col_TableRowBgAlt");
 	
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 	BIND_IENUM(L, ImGuiCol_DockingPreview, "Col_DockingPreview");
 	BIND_IENUM(L, ImGuiCol_DockingEmptyBg, "Col_DockingEmptyBg");
 #endif
@@ -911,7 +920,7 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImGuiWindowFlags_MenuBar, "WindowFlags_MenuBar");
 	BIND_IENUM(L, ImGuiWindowFlags_NoBackground, "WindowFlags_NoBackground");
 	BIND_IENUM(L, ImGuiWindowFlags_AlwaysAutoResize, "WindowFlags_AlwaysAutoResize");
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 	BIND_IENUM(L, ImGuiWindowFlags_NoDocking, "WindowFlags_NoDocking");
 #endif
 	//@MultiPain
@@ -1038,7 +1047,7 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImGuiConfigFlags_NoMouseCursorChange, "ConfigFlags_NoMouseCursorChange");
 	BIND_IENUM(L, ImGuiConfigFlags_IsSRGB, "ConfigFlags_IsSRGB");
 	BIND_IENUM(L, ImGuiConfigFlags_IsTouchScreen, "ConfigFlags_IsTouchScreen");
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 	BIND_IENUM(L, ImGuiConfigFlags_DockingEnable, "ConfigFlags_DockingEnable");
 	
 	//ImGuiDockNodeFlags
@@ -1698,9 +1707,7 @@ static void _Draw(void* c, const CurrentTransform&t, float sx, float sy, float e
 
 static void _Destroy(void* c)
 {
-	IM_TRACE("Delete GidImGui...");
 	delete ((GidImGui* ) c);
-	IM_TRACE("OK");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1713,18 +1720,14 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 				   bool addMouseListeners = true, bool addKeyboardListeners = true, bool addTouchListeners = false)
 {
 	
-	IM_TRACE("Initialising ImGui's context...");
 	ctx = ImGui::CreateContext(atlas);
-	IM_TRACE("OK");
-
-	resetTouchPosOnEnd = false;
-	
+	ImGui::SetLuaState(L);
+	resetTouchPosOnEnd = false;	
 	ImGuiIO& io = ctx->IO;
 	
 	// Setup display size
 	io.DisplaySize.x = getAppProperty(L, "getContentWidth");
 	io.DisplaySize.y = getAppProperty(L, "getContentHeight");
-	IM_TRACEF("Set display size to: %f x %f", io.DisplaySize.x, io.DisplaySize.y);
 	
 	io.BackendPlatformName = "Gideros Studio";
 	io.BackendRendererName = "Gideros Studio";
@@ -1755,65 +1758,50 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	// Create font atlas
 	if (!atlas)
 	{
-		IM_TRACE("Initialising font atlas...");
 		unsigned char* pixels;
 		int width, height;
 		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 		g_id texture = gtexture_create(width, height, GTEXTURE_RGBA, GTEXTURE_UNSIGNED_BYTE, GTEXTURE_CLAMP, GTEXTURE_LINEAR, pixels, NULL, 0);
 		io.Fonts->TexID = (void*)texture;
-		IM_TRACE("OK");
 	}
 	
-	IM_TRACE("Create proxy...");
 	proxy = gtexture_get_spritefactory()->createProxy(application->getApplication(), this, _Draw, _Destroy);
-	IM_TRACE("OK");
 		
-	IM_TRACE("Create EventListener...");
 	eventListener = new EventListener(this);
-	IM_TRACE("OK");
 	
 	if (addMouseListeners)
 	{
-		IM_TRACE("Add mouse listeners");
 		proxy->addEventListener(MouseEvent::MOUSE_DOWN,     eventListener, &EventListener::mouseDown);
 		proxy->addEventListener(MouseEvent::MOUSE_UP,       eventListener, &EventListener::mouseUp);
 		proxy->addEventListener(MouseEvent::MOUSE_MOVE,     eventListener, &EventListener::mouseDown);
 		proxy->addEventListener(MouseEvent::MOUSE_HOVER,    eventListener, &EventListener::mouseHover);
 		proxy->addEventListener(MouseEvent::MOUSE_WHEEL,    eventListener, &EventListener::mouseWheel);
-		IM_TRACE("OK");
 	}
 	
 	if (addTouchListeners)
 	{
-		IM_TRACE("Add touch listeners");
 		proxy->addEventListener(TouchEvent::TOUCHES_BEGIN,  eventListener, &EventListener::touchesBegin);
 		proxy->addEventListener(TouchEvent::TOUCHES_END,    eventListener, &EventListener::touchesEnd);
 		proxy->addEventListener(TouchEvent::TOUCHES_MOVE,   eventListener, &EventListener::touchesMove);
 		proxy->addEventListener(TouchEvent::TOUCHES_CANCEL, eventListener, &EventListener::touchesCancel);
-		IM_TRACE("OK");
 	}
 	
 	if (addKeyboardListeners)
 	{
-		IM_TRACE("Add keyboard listeners");
 		proxy->addEventListener(KeyboardEvent::KEY_DOWN,    eventListener, &EventListener::keyDown);
 		proxy->addEventListener(KeyboardEvent::KEY_UP,      eventListener, &EventListener::keyUp);
 		proxy->addEventListener(KeyboardEvent::KEY_CHAR,    eventListener, &EventListener::keyChar);
-		IM_TRACE("OK");
 	}
 	
-	IM_TRACE("Add window resize listener");
 	proxy->addEventListener(Event::APPLICATION_RESIZE,  eventListener, &EventListener::applicationResize);
-	IM_TRACE("OK");
 }
 
 GidImGui::~GidImGui()
 {
-	IM_TRACE("Cleanup...");
 	emptyCallbacksList();
-	ImGui::DestroyContext(this->ctx);
+	ImGui::DestroyContext(ctx);
 	delete proxy;
-	IM_TRACE("OK");
+	delete eventListener;
 }
 
 void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(sy), float _UNUSED(ex), float _UNUSED(ey))
@@ -1884,10 +1872,9 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 							(int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
 							(int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
 							);
-				shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount,ShaderProgram::DUSHORT, idx_buffer, true, NULL);
+				shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount, ShaderProgram::DUSHORT, idx_buffer + pcmd->IdxOffset, true, NULL);
 				engine->popClip();
 			}
-			idx_buffer += pcmd->ElemCount;
 		}
 		
 	}
@@ -1919,23 +1906,17 @@ GidImGui* getImgui(lua_State* L, int index = 1)
 
 int initImGui(lua_State* L) // ImGui.new() call
 {
-	IM_TRACE("initialising ImGui...");
 	LuaApplication* application = static_cast<LuaApplication*>(luaL_getdata(L));
 	::application = application->getApplication();
-	IM_TRACE("OK");
 	
 	ImFontAtlas* atlas = NULL;
 	if (g_isInstanceOf(L, "ImFontAtlas", 1))
 	{
-		IM_TRACE("using font atlas...");
 		atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
-		IM_TRACE("OK");
 	}
 	
-	IM_TRACE("Create GidImGui...");
 	GidImGui* imgui = new GidImGui(application, atlas, luaL_optboolean(L, 2, 1), luaL_optboolean(L, 3, 1), luaL_optboolean(L, 4, 0));
 	g_pushInstance(L, "ImGui", imgui->proxy);
-	IM_TRACE("OK");
 	
 	luaL_rawgetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	lua_pushvalue(L, -2);
@@ -1947,25 +1928,16 @@ int initImGui(lua_State* L) // ImGui.new() call
 
 int destroyImGui(lua_State* L)
 {
-	IM_TRACE("Destroying ImGui...");
 	void* ptr = *(void**)lua_touserdata(L, 1);
 	GidImGui* imgui = static_cast<GidImGui*>(static_cast<SpriteProxy *>(ptr)->getContext());
 	if (imgui->ctx->FontAtlasOwnedByContext && ImGui::GetCurrentContext()->FontAtlasOwnedByContext)
 	{
-		IM_TRACE("Deleting gideros font texture...?");
 		gtexture_delete((g_id)imgui->ctx->IO.Fonts->TexID);
-		IM_TRACE("OK");
-		
-		IM_TRACE("Destroying ImGui's context...");
 		ImGui::DestroyContext(imgui->ctx);
-		IM_TRACE("OK");
 	}
 	
-	IM_TRACE("Deleting EventListener...");
 	imgui->eventListener->removeEventListeners();
 	delete imgui->eventListener;
-	IM_TRACE("OK");
-	
 	return 0;
 }
 
@@ -2006,9 +1978,7 @@ int initImPlot(lua_State* L)
 
 int destroyImPlot(lua_State* L)
 {
-	void* ptr = *(void**)lua_touserdata(L, 1);
-	GImPlot* plot = static_cast<GImPlot*>(ptr);
-	delete plot;
+	destroyObject<GImPlot>(L);
 	return 0;
 }
 
@@ -5958,6 +5928,17 @@ int BeginMenu(lua_State* L)
 	return 1;
 }
 
+int BeginMenuEx(lua_State* L)
+{
+	STACK_CHECKER(L, "beginMenuEx", 1);
+	
+	const char* label = luaL_checkstring(L, 2);
+	const char* icon = luaL_optstring(L, 3, NULL);
+	bool enabled = luaL_optboolean(L, 4, 1);
+	lua_pushboolean(L, ImGui::BeginMenuEx(label, icon, enabled));
+	return 1;
+}
+
 int EndMenu(lua_State* _UNUSED(L))
 {
 	STACK_CHECKER(L, "endMenu", 0);
@@ -5981,21 +5962,20 @@ int MenuItem(lua_State* L)
 	return 1;
 }
 
-int MenuItemWithShortcut(lua_State* L)
+int MenuItemEx(lua_State* L)
 {
-	STACK_CHECKER(L, "menuItemWithShortcut", 2);
+	STACK_CHECKER(L, "menuItemEx", 1);
 
 	const char* label = luaL_checkstring(L, 2);
-	const char* shortcut = luaL_checkstring(L, 3);
-	bool p_selected = luaL_optboolean(L, 4, 0);
-	bool enabled = luaL_optboolean(L, 5, 1);
+	const char* icon = luaL_optstring(L, 3, NULL);
+	const char* shortcut = luaL_optstring(L, 4, NULL);
+	int selected = luaL_optboolean(L, 5, 0);
+	int enabled = luaL_optboolean(L, 6, 1);
 	
-	bool result = ImGui::MenuItem(label, shortcut, &p_selected, enabled);
+	bool flag = ImGui::MenuItemEx(label, icon, shortcut, selected, enabled);
+	lua_pushboolean(L, flag);
 	
-	lua_pushboolean(L, p_selected);
-	lua_pushboolean(L, result);
-	
-	return 2;
+	return 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -6696,6 +6676,12 @@ int initImGuiListClipper(lua_State* L)
 	return 1;
 }
 
+int destroyImGuiListClipper(lua_State* L)
+{
+	destroyObject<ImGuiListClipper>(L);
+	return 0;
+}
+
 int Clipper_Begin(lua_State* L)
 {
 	STACK_CHECKER(L, "beginClip", 0);
@@ -6721,8 +6707,7 @@ int Clipper_Step(lua_State* L)
 	STACK_CHECKER(L, "step", 1);
 
 	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
-	bool flag = clipper->Step();
-	lua_pushboolean(L, flag);
+	lua_pushboolean(L, clipper->Step());
 	return 1;
 }
 
@@ -6731,7 +6716,7 @@ int Clipper_GetDisplayStart(lua_State* L)
 	STACK_CHECKER(L, "getDisplayStart", 1);
 
 	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
-	lua_pushinteger(L, clipper->DisplayStart);
+	lua_pushinteger(L, clipper->DisplayStart + 1);
 	return 1;
 }
 
@@ -6743,6 +6728,45 @@ int Clipper_GetDisplayEnd(lua_State* L)
 	lua_pushinteger(L, clipper->DisplayEnd);
 	return 1;
 }
+
+int Clipper_GetStartPosY(lua_State* L)
+{
+	STACK_CHECKER(L, "getStartPosY", 1);
+
+	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
+	lua_pushnumber(L, clipper->StartPosY);
+	return 1;
+}
+
+int Clipper_GetItemsCount(lua_State* L)
+{
+	STACK_CHECKER(L, "getItemsCount", 1);
+
+	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
+	lua_pushinteger(L, clipper->ItemsCount);
+	return 1;
+}
+
+int Clipper_GetItemsHeight(lua_State* L)
+{
+	STACK_CHECKER(L, "getItemsHeight", 1);
+
+	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
+	lua_pushnumber(L, clipper->ItemsHeight);
+	return 1;
+}
+
+int Clipper_ForceDisplayRangeByIndices(lua_State* L)
+{
+	STACK_CHECKER(L, "forceDisplayRangeByIndices", 0);
+
+	ImGuiListClipper* clipper = getPtr<ImGuiListClipper>(L, "ImGuiListClipper");
+	int item_min = luaL_checkinteger(L, 2);
+	int item_max = luaL_checkinteger(L, 3);
+	clipper->ForceDisplayRangeByIndices(item_min, item_max);
+	return 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -6897,7 +6921,7 @@ int SetTabItemClosed(lua_State* L)
 	return 0;
 }
 
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 
 /// TODO list:
 /// windows api?
@@ -8050,7 +8074,7 @@ int TabBar_GetTabName(lua_State* L)
 
 /// TabBar -
 
-#endif // IS_BETA_BUILD
+#endif // IS_DOCKING_BUILD
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -8570,21 +8594,6 @@ int GetStyleColor(lua_State* L)
 	return 2;
 }
 
-int CalcListClipping(lua_State* L)
-{
-	STACK_CHECKER(L, "calcListClipping", 2);
-
-	int items_count = luaL_checkinteger(L, 2);
-	float items_height = luaL_checknumber(L, 3);
-	int out_items_display_start = luaL_checkinteger(L, 4);
-	int out_items_display_end = luaL_checkinteger(L, 5);
-	
-	ImGui::CalcListClipping(items_count, items_height, &out_items_display_start, &out_items_display_end);
-	lua_pushinteger(L, out_items_display_start);
-	lua_pushinteger(L, out_items_display_end);
-	return 2;
-}
-
 int BeginChildFrame(lua_State* L)
 {
 	STACK_CHECKER(L, "beginChildFrame", 1);
@@ -8732,6 +8741,15 @@ int IsMouseDoubleClicked(lua_State* L)
 
 	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDoubleClicked(button));
+	return 1;
+}
+
+int GetMouseClickedCount(lua_State* L)
+{
+	STACK_CHECKER(L, "getMouseClickedCount", 1);
+	
+	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	lua_pushnumber(L, ImGui::GetMouseClickedCount(button));
 	return 1;
 }
 
@@ -9901,7 +9919,7 @@ int GetIO(lua_State* L)
 	return 1;
 }
 
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 int IO_GetConfigDockingNoSplit(lua_State* L)
 {
 	STACK_CHECKER(L, "setConfigDockingNoSplit", 0);
@@ -12496,6 +12514,13 @@ int initTextEditor(lua_State* L)
 	return 1;
 }
 
+
+int destroyTextEditor(lua_State* L)
+{
+	destroyObject<TextEditor>(L);
+	return 0;
+}
+
 int TE_LoadPalette(lua_State* L)
 {
 	STACK_CHECKER(L, "loadPalette", 0);
@@ -13228,6 +13253,12 @@ int initErrorMarkers(lua_State* L)
 	return 1;
 }
 
+int destroyErrorMarkers(lua_State* L)
+{
+	destroyObject<TextEditor::ErrorMarkers>(L);
+	return 0;
+}
+
 int EM_MAdd(lua_State* L)
 {
 	STACK_CHECKER(L, "add", 0);
@@ -13290,6 +13321,12 @@ int initBreakpoints(lua_State* L)
 	lua_pop(L, 1);
 	
 	return 1;
+}
+
+int destroyBreakpoints(lua_State* L)
+{
+	destroyObject<TextEditor::Breakpoints>(L);
+	return 0;
 }
 
 int EM_BAdd(lua_State* L)
@@ -13840,7 +13877,7 @@ int loader(lua_State* L)
 		{"setDisplaySize", IO_SetDisplaySize},
 		{"getDisplaySize", IO_GetDisplaySize},
 		
-	#ifdef IS_BETA_BUILD
+	#ifdef IS_DOCKING_BUILD
 		{"setConfigDockingNoSplit", IO_GetConfigDockingNoSplit},
 		{"setConfigDockingNoSplit", IO_SetConfigDockingNoSplit},
 		{"setConfigDockingWithShift", IO_GetConfigDockingWithShift},
@@ -13950,7 +13987,7 @@ int loader(lua_State* L)
 	};
 	g_createClass(L, "ImFont", NULL, NULL, NULL, imguiFontFunctionsList);
 	
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 	
 	const luaL_Reg imguiDockNodeFunctionList[] = {
 		{"getID", DockBuilder_Node_GetID},
@@ -14162,7 +14199,7 @@ int loader(lua_State* L)
 		
 		{NULL, NULL}
 	};
-	g_createClass(L, "ImGuiTextEditor", 0, initTextEditor, NULL, imguiTextEditorFunctionsList);
+	g_createClass(L, "ImGuiTextEditor", 0, initTextEditor, destroyTextEditor, imguiTextEditorFunctionsList);
 	
 	g_createClass(L, "ImGuiTextEditorPalette", 0, NULL, NULL, imguiEmptyFunctionsList);
 	
@@ -14179,7 +14216,7 @@ int loader(lua_State* L)
 		{"getSize", EM_MSize},
 		{NULL, NULL}
 	};
-	g_createClass(L, "ImGuiErrorMarkers", 0, initErrorMarkers, NULL, imguiErrorMarkersFunctionsList);
+	g_createClass(L, "ImGuiErrorMarkers", 0, initErrorMarkers, destroyErrorMarkers, imguiErrorMarkersFunctionsList);
 	
 	const luaL_Reg imguiBreakpointsFunctionsList[] = {
 		{"add", EM_BAdd},
@@ -14189,7 +14226,7 @@ int loader(lua_State* L)
 		
 		{NULL, NULL}
 	};
-	g_createClass(L, "ImGuiBreakpoints", 0, initBreakpoints, NULL, imguiBreakpointsFunctionsList);
+	g_createClass(L, "ImGuiBreakpoints", 0, initBreakpoints, destroyBreakpoints, imguiBreakpointsFunctionsList);
 	
 	const luaL_Reg imguiPayloadFunctionsList[] = {
 		{"getNumData", Payload_GetNumberData},
@@ -14211,9 +14248,13 @@ int loader(lua_State* L)
 		{"step", Clipper_Step},
 		{"getDisplayStart", Clipper_GetDisplayStart},
 		{"getDisplayEnd", Clipper_GetDisplayEnd},
+		{"forceDisplayRangeByIndices", Clipper_ForceDisplayRangeByIndices},
+		{"getStartPosY", Clipper_GetStartPosY},
+		{"getItemsCount", Clipper_GetItemsCount},
+		{"getItemsHeight", Clipper_GetItemsHeight},
 		{NULL, NULL}
 	};
-	g_createClass(L, "ImGuiListClipper", 0, initImGuiListClipper, NULL, clipperFunctionList);
+	g_createClass(L, "ImGuiListClipper", 0, initImGuiListClipper, destroyImGuiListClipper, clipperFunctionList);
 	
 	const luaL_Reg imguiTableSortSpecsFunctionList[] = {
 		{"getColumnSortSpecs", TableSortSpecs_GetColumnSortSpecs},
@@ -14539,9 +14580,10 @@ int loader(lua_State* L)
 		{"beginMainMenuBar", BeginMainMenuBar },
 		{"endMainMenuBar", EndMainMenuBar },
 		{"beginMenu", BeginMenu },
+		{"beginMenuEx", BeginMenuEx },
 		{"endMenu", EndMenu },
 		{"menuItem", MenuItem },
-		{"menuItemWithShortcut", MenuItemWithShortcut },
+		{"menuItemEx", MenuItemEx },
 		{"beginTooltip", BeginTooltip },
 		{"endTooltip", EndTooltip },
 		{"setTooltip", SetTooltip },
@@ -14610,7 +14652,6 @@ int loader(lua_State* L)
 		{"getFrameCount", GetFrameCount},
 		{"getStyleColorName", GetStyleColorName},
 		{"getStyleColor", GetStyleColor},
-		{"calcListClipping", CalcListClipping},
 		{"beginChildFrame", BeginChildFrame},
 		{"endChildFrame", EndChildFrame},
 		
@@ -14630,6 +14671,7 @@ int loader(lua_State* L)
 		{"isMouseClicked", IsMouseClicked},
 		{"isMouseReleased", IsMouseReleased},
 		{"isMouseDoubleClicked", IsMouseDoubleClicked},
+		{"getMouseClickedCount", GetMouseClickedCount},
 		{"isMouseHoveringRect", IsMouseHoveringRect},
 		{"isMousePosValid", IsMousePosValid},
 		{"isAnyMouseDown", IsAnyMouseDown},
@@ -14722,7 +14764,7 @@ int loader(lua_State* L)
 		
 		{"setMousePos", SetMousePos},
 		
-	#ifdef IS_BETA_BUILD
+	#ifdef IS_DOCKING_BUILD
 		{"dockSpace", DockSpace},
 		{"dockSpaceOverViewport", DockSpaceOverViewport},
 		{"setNextWindowDockID", SetNextWindowDockID},
@@ -14826,9 +14868,7 @@ int loader(lua_State* L)
 }
 
 static void g_initializePlugin(lua_State* L)
-{
-	IM_TRACE("initializePlugin");
-	
+{	
 	::L = L;
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
@@ -14841,10 +14881,9 @@ static void g_initializePlugin(lua_State* L)
 
 static void g_deinitializePlugin(lua_State* _UNUSED(L)) 
 {
-	IM_TRACE("deinitializePlugin");
 }
 
-#ifdef IS_BETA_BUILD
+#ifdef IS_DOCKING_BUILD
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
 #else
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)

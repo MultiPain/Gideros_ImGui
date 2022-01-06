@@ -926,10 +926,11 @@ result? = ImGui:beginMenuBar()
 ImGui:endMenuBar()
 result? = ImGui:beginMainMenuBar()
 ImGui:endMainMenuBar()
-result? = ImGui:beginMenu(label, enabled_flag)
+result = ImGui:beginMenu(label [, enabled = true])
+result = ImGui:beginMenuEx(label, [icon = "", enabled = true])
 ImGui:endMenu()
-result? = ImGui:menuItem(label [, shortcut_string = nil, selected = false, enabled = true])
-selected, result? = ImGui:menuItemWithShortcut(label, shortcut_string [, selected = false, enabled = true])
+result = ImGui:menuItem(label [, shortcut = "", selected = false, enabled = true])
+result = ImGui:menuItemEx(label, [icon = "", shortcut = "", selected = false, enabled = true])
 ImGui:beginTooltip()
 ImGui:endTooltip()
 ImGui:setTooltip(text)
@@ -1114,6 +1115,55 @@ ImGui:pushClipRect(min_x, min_y, max_x, max_y, intersect_with_current_clip_rect)
 ImGui:popClipRect()
 ```
 
+## ImGuiListClipper
+Try to avoid creating new instaces in "enterFrame" event
+###Constructor
+```lua
+instance = ImGuiListClipper.new()
+```
+###Methods
+```lua
+ImGuiListClipper:beginClip(number_of_items [, item_height = -1]) -- if item_height <= 0 then it is calculated automatically
+ImGuiListClipper:endClip()
+bool = ImGuiListClipper:step()
+number = ImGuiListClipper:getDisplayStart()
+number = ImGuiListClipper:getDisplayEnd()
+number = ImGuiListClipper:getStartPosY()
+number = ImGuiListClipper:getItemsCount()
+ImGuiListClipper:forceDisplayRangeByIndices(number_min, number_max)
+```
+###Example
+```lua
+-- before "enterFrame" event:
+clipper = ImGuiListClipper.new()
+
+-- inside "enterFrame":
+if (ui:beginWindow("Clipper demo")) then
+	if (ui:beginTable("table", 3)) then
+		ui:tableSetupScrollFreeze(0, 1)
+		ui:tableSetupColumn("One")
+		ui:tableSetupColumn("Two")
+		ui:tableSetupColumn("Three")
+		ui:tableHeadersRow()
+		
+		clipper:beginClip(1000)
+		while (clipper:step()) do 
+			for row = clipper:getDisplayStart(), clipper:getDisplayEnd() do 
+				ui:tableNextRow()
+				for column = 1, 3 do 
+					ui:tableSetColumnIndex(column - 1)
+					ui:text(("col: %d; row: %d"):format(column, row))
+				end
+			end
+		end
+		clipper:endClip()
+		
+		ui:endTable()
+	end
+end
+ui:endWindow()
+```
+
 ## Focus, Activation
 ```lua
 ImGui:setItemDefaultFocus()
@@ -1143,7 +1193,6 @@ flag = ImGui:isRectVisible(w, h [, max_x, max_y])
 number = ImGui:getTime()
 number = ImGui:getFrameCount()
 str = ImGui:getStyleColorName(idx)
-out_items_display_start, out_items_display_end = ImGui:calcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
 flag = ImGui:beginChildFrame(id, w, h [, ImGui.WindowFlags = 0]) -- id (number)
 ImGui:endChildFrame()
 ```

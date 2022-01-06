@@ -50,6 +50,6 @@ HEADERS += \
     ../../Src/2dsg/keyboardevent.h  \
 	../../Src/luabinding/stackchecker.h
 
-LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs
+LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs -lpystring
 
 DEFINES += GID_LIBRARY
