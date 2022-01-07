@@ -1117,11 +1117,11 @@ ImGui:popClipRect()
 
 ## ImGuiListClipper
 Try to avoid creating new instaces in "enterFrame" event
-###Constructor
+### Constructor
 ```lua
 instance = ImGuiListClipper.new()
 ```
-###Methods
+### Methods
 ```lua
 ImGuiListClipper:beginClip(number_of_items [, item_height = -1]) -- if item_height <= 0 then it is calculated automatically
 ImGuiListClipper:endClip()
@@ -1132,7 +1132,7 @@ number = ImGuiListClipper:getStartPosY()
 number = ImGuiListClipper:getItemsCount()
 ImGuiListClipper:forceDisplayRangeByIndices(number_min, number_max)
 ```
-###Example
+### Example
 ```lua
 -- before "enterFrame" event:
 clipper = ImGuiListClipper.new()

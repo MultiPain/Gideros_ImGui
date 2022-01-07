@@ -30,6 +30,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+// To compile for old version :)
+#ifndef LUA_IS_LUAU
+#define LUA_STATE lua_State
+#else
+#define LUA_STATE void
+#define luaL_getn lua_objlen
+#endif
+
+#ifndef GIDEROS_DTOR_UDATA
+#define GIDEROS_DTOR_UDATA(p) (*(void**)LUA_DTOR_UDATA(p))
+#endif
+
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -181,10 +193,10 @@ T* getTableValues(lua_State* L, int idx)
 }
 
 template<typename T>
-inline void destroyObject(lua_State* L)
+inline void destroyObject(void* p)
 {
-	void* udata = *(void**)lua_touserdata(L, 1);
-	T* ptr = static_cast<T*>(udata);
+	void* data = GIDEROS_DTOR_UDATA(p);
+	T* ptr = static_cast<T*>(data);
 	delete ptr;
 }
 
@@ -480,10 +492,13 @@ static void setApplicationCursor(lua_State* L, const char* name)
 	lua_pop(L, 2);
 }
 
+
+#ifndef LUA_IS_LUAU
 static int luaL_optboolean(lua_State* L, int narg, int def)
 {
 	return lua_isboolean(L, narg) ? lua_toboolean(L, narg) : def;
 }
+#endif
 
 static ginput_Touch getTouchInfo(lua_State* L)
 {
@@ -1862,7 +1877,7 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 			}
 			else
 			{
-				g_id textureId = (g_id)pcmd->GetTexID();
+				g_id textureId = (g_id)(uintptr_t)pcmd->GetTexID();
 				
 				engine->bindTexture(0, gtexture_getInternalTexture(textureId));
 				
@@ -1926,13 +1941,13 @@ int initImGui(lua_State* L) // ImGui.new() call
 	return 1;
 }
 
-int destroyImGui(lua_State* L)
+int destroyImGui(LUA_STATE* p)
 {
-	void* ptr = *(void**)lua_touserdata(L, 1);
+	void* ptr = GIDEROS_DTOR_UDATA(p);
 	GidImGui* imgui = static_cast<GidImGui*>(static_cast<SpriteProxy *>(ptr)->getContext());
 	if (imgui->ctx->FontAtlasOwnedByContext && ImGui::GetCurrentContext()->FontAtlasOwnedByContext)
 	{
-		gtexture_delete((g_id)imgui->ctx->IO.Fonts->TexID);
+		gtexture_delete((g_id)(uintptr_t)imgui->ctx->IO.Fonts->TexID);
 		ImGui::DestroyContext(imgui->ctx);
 	}
 	
@@ -1976,9 +1991,9 @@ int initImPlot(lua_State* L)
 	return 1;
 }
 
-int destroyImPlot(lua_State* L)
+int destroyImPlot(LUA_STATE* p)
 {
-	destroyObject<GImPlot>(L);
+	destroyObject<GImPlot>(p);
 	return 0;
 }
 
@@ -6676,9 +6691,9 @@ int initImGuiListClipper(lua_State* L)
 	return 1;
 }
 
-int destroyImGuiListClipper(lua_State* L)
+int destroyImGuiListClipper(LUA_STATE* p)
 {
-	destroyObject<ImGuiListClipper>(L);
+	destroyObject<ImGuiListClipper>(p);
 	return 0;
 }
 
@@ -11267,7 +11282,7 @@ int FontAtlas_Build(lua_State* L)
 	STACK_CHECKER(L, "build", 0);
 
 	ImFontAtlas* atlas = getPtr<ImFontAtlas>(L, "ImFontAtlas");
-	gtexture_delete((g_id)atlas->TexID);
+	gtexture_delete((g_id)(uintptr_t)atlas->TexID);
 	
 	atlas->Build();
 	
@@ -12273,6 +12288,13 @@ int UpdateMouseCursor(lua_State* L)
 	STACK_CHECKER(L, "updateCursor", 0);
 
 #if defined(QT_CORE_LIB) || defined(WINSTORE)
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.MouseDrawCursor)
+	{
+		setApplicationCursor(L, "blank");
+		return 0;
+	}
+	
 	GidImGui* imgui = getImgui(L);
 	ImGuiMouseCursor cursor = imgui->ctx->MouseCursor;
 	const char* giderosCursor = "arrow";
@@ -12514,10 +12536,9 @@ int initTextEditor(lua_State* L)
 	return 1;
 }
 
-
-int destroyTextEditor(lua_State* L)
+int destroyTextEditor(LUA_STATE* p)
 {
-	destroyObject<TextEditor>(L);
+	destroyObject<TextEditor>(p);
 	return 0;
 }
 
@@ -13253,9 +13274,9 @@ int initErrorMarkers(lua_State* L)
 	return 1;
 }
 
-int destroyErrorMarkers(lua_State* L)
+int destroyErrorMarkers(LUA_STATE* p)
 {
-	destroyObject<TextEditor::ErrorMarkers>(L);
+	destroyObject<TextEditor::ErrorMarkers>(p);
 	return 0;
 }
 
@@ -13323,9 +13344,9 @@ int initBreakpoints(lua_State* L)
 	return 1;
 }
 
-int destroyBreakpoints(lua_State* L)
+int destroyBreakpoints(LUA_STATE* p)
 {
-	destroyObject<TextEditor::Breakpoints>(L);
+	destroyObject<TextEditor::Breakpoints>(p);
 	return 0;
 }
 
@@ -14873,18 +14894,22 @@ static void g_initializePlugin(lua_State* L)
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
 	
-	lua_pushcfunction(L, ImGui_impl::loader);
+	lua_pushcnfunction(L, ImGui_impl::loader,"plugin_init_imgui");
 	lua_setfield(L, -2, PLUGIN_NAME);
 	
 	lua_pop(L, 2);
 }
 
-static void g_deinitializePlugin(lua_State* _UNUSED(L)) 
-{
-}
+static void g_deinitializePlugin(lua_State* _UNUSED(L)) { }
 
-#ifdef IS_DOCKING_BUILD
+#if defined(IS_DOCKING_BUILD) || defined(IS_BETA_BUILD)
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", imgui_beta)
 #else
+#ifdef QT_NO_DEBUG
 REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+#elif defined(TARGET_OS_MAC) || defined(_MSC_VER)
+REGISTER_PLUGIN_STATICNAMED_CPP(PLUGIN_NAME, "1.0.0", Imgui)
+#else
+REGISTER_PLUGIN_NAMED(PLUGIN_NAME, "1.0.0", Imgui)
+#endif
 #endif
