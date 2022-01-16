@@ -13,6 +13,7 @@
 
 //#define IS_DOCKING_BUILD // includes docking (droped for now)
 #define IS_BETA_BUILD // test things
+#define IMPLEMENT_VECTOR
 
 #pragma once
 

@@ -92,48 +92,41 @@ static int DUMP_INDEX = 0;
 static void stackDump(lua_State* L, const char* prefix = "")
 {
 	int i = lua_gettop(L);
-	lua_getglobal(L, "print");
-	lua_pushfstring(L, "----------------      %d      ----------------\n>%s\n----------------  Stack Dump ----------------", DUMP_INDEX, prefix);
-	lua_call(L, 1, 0);
+	LUA_PRINTF("----------------      %d      ----------------\n>%s\n----------------  Stack Dump ----------------", DUMP_INDEX, prefix);
 	while (i)
 	{
 		int t = lua_type(L, i);
 		switch (t)
 		{
 		case LUA_TSTRING:
-		{
-			lua_getglobal(L, "print");
-			lua_pushfstring(L, "[S] %d:'%s'", i, lua_tostring(L, i));
-			lua_call(L, 1, 0);
-		}
+			{
+				LUA_PRINTF("[S] %d:'%s'", i, lua_tostring(L, i));
+			}
 			break;
 		case LUA_TBOOLEAN:
-		{
-			lua_getglobal(L, "print");
-			lua_pushfstring(L, "[B] %d: %s", i, lua_toboolean(L, i) ? "true" : "false");
-			lua_call(L, 1, 0);
-		}
+			{
+				LUA_PRINTF("[B] %d: %s", i, lua_toboolean(L, i) ? "true" : "false");
+			}
 			break;
 		case LUA_TNUMBER:
-		{
-			lua_getglobal(L, "print");
-			lua_pushfstring(L, "[N] %d: %f", i, lua_tonumber(L, i));
-			lua_call(L, 1, 0);
-		}
+			{
+				LUA_PRINTF("[N] %d: %f", i, lua_tonumber(L, i));
+			}
+			break;
+		case LUA_TVECTOR:
+			{
+				LUA_PRINTF("[V] %d: %p", i, lua_tovector(L, i));
+			}
 			break;
 		default:
-		{
-			lua_getglobal(L, "print");
-			lua_pushfstring(L, "[D] %d: %s", i, lua_typename(L, t));
-			lua_call(L, 1, 0);
-		}
+			{
+				LUA_PRINTF("[D] %d: %s", i, lua_typename(L, t));
+			}
 			break;
 		}
 		i--;
 	}
-	lua_getglobal(L, "print");
-	lua_pushstring(L, "------------ Stack Dump Finished ------------\n");
-	lua_call(L, 1, 0);
+	LUA_PRINT("------------ Stack Dump Finished ------------\n");
 	
 	DUMP_INDEX++;
 }
@@ -1907,7 +1900,7 @@ void GidImGui::emptyCallbacksList()
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-GidImGui* getImgui(lua_State* L, int index = 1)
+inline GidImGui* getImgui(lua_State* L, int index = 1)
 {
 	SpriteProxy* sprite = getPtr<SpriteProxy>(L, "ImGui", index);
 	return (GidImGui*)sprite->getContext();
@@ -13701,6 +13694,65 @@ int HelpMarker(lua_State* L)
 	return 0;
 }
 
+#ifdef IMPLEMENT_VECTOR
+
+static int lua_vector(lua_State* L)
+{
+    double x = luaL_checknumber(L, 1);
+    double y = luaL_checknumber(L, 2);
+    double z = luaL_checknumber(L, 3);
+
+#if LUA_VECTOR_SIZE == 4
+    double w = luaL_optnumber(L, 4, 0.0);
+    lua_pushvector(L, float(x), float(y), float(z), float(w));
+#else
+    lua_pushvector(L, float(x), float(y), float(z));
+#endif
+    return 1;
+}
+
+static int lua_vector_dot(lua_State* L)
+{
+    const float* a = luaL_checkvector(L, 1);
+    const float* b = luaL_checkvector(L, 2);
+
+    lua_pushnumber(L, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
+    return 1;
+}
+
+static int lua_vector_index(lua_State* L)
+{
+    const float* v = luaL_checkvector(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+
+    if (strcmp(name, "Magnitude") == 0)
+    {
+        lua_pushnumber(L, sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]));
+        return 1;
+    }
+
+    if (strcmp(name, "Dot") == 0)
+    {
+        lua_pushcfunction(L, lua_vector_dot, "Dot");
+        return 1;
+    }
+
+    luaL_error(L, "%s is not a valid member of vector", name);
+}
+
+static int lua_vector_namecall(lua_State* L)
+{
+    if (const char* str = lua_namecallatom(L, nullptr))
+    {
+        if (strcmp(str, "Dot") == 0)
+            return lua_vector_dot(L);
+    }
+
+    luaL_error(L, "%s is not a valid method of vector", luaL_checkstring(L, 1));
+}
+
+#endif
+
 int loader(lua_State* L)
 {
 	const luaL_Reg imguiEmptyFunctionsList[] = {
@@ -14332,8 +14384,7 @@ int loader(lua_State* L)
 	g_createClass(L, "ImGuiSizeCallbackData", NULL, NULL, NULL, imguiSizeCallbackDataFunctionList);
 	
 	const luaL_Reg imguiFunctionList[] =
-	{
-		
+	{		
 		{"beginDisabled", BeginDisabled},
 		{"endDisabled", EndDisabled},
 		
@@ -14877,6 +14928,27 @@ int loader(lua_State* L)
 	luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	
 	bindEnums(L);
+	
+	
+#ifdef IMPLEMENT_VECTOR
+	lua_pushcfunction(L, lua_vector, "vector");
+	lua_setglobal(L, "vector");
+#if LUA_VECTOR_SIZE == 4
+	lua_pushvector(L, 0.0f, 0.0f, 0.0f, 0.0f);
+#else
+	lua_pushvector(L, 0.0f, 0.0f, 0.0f);
+#endif
+	luaL_newmetatable(L, "vector");
+	lua_pushstring(L, "__index");
+	lua_pushcfunction(L, lua_vector_index, nullptr);
+	lua_settable(L, -3);
+	lua_pushstring(L, "__namecall");
+	lua_pushcfunction(L, lua_vector_namecall, nullptr);
+	lua_settable(L, -3);
+	lua_setreadonly(L, -1, true);
+	lua_setmetatable(L, -2);
+	lua_pop(L, 1);
+#endif
 	
 	lua_getglobal(L, "ImGui");
 	lua_pushstring(L, ImGui::GetVersion());
