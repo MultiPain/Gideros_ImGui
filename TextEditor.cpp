@@ -41,13 +41,13 @@ TextEditor::TextEditor()
     , mColorRangeMin(0)
     , mColorRangeMax(0)
     , mSelectionMode(SelectionMode::Normal)
-    , mCheckComments(true)
-    , mLastClick(-1.0f)
     , mHandleKeyboardInputs(true)
     , mHandleMouseInputs(true)
     , mIgnoreImGuiChild(false)
     , mShowWhitespaces(true)
+    , mCheckComments(true)
     , mStartTime(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+    , mLastClick(-1.0f)
 {
     SetPalette(GetDarkPalette());
     SetLanguageDefinition(LanguageDefinition::HLSL());
@@ -1091,7 +1091,7 @@ void TextEditor::Render()
         }
 
         // Draw a tooltip on known identifiers/preprocessor symbols
-        if (ImGui::IsMousePosValid())
+        if (ImGui::IsMousePosValid() && ImGui::IsWindowHovered())
         {
             std::string id = GetWordAt(ScreenPosToCoordinates(ImGui::GetMousePos()));
             if (!id.empty())
@@ -1123,7 +1123,7 @@ void TextEditor::Render()
     if (mScrollToCursor)
     {
         EnsureCursorVisible();
-        ImGui::SetWindowFocus();
+        //ImGui::SetWindowFocus();
         mScrollToCursor = false;
     }
 }
@@ -2342,10 +2342,17 @@ void TextEditor::ColorizeInternal()
                         if (singleStartStr.size() > 0 &&
                             currentIndex + singleStartStr.size() <= line.size() &&
                             equals(singleStartStr.begin(), singleStartStr.end(), from, from + singleStartStr.size(), pred))
-                        {
-                            withinSingleLineComment = true;
-                        }
-                        else if (!withinSingleLineComment && currentIndex + startStr.size() <= line.size() &&
+						{
+							if (currentIndex + startStr.size() > line.size())
+							{
+								withinSingleLineComment = true;
+							}
+							else if (!equals(startStr.begin(), startStr.end(), from, from + startStr.size(), pred))
+							{
+								withinSingleLineComment = true;
+							}
+						}
+                        if (startStr.size() != 0 && !withinSingleLineComment && currentIndex + startStr.size() <= line.size() &&
                             equals(startStr.begin(), startStr.end(), from, from + startStr.size(), pred))
                         {
                             commentStartLine = currentLine;
