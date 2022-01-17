@@ -131,11 +131,16 @@ fonts:addFont(font_path, font_size, {
 	mergeMode = true, -- merge into previous font
 })
 fonts:build()
- 
--- To use specific icons:
+```
+### Icons
+```lua
 local icon = utf8.char(0x2590)
- 
 ImGui:text("My icon >>" .. icon .. " << !!!")
+
+-- or with new Luau support:
+ImGui:text("My icon >> \u{2590} << !!!")
+-- can be also stored in memory:
+local icon = "\u{2590}"
 ```
 
 ## Font
