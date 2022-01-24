@@ -113,11 +113,13 @@ static void stackDump(lua_State* L, const char* prefix = "")
 				LUA_PRINTF("[N] %d: %f", i, lua_tonumber(L, i));
 			}
 			break;
+#ifdef LUA_IS_LUAU
 		case LUA_TVECTOR:
 			{
 				LUA_PRINTF("[V] %d: %p", i, lua_tovector(L, i));
 			}
 			break;
+#endif
 		default:
 			{
 				LUA_PRINTF("[D] %d: %s", i, lua_typename(L, t));
@@ -1438,6 +1440,7 @@ private:
 		io.KeySuper = modifiers & GINPUT_META_MODIFIER;
 	}
 
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
 	void keyUpOrDown(int keyCode, bool state)
 	{
 		ImGuiIO& io = gidImGui->ctx->IO;
@@ -1450,6 +1453,13 @@ private:
 		if (keyCode == GINPUT_KEY_ALT)
 			io.KeyAlt = state;
 	}
+#else
+	void keyUpOrDown(ImGuiKey key, bool state)
+	{
+		ImGuiIO& io = gidImGui->ctx->IO;
+		io.AddKeyEvent(key, state);
+	}
+#endif
 
 	void mouseUpOrDown(float x, float y, int giderosButton, bool state, int modifiers, float pressure = 0.0f)
 	{
@@ -1739,7 +1749,8 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	
 	io.BackendPlatformName = "Gideros Studio";
 	io.BackendRendererName = "Gideros Studio";
-	
+
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
 	// Keyboard map
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
 	io.KeyMap[ImGuiKey_Tab]         = GINPUT_KEY_TAB;
@@ -1762,7 +1773,8 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	io.KeyMap[ImGuiKey_X]           = GINPUT_KEY_X;
 	io.KeyMap[ImGuiKey_Y]           = GINPUT_KEY_Y;
 	io.KeyMap[ImGuiKey_Z]           = GINPUT_KEY_Z;
-	
+#endif
+
 	// Create font atlas
 	if (!atlas)
 	{
@@ -6458,7 +6470,12 @@ int ITCD_GetEventKey(lua_State* L)
 	STACK_CHECKER(L, "getEventKey", 1);
 
 	ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData");
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
 	lua_pushinteger(L, ImGui::GetIO().KeyMap[data->EventKey]);
+#else
+	ImGuiIO& io = ImGui::GetIO();
+	lua_pushinteger(L, io.KeysData[data->EventKey].Down);
+#endif
 	return 1;
 }
 
@@ -10107,11 +10124,17 @@ int IO_isKeySuper(lua_State* L)
 int IO_GetKeysDown(lua_State* L)
 {
 	STACK_CHECKER(L, "getKeysDown", 1);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
 	int index = luaL_checkinteger(L, 2);
 	LUA_ASSERT(index >= 0 && index <= 512, "KeyDown index is out of bounds!");
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	lua_pushboolean(L, io.KeysDown[index]);
+#else
+	ImGuiKey key = luaL_checkinteger(L, 2);
+	LUA_ASSERT(key >= 0 && key < ImGuiKey_KeysData_SIZE, "KeyDown index is out of bounds!");
+	lua_pushinteger(L, io.KeysData[key].Down);
+#endif
 	return 1;
 }
 
@@ -10588,6 +10611,8 @@ int IO_SetMouseDoubleClickMaxDist(lua_State* L)
 	return 0;
 }
 
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
+
 int IO_GetKeyMapValue(lua_State* L)
 {
 	STACK_CHECKER(L, "getKeyMapValue", 1);
@@ -10610,6 +10635,7 @@ int IO_SetKeyMapValue(lua_State* L)
 	io.KeyMap[index] = luaL_checkinteger(L, 3);
 	return 0;
 }
+#endif
 
 int IO_GetKeyRepeatDelay(lua_State* L)
 {
@@ -11402,7 +11428,7 @@ int FontAtlas_AddCustomRectFontGlyph(lua_State* L)
 	int height = luaL_checkinteger(L, 5);
 	float advance_x = luaL_checkinteger(L, 6);
 	const ImVec2& offset = ImVec2(luaL_optnumber(L, 7, 0.0f), luaL_optnumber(L, 8, 0.0f));
-	
+
 	lua_pushinteger(L, atlas->AddCustomRectFontGlyph(font, id, width, height, advance_x, offset));
 	return 1;
 }
@@ -11422,7 +11448,7 @@ int FontAtlas_GetCustomRectByIndex(lua_State* L)
 	lua_pushinteger(L, rect->GlyphID);
 	lua_pushnumber(L, rect->GlyphOffset.x);
 	lua_pushnumber(L, rect->GlyphOffset.y);
-	
+
 	g_pushInstance(L, "ImFont", rect->Font);
 	lua_pushboolean(L, rect->IsPacked());
 	return 10;
