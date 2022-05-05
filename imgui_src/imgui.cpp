@@ -1,4 +1,4 @@
-// dear imgui, v1.87 WIP
+// dear imgui, v1.87
 // (main code and documentation)
 
 // Help:
@@ -396,8 +396,9 @@ CODE
                         - IsKeyPressed(MY_NATIVE_KEY_XXX)              -> use IsKeyPressed(ImGuiKey_XXX)
                         - IsKeyPressed(GetKeyIndex(ImGuiKey_XXX))      -> use IsKeyPressed(ImGuiKey_XXX)
                         - Backend writing to io.KeyMap[],io.KeysDown[] -> backend should call io.AddKeyEvent()
+                        - Backend writing to io.KeyCtrl, io.KeyShift.. -> backend should call io.AddKeyEvent() with ImGuiKey_ModXXX values. *IF YOU PULLED CODE BETWEEN 2021/01/10 and 2021/01/27: We used to have a io.AddKeyModsEvent() function which was now replaced by io.AddKeyEvent() with ImGuiKey_ModXXX values.*
                      - one case won't work with backward compatibility: if your custom backend used ImGuiKey as mock native indices (e.g. "io.KeyMap[ImGuiKey_A] = ImGuiKey_A") because those values are now larger than the legacy KeyDown[] array. Will assert.
-                     - inputs: added io.AddKeyModsEvent() instead of writing directly to io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper.
+                     - inputs: added ImGuiKey_ModCtrl/ImGuiKey_ModShift/ImGuiKey_ModAlt/ImGuiKey_ModSuper values to submit keyboard modifiers using io.AddKeyEvent(), instead of writing directly to io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper.
  - 2022/01/05 (1.87) - inputs: renamed ImGuiKey_KeyPadEnter to ImGuiKey_KeypadEnter to align with new symbols. Kept redirection enum.
  - 2022/01/05 (1.87) - removed io.ImeSetInputScreenPosFn() in favor of more flexible io.SetPlatformImeDataFn(). Removed 'void* io.ImeWindowHandle' in favor of writing to 'void* ImGuiViewport::PlatformHandleRaw'.
  - 2022/01/01 (1.87) - commented out redirecting functions/enums names that were marked obsolete in 1.69, 1.70, 1.71, 1.72 (March-July 2019)
@@ -1011,11 +1012,6 @@ static void             UpdateViewportsNewFrame();
 ImGuiContext*   GImGui = NULL;
 #endif
 
-// @MultiPain
-#if defined(_GSTDIO_H_) && !defined(GLUA)
-lua_State* GLUA = NULL;
-#endif
-
 // Memory Allocator functions. Use SetAllocatorFunctions() to change them.
 // - You probably don't want to modify that mid-program, and if you use global/static e.g. ImVector<> instances you may need to keep them accessible during program destruction.
 // - DLL users: read comments above.
@@ -1114,7 +1110,7 @@ ImGuiIO::ImGuiIO()
 {
     // Most fields are initialized with zero
     memset(this, 0, sizeof(*this));
-    IM_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT); // Our pre-C++11 IM_STATIC_ASSERT() macros triggers warning on modern compilers so we don't use it here.
+    IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
 
     // Settings
     ConfigFlags = ImGuiConfigFlags_None;
@@ -1283,6 +1279,19 @@ void ImGuiIO::AddKeyAnalogEvent(ImGuiKey key, bool down, float analog_value)
     if (ImGui::IsGamepadKey(key))
         BackendUsingLegacyNavInputArray = false;
 
+    // Partial filter of duplicates (not strictly needed, but makes data neater in particular for key mods and gamepad values which are most commonly spmamed)
+    ImGuiKeyData* key_data = ImGui::GetKeyData(key);
+    if (key_data->Down == down && key_data->AnalogValue == analog_value)
+    {
+        bool found = false;
+        for (int n = g.InputEventsQueue.Size - 1; n >= 0 && !found; n--)
+            if (g.InputEventsQueue[n].Type == ImGuiInputEventType_Key && g.InputEventsQueue[n].Key.Key == key)
+                found = true;
+        if (!found)
+            return;
+    }
+
+    // Add event
     ImGuiInputEvent e;
     e.Type = ImGuiInputEventType_Key;
     e.Source = ImGui::IsGamepadKey(key) ? ImGuiInputSource_Gamepad : ImGuiInputSource_Keyboard;
@@ -1318,18 +1327,6 @@ void ImGuiIO::SetKeyEventNativeData(ImGuiKey key, int native_keycode, int native
     IM_UNUSED(key);
     IM_UNUSED(native_legacy_index);
 #endif
-}
-
-void ImGuiIO::AddKeyModsEvent(ImGuiKeyModFlags modifiers)
-{
-    ImGuiContext& g = *GImGui;
-    IM_ASSERT(&g.IO == this && "Can only add events to current context.");
-
-    ImGuiInputEvent e;
-    e.Type = ImGuiInputEventType_KeyMods;
-    e.Source = ImGuiInputSource_Keyboard;
-    e.KeyMods.Mods = modifiers;
-    g.InputEventsQueue.push_back(e);
 }
 
 // Queue a mouse move event
@@ -3954,6 +3951,13 @@ static void ImGui::UpdateKeyboardInputs()
                 io.KeysData[key].Down = io.KeysDown[n];
                 io.BackendUsingLegacyKeyArrays = 1;
             }
+        if (io.BackendUsingLegacyKeyArrays == 1)
+        {
+            io.KeysData[ImGuiKey_ModCtrl].Down = io.KeyCtrl;
+            io.KeysData[ImGuiKey_ModShift].Down = io.KeyShift;
+            io.KeysData[ImGuiKey_ModAlt].Down = io.KeyAlt;
+            io.KeysData[ImGuiKey_ModSuper].Down = io.KeySuper;
+        }
     }
 #endif
 
@@ -4341,6 +4345,11 @@ void ImGui::NewFrame()
     // Update keyboard input state
     UpdateKeyboardInputs();
 
+    //IM_ASSERT(g.IO.KeyCtrl == IsKeyDown(ImGuiKey_LeftCtrl) || IsKeyDown(ImGuiKey_RightCtrl));
+    //IM_ASSERT(g.IO.KeyShift == IsKeyDown(ImGuiKey_LeftShift) || IsKeyDown(ImGuiKey_RightShift));
+    //IM_ASSERT(g.IO.KeyAlt == IsKeyDown(ImGuiKey_LeftAlt) || IsKeyDown(ImGuiKey_RightAlt));
+    //IM_ASSERT(g.IO.KeySuper == IsKeyDown(ImGuiKey_LeftSuper) || IsKeyDown(ImGuiKey_RightSuper));
+
     // Update gamepad/keyboard navigation
     NavUpdate();
 
@@ -4561,10 +4570,9 @@ static void AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, Im
 
 static void AddDrawListToDrawData(ImVector<ImDrawList*>* out_list, ImDrawList* draw_list)
 {
-    // Remove trailing command if unused.
-    // Technically we could return directly instead of popping, but this make things looks neat in Metrics/Debugger window as well.
-    draw_list->_PopUnusedDrawCmd();
     if (draw_list->CmdBuffer.Size == 0)
+        return;
+    if (draw_list->CmdBuffer.Size == 1 && draw_list->CmdBuffer[0].ElemCount == 0 && draw_list->CmdBuffer[0].UserCallback == NULL)
         return;
 
     // Draw list sanity check. Detect mismatch between PrimReserve() calls and incrementing _VtxCurrentIdx, _VtxWritePtr etc.
@@ -4651,8 +4659,10 @@ static void SetupViewportDrawData(ImGuiViewportP* viewport, ImVector<ImDrawList*
     draw_data->FramebufferScale = io.DisplayFramebufferScale;
     for (int n = 0; n < draw_lists->Size; n++)
     {
-        draw_data->TotalVtxCount += draw_lists->Data[n]->VtxBuffer.Size;
-        draw_data->TotalIdxCount += draw_lists->Data[n]->IdxBuffer.Size;
+        ImDrawList* draw_list = draw_lists->Data[n];
+        draw_list->_PopUnusedDrawCmd();
+        draw_data->TotalVtxCount += draw_list->VtxBuffer.Size;
+        draw_data->TotalIdxCount += draw_list->IdxBuffer.Size;
     }
 }
 
@@ -4688,6 +4698,7 @@ static void ImGui::RenderDimmedBackgroundBehindWindow(ImGuiWindow* window, ImU32
     {
         // We've already called AddWindowToDrawData() which called DrawList->ChannelsMerge() on DockNodeHost windows,
         // and draw list have been trimmed already, hence the explicit recreation of a draw command if missing.
+        // FIXME: This is creating complication, might be simpler if we could inject a drawlist in drawdata at a given position and not attempt to manipulate ImDrawCmd order.
         ImDrawList* draw_list = window->RootWindow->DrawList;
         if (draw_list->CmdBuffer.Size == 0)
             draw_list->AddDrawCmd();
@@ -4698,7 +4709,7 @@ static void ImGui::RenderDimmedBackgroundBehindWindow(ImGuiWindow* window, ImU32
         draw_list->CmdBuffer.pop_back();
         draw_list->CmdBuffer.push_front(cmd);
         draw_list->PopClipRect();
-        draw_list->_PopUnusedDrawCmd(); // Since are past the calls to AddDrawListToDrawData() we don't have a _PopUnusedDrawCmd() running on commands.
+        draw_list->AddDrawCmd(); // We need to create a command as CmdBuffer.back().IdxOffset won't be correct if we append to same command.
     }
 }
 
@@ -4723,6 +4734,8 @@ static void ImGui::RenderDimmedBackgrounds()
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* modal_window = GetTopMostAndVisiblePopupModal();
+    if (g.DimBgRatio <= 0.0f && g.NavWindowingHighlightAlpha <= 0.0f)
+        return;
     const bool dim_bg_for_modal = (modal_window != NULL);
     const bool dim_bg_for_window_list = (g.NavWindowingTargetAnim != NULL && g.NavWindowingTargetAnim->Active);
     if (!dim_bg_for_modal && !dim_bg_for_window_list)
@@ -4752,7 +4765,6 @@ static void ImGui::RenderDimmedBackgrounds()
         window->DrawList->PushClipRect(viewport->Pos, viewport->Pos + viewport->Size);
         window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_NavWindowingHighlight, g.NavWindowingHighlightAlpha), window->WindowRounding, 0, 3.0f);
         window->DrawList->PopClipRect();
-        window->DrawList->_PopUnusedDrawCmd(); // Since are past the calls to AddDrawListToDrawData() we don't have a _PopUnusedDrawCmd() running on commands.
     }
 }
 
@@ -6083,6 +6095,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     {
         // Initialize
         const bool window_is_child_tooltip = (flags & ImGuiWindowFlags_ChildWindow) && (flags & ImGuiWindowFlags_Tooltip); // FIXME-WIP: Undocumented behavior of Child+Tooltip for pinned tooltip (#1345)
+        const bool window_just_appearing_after_hidden_for_resize = (window->HiddenFramesCannotSkipItems > 0);
         window->Active = true;
         window->HasCloseButton = (p_open != NULL);
         window->ClipRect = ImVec4(-FLT_MAX, -FLT_MAX, +FLT_MAX, +FLT_MAX);
@@ -6109,7 +6122,6 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // UPDATE CONTENTS SIZE, UPDATE HIDDEN STATUS
 
         // Update contents size from last frame for auto-fitting (or use explicit size)
-        const bool window_just_appearing_after_hidden_for_resize = (window->HiddenFramesCannotSkipItems > 0);
         CalcWindowContentSizes(window, &window->ContentSize, &window->ContentSizeIdeal);
         if (window->HiddenFramesCanSkipItems > 0)
             window->HiddenFramesCanSkipItems--;
@@ -6298,6 +6310,18 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
                 }
             }
         }
+
+        // [Test Engine] Register whole window in the item system
+#ifdef IMGUI_ENABLE_TEST_ENGINE
+        if (g.TestEngineHookItems)
+        {
+            IM_ASSERT(window->IDStack.Size == 1);
+            window->IDStack.Size = 0;
+            IMGUI_TEST_ENGINE_ITEM_ADD(window->Rect(), window->ID);
+            IMGUI_TEST_ENGINE_ITEM_INFO(window->ID, window->Name, (g.HoveredWindow == window) ? ImGuiItemStatusFlags_HoveredRect : 0);
+            window->IDStack.Size = 1;
+        }
+#endif
 
         // Handle manual resize: Resize Grips, Borders, Gamepad
         int border_held = -1;
@@ -6520,10 +6544,9 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // This is useful to allow creating context menus on title bar only, etc.
         SetLastItemData(window->MoveId, g.CurrentItemFlags, IsMouseHoveringRect(title_bar_rect.Min, title_bar_rect.Max, false) ? ImGuiItemStatusFlags_HoveredRect : 0, title_bar_rect);
 
-#ifdef IMGUI_ENABLE_TEST_ENGINE
+        // [Test Engine] Register title bar / tab
         if (!(window->Flags & ImGuiWindowFlags_NoTitleBar))
             IMGUI_TEST_ENGINE_ITEM_ADD(g.LastItemData.Rect, g.LastItemData.ID);
-#endif
     }
     else
     {
@@ -7520,7 +7543,8 @@ static const char* const GKeyNames[] =
     "GamepadDpadUp", "GamepadDpadDown", "GamepadDpadLeft", "GamepadDpadRight",
     "GamepadL1", "GamepadR1", "GamepadL2", "GamepadR2", "GamepadL3", "GamepadR3",
     "GamepadLStickUp", "GamepadLStickDown", "GamepadLStickLeft", "GamepadLStickRight",
-    "GamepadRStickUp", "GamepadRStickDown", "GamepadRStickLeft", "GamepadRStickRight"
+    "GamepadRStickUp", "GamepadRStickDown", "GamepadRStickLeft", "GamepadRStickRight",
+    "ModCtrl", "ModShift", "ModAlt", "ModSuper"
 };
 IM_STATIC_ASSERT(ImGuiKey_NamedKey_COUNT == IM_ARRAYSIZE(GKeyNames));
 
@@ -7765,7 +7789,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
     ImGuiIO& io = g.IO;
 
     bool mouse_moved = false, mouse_wheeled = false, key_changed = false, text_inputed = false;
-    int  mouse_button_changed = 0x00, key_mods_changed = 0x00;
+    int  mouse_button_changed = 0x00;
     ImBitArray<ImGuiKey_KeysData_SIZE> key_changed_mask;
 
     int event_n = 0;
@@ -7780,7 +7804,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
             if (io.MousePos.x != event_pos.x || io.MousePos.y != event_pos.y)
             {
                 // Trickling Rule: Stop processing queued events if we already handled a mouse button change
-                if (trickle_fast_inputs && (mouse_button_changed != 0 || mouse_wheeled || key_changed || key_mods_changed || text_inputed))
+                if (trickle_fast_inputs && (mouse_button_changed != 0 || mouse_wheeled || key_changed || text_inputed))
                     break;
                 io.MousePos = event_pos;
                 mouse_moved = true;
@@ -7813,8 +7837,9 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_Key)
         {
-            IM_ASSERT(e->Key.Key != ImGuiKey_None);
-            const int keydata_index = (e->Key.Key - ImGuiKey_KeysData_OFFSET);
+            ImGuiKey key = e->Key.Key;
+            IM_ASSERT(key != ImGuiKey_None);
+            const int keydata_index = (key - ImGuiKey_KeysData_OFFSET);
             ImGuiKeyData* keydata = &io.KeysData[keydata_index];
             if (keydata->Down != e->Key.Down || keydata->AnalogValue != e->Key.AnalogValue)
             {
@@ -7825,23 +7850,15 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
                 keydata->AnalogValue = e->Key.AnalogValue;
                 key_changed = true;
                 key_changed_mask.SetBit(keydata_index);
-            }
-        }
-        else if (e->Type == ImGuiInputEventType_KeyMods)
-        {
-            const ImGuiKeyModFlags modifiers = e->KeyMods.Mods;
-            if (io.KeyMods != modifiers)
-            {
-                // Trickling Rule: Stop processing queued events if we got multiple action on the same button
-                ImGuiKeyModFlags modifiers_that_are_changing = (io.KeyMods ^ modifiers);
-                if (trickle_fast_inputs && (key_mods_changed & modifiers_that_are_changing) != 0)
-                    break;
-                io.KeyMods = modifiers;
-                io.KeyCtrl = (modifiers & ImGuiKeyModFlags_Ctrl) != 0;
-                io.KeyShift = (modifiers & ImGuiKeyModFlags_Shift) != 0;
-                io.KeyAlt = (modifiers & ImGuiKeyModFlags_Alt) != 0;
-                io.KeySuper = (modifiers & ImGuiKeyModFlags_Super) != 0;
-                key_mods_changed |= modifiers_that_are_changing;
+
+                if (key == ImGuiKey_ModCtrl || key == ImGuiKey_ModShift || key == ImGuiKey_ModAlt || key == ImGuiKey_ModSuper)
+                {
+                    if (key == ImGuiKey_ModCtrl) { io.KeyCtrl = keydata->Down; }
+                    if (key == ImGuiKey_ModShift) { io.KeyShift = keydata->Down; }
+                    if (key == ImGuiKey_ModAlt) { io.KeyAlt = keydata->Down; }
+                    if (key == ImGuiKey_ModSuper) { io.KeySuper = keydata->Down; }
+                    io.KeyMods = GetMergedKeyModFlags();
+                }
             }
         }
         else if (e->Type == ImGuiInputEventType_Char)
@@ -9192,7 +9209,8 @@ bool ImGui::BeginPopup(const char* str_id, ImGuiWindowFlags flags)
         return false;
     }
     flags |= ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
-    return BeginPopupEx(g.CurrentWindow->GetID(str_id), flags);
+    ImGuiID id = g.CurrentWindow->GetID(str_id);
+    return BeginPopupEx(id, flags);
 }
 
 // If 'p_open' is specified for a modal popup window, the popup will have a regular close button which will close the popup.
@@ -9271,7 +9289,7 @@ void ImGui::OpenPopupOnItemClick(const char* str_id, ImGuiPopupFlags popup_flags
 // - You may want to handle the whole on user side if you have specific needs (e.g. tweaking IsItemHovered() parameters).
 //   This is essentially the same as:
 //       id = str_id ? GetID(str_id) : GetItemID();
-//       OpenPopupOnItemClick(str_id);
+//       OpenPopupOnItemClick(str_id, ImGuiPopupFlags_MouseButtonRight);
 //       return BeginPopup(id);
 //   Which is essentially the same as:
 //       id = str_id ? GetID(str_id) : GetItemID();
@@ -9432,8 +9450,7 @@ ImVec2 ImGui::FindBestWindowPosForPopup(ImGuiWindow* window)
     }
     if (window->Flags & ImGuiWindowFlags_Popup)
     {
-        ImRect r_avoid = ImRect(window->Pos.x - 1, window->Pos.y - 1, window->Pos.x + 1, window->Pos.y + 1);
-        return FindBestWindowPosForPopupEx(window->Pos, window->Size, &window->AutoPosLastDirection, r_outer, r_avoid, ImGuiPopupPositionPolicy_Default);
+        return FindBestWindowPosForPopupEx(window->Pos, window->Size, &window->AutoPosLastDirection, r_outer, ImRect(window->Pos, window->Pos), ImGuiPopupPositionPolicy_Default); // Ideally we'd disable r_avoid here
     }
     if (window->Flags & ImGuiWindowFlags_Tooltip)
     {
@@ -9942,9 +9959,10 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
     if (g.NavDisableHighlight || !g.NavDisableMouseHover || !window)
     {
         // Mouse (we need a fallback in case the mouse becomes invalid after being used)
-        if (IsMousePosValid(&g.IO.MousePos))
-            return g.IO.MousePos;
-        return g.MouseLastValidPos;
+        // The +1.0f offset when stored by OpenPopupEx() allows reopening this or another popup (same or another mouse button) while not moving the mouse, it is pretty standard.
+        // In theory we could move that +1.0f offset in OpenPopupEx()
+        ImVec2 p = IsMousePosValid(&g.IO.MousePos) ? g.IO.MousePos : g.MouseLastValidPos;
+        return ImVec2(p.x + 1.0f, p.y);
     }
     else
     {
@@ -12387,8 +12405,8 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Text("ActiveIdWindow: '%s'", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
 
         int active_id_using_key_input_count = 0;
-        for (int n = 0; n < g.ActiveIdUsingKeyInputMask.Size; n++)
-            active_id_using_key_input_count += g.ActiveIdUsingKeyInputMask.TestBit(n) ? 1 : 0;
+        for (int n = 0; n < ImGuiKey_NamedKey_COUNT; n++)
+            active_id_using_key_input_count += g.ActiveIdUsingKeyInputMask[n] ? 1 : 0;
         Text("ActiveIdUsing: Wheel: %d, NavDirMask: %X, NavInputMask: %X, KeyInputMask: %d key(s)", g.ActiveIdUsingMouseWheel, g.ActiveIdUsingNavDirMask, g.ActiveIdUsingNavInputMask, active_id_using_key_input_count);
         Text("HoveredId: 0x%08X (%.2f sec), AllowOverlap: %d", g.HoveredIdPreviousFrame, g.HoveredIdTimer, g.HoveredIdAllowOverlap); // Not displaying g.HoveredId as it is update mid-frame
         Text("DragDrop: %d, SourceId = 0x%08X, Payload \"%s\" (%d bytes)", g.DragDropActive, g.DragDropPayload.SourceId, g.DragDropPayload.DataType, g.DragDropPayload.DataSize);

@@ -1,4 +1,4 @@
-// dear imgui, v1.87 WIP
+// dear imgui, v1.87
 // (internal structures/api)
 
 // You may use this file to debug, understand or extend ImGui features but we don't provide any guarantee of forward compatibility!
@@ -18,6 +18,7 @@ Index of this file:
 // [SECTION] Generic helpers
 // [SECTION] ImDrawList support
 // [SECTION] Widgets support: flags, enums, data structures
+// [SECTION] Inputs support
 // [SECTION] Clipper support
 // [SECTION] Navigation support
 // [SECTION] Columns support
@@ -545,21 +546,19 @@ inline void     ImBitArraySetBitRange(ImU32* arr, int n, int n2) // Works on ran
 
 // Helper: ImBitArray class (wrapper over ImBitArray functions)
 // Store 1-bit per value.
-template<int BITCOUNT>
-struct IMGUI_API ImBitArray
+template<int BITCOUNT, int OFFSET = 0>
+struct ImBitArray
 {
-    static const int Size = BITCOUNT;
     ImU32           Storage[(BITCOUNT + 31) >> 5];
     ImBitArray()                                { ClearAllBits(); }
     void            ClearAllBits()              { memset(Storage, 0, sizeof(Storage)); }
     void            SetAllBits()                { memset(Storage, 255, sizeof(Storage)); }
-    bool            TestBit(int n) const        { IM_ASSERT(n < BITCOUNT); return ImBitArrayTestBit(Storage, n); }
-    void            SetBit(int n)               { IM_ASSERT(n < BITCOUNT); ImBitArraySetBit(Storage, n); }
-    void            ClearBit(int n)             { IM_ASSERT(n < BITCOUNT); ImBitArrayClearBit(Storage, n); }
-    void            SetBitRange(int n, int n2)  { ImBitArraySetBitRange(Storage, n, n2); } // Works on range [n..n2)
+    bool            TestBit(int n) const        { IM_ASSERT(n + OFFSET < BITCOUNT); return ImBitArrayTestBit(Storage, n + OFFSET); }
+    void            SetBit(int n)               { IM_ASSERT(n + OFFSET < BITCOUNT); ImBitArraySetBit(Storage, n + OFFSET); }
+    void            ClearBit(int n)             { IM_ASSERT(n + OFFSET < BITCOUNT); ImBitArrayClearBit(Storage, n + OFFSET); }
+    void            SetBitRange(int n, int n2)  { ImBitArraySetBitRange(Storage, n + OFFSET, n2 + OFFSET); } // Works on range [n..n2)
+    bool            operator[](int n) const     { IM_ASSERT(n + OFFSET < BITCOUNT); return ImBitArrayTestBit(Storage, n + OFFSET); }
 };
-template<int BITCOUNT>
-const int ImBitArray<BITCOUNT>::Size;
 
 // Helper: ImBitVector
 // Store 1-bit per value.
@@ -629,7 +628,7 @@ struct ImSpanAllocator
 // Honor constructor/destructor. Add/remove invalidate all pointers. Indexes have the same lifetime as the associated object.
 typedef int ImPoolIdx;
 template<typename T>
-struct IMGUI_API ImPool
+struct ImPool
 {
     ImVector<T>     Buf;        // Contiguous data
     ImGuiStorage    Map;        // ID->Index
@@ -666,7 +665,7 @@ struct IMGUI_API ImPool
 // We store the chunk size first, and align the final size on 4 bytes boundaries.
 // The tedious/zealous amount of casting is to avoid -Wcast-align warnings.
 template<typename T>
-struct IMGUI_API ImChunkStream
+struct ImChunkStream
 {
     ImVector<char>  Buf;
 
@@ -903,70 +902,6 @@ enum ImGuiPlotType
 {
     ImGuiPlotType_Lines,
     ImGuiPlotType_Histogram
-};
-
-enum ImGuiInputEventType
-{
-    ImGuiInputEventType_None = 0,
-    ImGuiInputEventType_MousePos,
-    ImGuiInputEventType_MouseWheel,
-    ImGuiInputEventType_MouseButton,
-    ImGuiInputEventType_Key,
-    ImGuiInputEventType_KeyMods,
-    ImGuiInputEventType_Char,
-    ImGuiInputEventType_Focus,
-    ImGuiInputEventType_COUNT
-};
-
-enum ImGuiInputSource
-{
-    ImGuiInputSource_None = 0,
-    ImGuiInputSource_Mouse,
-    ImGuiInputSource_Keyboard,
-    ImGuiInputSource_Gamepad,
-    ImGuiInputSource_Clipboard,     // Currently only used by InputText()
-    ImGuiInputSource_Nav,           // Stored in g.ActiveIdSource only
-    ImGuiInputSource_COUNT
-};
-
-// FIXME: Structures in the union below need to be declared as anonymous unions appears to be an extension?
-// Using ImVec2() would fail on Clang 'union member 'MousePos' has a non-trivial default constructor'
-struct ImGuiInputEventMousePos      { float PosX, PosY; };
-struct ImGuiInputEventMouseWheel    { float WheelX, WheelY; };
-struct ImGuiInputEventMouseButton   { int Button; bool Down; };
-struct ImGuiInputEventKey           { ImGuiKey Key; bool Down; float AnalogValue; };
-struct ImGuiInputEventKeyMods       { ImGuiKeyModFlags Mods; };
-struct ImGuiInputEventText          { unsigned int Char; };
-struct ImGuiInputEventAppFocused    { bool Focused; };
-
-struct ImGuiInputEvent
-{
-    ImGuiInputEventType             Type;
-    ImGuiInputSource                Source;
-    union
-    {
-        ImGuiInputEventMousePos     MousePos;       // if Type == ImGuiInputEventType_MousePos
-        ImGuiInputEventMouseWheel   MouseWheel;     // if Type == ImGuiInputEventType_MouseWheel
-        ImGuiInputEventMouseButton  MouseButton;    // if Type == ImGuiInputEventType_MouseButton
-        ImGuiInputEventKey          Key;            // if Type == ImGuiInputEventType_Key
-        ImGuiInputEventKeyMods      KeyMods;        // if Type == ImGuiInputEventType_Modifiers
-        ImGuiInputEventText         Text;           // if Type == ImGuiInputEventType_Text
-        ImGuiInputEventAppFocused   AppFocused;     // if Type == ImGuiInputEventType_Focus
-    };
-    bool                            AddedByTestEngine;
-
-    ImGuiInputEvent() { memset(this, 0, sizeof(*this)); }
-};
-
-// FIXME-NAV: Clarify/expose various repeat delay/rate
-enum ImGuiInputReadMode
-{
-    ImGuiInputReadMode_Down,
-    ImGuiInputReadMode_Pressed,
-    ImGuiInputReadMode_Released,
-    ImGuiInputReadMode_Repeat,
-    ImGuiInputReadMode_RepeatSlow,
-    ImGuiInputReadMode_RepeatFast
 };
 
 enum ImGuiPopupPositionPolicy
@@ -1219,6 +1154,81 @@ struct ImGuiPtrOrIndex
 
     ImGuiPtrOrIndex(void* ptr)  { Ptr = ptr; Index = -1; }
     ImGuiPtrOrIndex(int index)  { Ptr = NULL; Index = index; }
+};
+
+//-----------------------------------------------------------------------------
+// [SECTION] Inputs support
+//-----------------------------------------------------------------------------
+
+typedef ImBitArray<ImGuiKey_NamedKey_COUNT, -ImGuiKey_NamedKey_BEGIN>    ImBitArrayForNamedKeys;
+
+enum ImGuiKeyPrivate_
+{
+    ImGuiKey_LegacyNativeKey_BEGIN  = 0,
+    ImGuiKey_LegacyNativeKey_END    = 512,
+    ImGuiKey_Gamepad_BEGIN          = ImGuiKey_GamepadStart,
+    ImGuiKey_Gamepad_END            = ImGuiKey_GamepadRStickRight + 1
+};
+
+enum ImGuiInputEventType
+{
+    ImGuiInputEventType_None = 0,
+    ImGuiInputEventType_MousePos,
+    ImGuiInputEventType_MouseWheel,
+    ImGuiInputEventType_MouseButton,
+    ImGuiInputEventType_Key,
+    ImGuiInputEventType_Char,
+    ImGuiInputEventType_Focus,
+    ImGuiInputEventType_COUNT
+};
+
+enum ImGuiInputSource
+{
+    ImGuiInputSource_None = 0,
+    ImGuiInputSource_Mouse,
+    ImGuiInputSource_Keyboard,
+    ImGuiInputSource_Gamepad,
+    ImGuiInputSource_Clipboard,     // Currently only used by InputText()
+    ImGuiInputSource_Nav,           // Stored in g.ActiveIdSource only
+    ImGuiInputSource_COUNT
+};
+
+// FIXME: Structures in the union below need to be declared as anonymous unions appears to be an extension?
+// Using ImVec2() would fail on Clang 'union member 'MousePos' has a non-trivial default constructor'
+struct ImGuiInputEventMousePos      { float PosX, PosY; };
+struct ImGuiInputEventMouseWheel    { float WheelX, WheelY; };
+struct ImGuiInputEventMouseButton   { int Button; bool Down; };
+struct ImGuiInputEventKey           { ImGuiKey Key; bool Down; float AnalogValue; };
+struct ImGuiInputEventText          { unsigned int Char; };
+struct ImGuiInputEventAppFocused    { bool Focused; };
+
+struct ImGuiInputEvent
+{
+    ImGuiInputEventType             Type;
+    ImGuiInputSource                Source;
+    union
+    {
+        ImGuiInputEventMousePos     MousePos;       // if Type == ImGuiInputEventType_MousePos
+        ImGuiInputEventMouseWheel   MouseWheel;     // if Type == ImGuiInputEventType_MouseWheel
+        ImGuiInputEventMouseButton  MouseButton;    // if Type == ImGuiInputEventType_MouseButton
+        ImGuiInputEventKey          Key;            // if Type == ImGuiInputEventType_Key
+        ImGuiInputEventText         Text;           // if Type == ImGuiInputEventType_Text
+        ImGuiInputEventAppFocused   AppFocused;     // if Type == ImGuiInputEventType_Focus
+    };
+    bool                            AddedByTestEngine;
+
+    ImGuiInputEvent() { memset(this, 0, sizeof(*this)); }
+};
+
+// FIXME-NAV: Clarify/expose various repeat delay/rate
+enum ImGuiInputReadMode
+{
+    ImGuiInputReadMode_Down,
+    ImGuiInputReadMode_Pressed,
+    ImGuiInputReadMode_Released,
+    ImGuiInputReadMode_Repeat,
+    ImGuiInputReadMode_RepeatSlow,
+    ImGuiInputReadMode_RepeatFast
 };
 
 //-----------------------------------------------------------------------------
@@ -1605,7 +1615,7 @@ struct ImGuiContext
     bool                    ActiveIdUsingMouseWheel;            // Active widget will want to read mouse wheel. Blocks scrolling the underlying window.
     ImU32                   ActiveIdUsingNavDirMask;            // Active widget will want to read those nav move requests (e.g. can activate a button and move away from it)
     ImU32                   ActiveIdUsingNavInputMask;          // Active widget will want to read those nav inputs.
-    ImBitArray<ImGuiKey_NamedKey_COUNT> ActiveIdUsingKeyInputMask; // Active widget will want to read those key inputs. When we grow the ImGuiKey enum we'll need to either to order the enum to make useful keys come first, either redesign this into e.g. a small array.
+    ImBitArrayForNamedKeys  ActiveIdUsingKeyInputMask;          // Active widget will want to read those key inputs. When we grow the ImGuiKey enum we'll need to either to order the enum to make useful keys come first, either redesign this into e.g. a small array.
     ImVec2                  ActiveIdClickOffset;                // Clicked offset from upper-left corner, if applicable (currently only set by ButtonBehavior)
     ImGuiWindow*            ActiveIdWindow;
     ImGuiInputSource        ActiveIdSource;                     // Activating with mouse or nav (gamepad/keyboard)
@@ -2652,8 +2662,8 @@ namespace ImGui
     IMGUI_API void          SetActiveIdUsingNavAndKeys();
     inline bool             IsActiveIdUsingNavDir(ImGuiDir dir)                         { ImGuiContext& g = *GImGui; return (g.ActiveIdUsingNavDirMask & (1 << dir)) != 0; }
     inline bool             IsActiveIdUsingNavInput(ImGuiNavInput input)                { ImGuiContext& g = *GImGui; return (g.ActiveIdUsingNavInputMask & (1 << input)) != 0; }
-    inline bool             IsActiveIdUsingKey(ImGuiKey key)                            { IM_ASSERT(IsNamedKey(key)); ImGuiContext& g = *GImGui; return g.ActiveIdUsingKeyInputMask.TestBit(key - ImGuiKey_NamedKey_BEGIN); }
-    inline void             SetActiveIdUsingKey(ImGuiKey key)                           { IM_ASSERT(IsNamedKey(key)); ImGuiContext& g = *GImGui; g.ActiveIdUsingKeyInputMask.SetBit(key - ImGuiKey_NamedKey_BEGIN); }
+    inline bool             IsActiveIdUsingKey(ImGuiKey key)                            { ImGuiContext& g = *GImGui; return g.ActiveIdUsingKeyInputMask[key]; }
+    inline void             SetActiveIdUsingKey(ImGuiKey key)                           { ImGuiContext& g = *GImGui; g.ActiveIdUsingKeyInputMask.SetBit(key); }
     IMGUI_API bool          IsMouseDragPastThreshold(ImGuiMouseButton button, float lock_threshold = -1.0f);
     inline bool             IsNavInputDown(ImGuiNavInput n)                             { ImGuiContext& g = *GImGui; return g.IO.NavInputs[n] > 0.0f; }
     inline bool             IsNavInputTest(ImGuiNavInput n, ImGuiInputReadMode rm)      { return (GetNavInputAmount(n, rm) > 0.0f); }
@@ -2903,7 +2913,8 @@ extern const char*  ImGuiTestEngine_FindItemDebugLabel(ImGuiContext* ctx, ImGuiI
 #define IMGUI_TEST_ENGINE_ITEM_INFO(_ID,_LABEL,_FLAGS)      if (g.TestEngineHookItems) ImGuiTestEngineHook_ItemInfo(&g, _ID, _LABEL, _FLAGS)   // Register item label and status flags (optional)
 #define IMGUI_TEST_ENGINE_LOG(_FMT,...)                     if (g.TestEngineHookItems) ImGuiTestEngineHook_Log(&g, _FMT, __VA_ARGS__)          // Custom log entry from user land into test log
 #else
-#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID,_LABEL,_FLAGS)      ((void)0)
+#define IMGUI_TEST_ENGINE_ITEM_ADD(_BB,_ID)                 ((void)0)
+#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID,_LABEL,_FLAGS)      ((void)g)
 #endif
 
 //-----------------------------------------------------------------------------
