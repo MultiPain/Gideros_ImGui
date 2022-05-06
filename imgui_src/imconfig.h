@@ -16,7 +16,6 @@
 
 #define IS_BETA_BUILD // test things
 //#define INCLUDE_IMPLOT
-#define IMPLEMENT_VECTOR
 
 #include "gstdio.h"
 #include "lua.hpp"

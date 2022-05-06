@@ -7,12 +7,12 @@ TEMPLATE = lib
 
 INCLUDEPATH += ../../Sdk/include
 INCLUDEPATH += ../../Sdk/include/gideros
-INCLUDEPATH += ../../Src/2dsg
-INCLUDEPATH += ../../Src/2dsg/gfxbackends
-INCLUDEPATH += ../../Src/libgideros
-INCLUDEPATH += ../../Src/libgid/include
-INCLUDEPATH += ../../Src/luabinding
-INCLUDEPATH += ../../Src/lua/src
+INCLUDEPATH += ../../gideros_master/2dsg
+INCLUDEPATH += ../../gideros_master/2dsg/gfxbackends
+INCLUDEPATH += ../../gideros_master/libgideros
+INCLUDEPATH += ../../gideros_master/libgid/include
+INCLUDEPATH += ../../gideros_master/luabinding
+INCLUDEPATH += ../../gideros_master/lua/src
 
 SOURCES += \
     imgui_src/imgui.cpp \
@@ -25,12 +25,12 @@ SOURCES += \
     implot_src/implot.cpp \
     implot_src/implot_demo.cpp \
     implot_src/implot_items.cpp\
-    ../../Src/2dsg/bitmapdata.cpp \
-    ../../Src/2dsg/Matrices.cpp \
-    ../../Src/2dsg/mouseevent.cpp \
-    ../../Src/2dsg/touchevent.cpp \
-    ../../Src/2dsg/keyboardevent.cpp \
-	../../Src/luabinding/stackchecker.cpp \
+    ../../gideros_master/2dsg/bitmapdata.cpp \
+    ../../gideros_master/2dsg/Matrices.cpp \
+    ../../gideros_master/2dsg/mouseevent.cpp \
+    ../../gideros_master/2dsg/touchevent.cpp \
+    ../../gideros_master/2dsg/keyboardevent.cpp \
+	../../gideros_master/luabinding/stackchecker.cpp \
     main.cpp
 
 HEADERS += \
@@ -44,11 +44,11 @@ HEADERS += \
     TextEditor.h \
     implot_src/implot.h \
     implot_src/implot_internal.h \
-    ../../Src/2dsg/bitmapdata.h \
-    ../../Src/2dsg/mouseevent.h \
-    ../../Src/2dsg/touchevent.h \
-    ../../Src/2dsg/keyboardevent.h  \
-	../../Src/luabinding/stackchecker.h
+    ../../gideros_master/2dsg/bitmapdata.h \
+    ../../gideros_master/2dsg/mouseevent.h \
+    ../../gideros_master/2dsg/touchevent.h \
+    ../../gideros_master/2dsg/keyboardevent.h  \
+	../../gideros_master/luabinding/stackchecker.h
 
 LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs #-lpystring
 

@@ -1,6 +1,7 @@
 // TODO
 // tables instead of vectors?
 // Nav settings
+// Remove "CallbackData" vecotr?
 
 #define _UNUSED(n)
 //#pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -434,7 +435,7 @@ static void localToGlobal(SpriteProxy* proxy, float x, float y, float* tx, float
 		*ty = y;
 }
 
-static int giderosMouseToImGui(const int button)
+static ImGuiMouseButton giderosMouseToImGui(const int button)
 {
 	switch (button)
 	{
@@ -454,17 +455,16 @@ static int giderosMouseToImGui(const int button)
 	}
 }
 
-
 static ImGuiKey giderosKeyToImGuiKey(const int key)
 {
 	switch (key)
 	{
+		case GINPUT_KEY_SHIFT:		return ImGuiKey_ModShift;
+		case GINPUT_KEY_CTRL:		return ImGuiKey_ModCtrl;
+		case GINPUT_KEY_ALT:		return ImGuiKey_ModAlt;
 		case GINPUT_KEY_BACKSPACE:	return ImGuiKey_Backspace;
 		case GINPUT_KEY_TAB:		return ImGuiKey_Tab;
 		case GINPUT_KEY_ENTER:		return ImGuiKey_Enter;
-		case GINPUT_KEY_SHIFT:		return ImGuiKey_LeftShift; // IDK
-		case GINPUT_KEY_CTRL:		return ImGuiKey_LeftCtrl; // IDK
-		case GINPUT_KEY_ALT:		return ImGuiKey_LeftAlt; // IDK
 		case GINPUT_KEY_ESC:		return ImGuiKey_Escape;
 		case GINPUT_KEY_SPACE:		return ImGuiKey_Space;
 		case GINPUT_KEY_LEFT:		return ImGuiKey_LeftArrow;
@@ -656,6 +656,7 @@ ImGuiID checkID(lua_State* L, int idx = 2)
 	return (ImGuiID)id;
 }
 
+// TODO
 static int InputTextCallback(ImGuiInputTextCallbackData* data)
 {
 	CallbackData* callbackData = (CallbackData*)data->UserData;
@@ -677,6 +678,7 @@ static int InputTextCallback(ImGuiInputTextCallbackData* data)
 	return 0;
 }
 
+// TODO
 static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 {
 	CallbackData* callbackData = static_cast<CallbackData*>(data->UserData);
@@ -716,21 +718,36 @@ void setupUVs(lua_State* L, GTextureData& data, int idx)
 		float h = data.texture_size.y;
 		bool clamp_area;
 		
-		if (lua_type(L, idx) == LUA_TTABLE)
+		switch (lua_type(L, idx))
 		{
-			x = getTableValue(L, idx, 1, 0.0f);
-			y = getTableValue(L, idx, 2, 0.0f);
-			w = getTableValue(L, idx, 3, data.texture_size.x);
-			h = getTableValue(L, idx, 4, data.texture_size.y);
-			clamp_area = lua_toboolean(L, idx + 1);
-		}
-		else
-		{
-			x = luaL_optnumber(L, idx + 0, 0.0f);
-			y = luaL_optnumber(L, idx + 1, 0.0f);
-			w = luaL_optnumber(L, idx + 2, data.texture_size.x);
-			h = luaL_optnumber(L, idx + 3, data.texture_size.y);
-			clamp_area = lua_toboolean(L, idx + 4);
+			case LUA_TTABLE:
+				{
+					x = getTableValue(L, idx, 1, 0.0f);
+					y = getTableValue(L, idx, 2, 0.0f);
+					w = getTableValue(L, idx, 3, data.texture_size.x);
+					h = getTableValue(L, idx, 4, data.texture_size.y);
+					clamp_area = lua_toboolean(L, idx + 1);
+				}
+				break;
+			case LUA_TVECTOR:
+				{
+					const float *cvec=lua_tovector(L, idx);
+					x = cvec[0];
+					y = cvec[1];
+					w = cvec[2];
+					h = cvec[3];
+					clamp_area = lua_toboolean(L, idx + 1);
+				}
+				break;
+			default:
+				{
+					x = luaL_optnumber(L, idx + 0, 0.0f);
+					y = luaL_optnumber(L, idx + 1, 0.0f);
+					w = luaL_optnumber(L, idx + 2, data.texture_size.x);
+					h = luaL_optnumber(L, idx + 3, data.texture_size.y);
+					clamp_area = lua_toboolean(L, idx + 4);
+				}
+				break;
 		}
 		
 		float uv0x = x / data.ex_size.x;
@@ -1301,6 +1318,147 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImGuiButtonFlags_MouseButtonRight, "ButtonFlags_MouseButtonRight");
 	BIND_IENUM(L, ImGuiButtonFlags_MouseButtonMiddle, "ButtonFlags_MouseButtonMiddle");
 	
+	// Keyboard
+	
+	BIND_IENUM(L, ImGuiKey_None, "Key_None");
+	BIND_IENUM(L, ImGuiKey_Tab, "Key_Tab");
+	BIND_IENUM(L, ImGuiKey_LeftArrow, "Key_LeftArrow");
+	BIND_IENUM(L, ImGuiKey_RightArrow, "Key_RightArrow");
+	BIND_IENUM(L, ImGuiKey_UpArrow, "Key_UpArrow");
+	BIND_IENUM(L, ImGuiKey_DownArrow, "Key_DownArrow");
+	BIND_IENUM(L, ImGuiKey_PageUp, "Key_PageUp");
+	BIND_IENUM(L, ImGuiKey_PageDown, "Key_PageDown");
+	BIND_IENUM(L, ImGuiKey_Home, "Key_Home");
+	BIND_IENUM(L, ImGuiKey_End, "Key_End");
+	BIND_IENUM(L, ImGuiKey_Insert, "Key_Insert");
+	BIND_IENUM(L, ImGuiKey_Delete, "Key_Delete");
+	BIND_IENUM(L, ImGuiKey_Backspace, "Key_Backspace");
+	BIND_IENUM(L, ImGuiKey_Space, "Key_Space");
+	BIND_IENUM(L, ImGuiKey_Enter, "Key_Enter");
+	BIND_IENUM(L, ImGuiKey_Escape, "Key_Escape");
+	BIND_IENUM(L, ImGuiKey_LeftCtrl, "Key_LeftCtrl");
+	BIND_IENUM(L, ImGuiKey_LeftShift, "Key_LeftShift");
+	BIND_IENUM(L, ImGuiKey_LeftAlt, "Key_LeftAlt");
+	BIND_IENUM(L, ImGuiKey_LeftSuper, "Key_LeftSuper");
+	BIND_IENUM(L, ImGuiKey_RightCtrl, "Key_RightCtrl");
+	BIND_IENUM(L, ImGuiKey_RightShift, "Key_RightShift");
+	BIND_IENUM(L, ImGuiKey_RightAlt, "Key_RightAlt");
+	BIND_IENUM(L, ImGuiKey_RightSuper, "Key_RightSuper");
+	BIND_IENUM(L, ImGuiKey_Menu, "Key_Menu");
+	BIND_IENUM(L, ImGuiKey_0, "Key_0");
+	BIND_IENUM(L, ImGuiKey_1, "Key_1");
+	BIND_IENUM(L, ImGuiKey_2, "Key_2");
+	BIND_IENUM(L, ImGuiKey_3, "Key_3");
+	BIND_IENUM(L, ImGuiKey_4, "Key_4");
+	BIND_IENUM(L, ImGuiKey_5, "Key_5");
+	BIND_IENUM(L, ImGuiKey_6, "Key_6");
+	BIND_IENUM(L, ImGuiKey_7, "Key_7");
+	BIND_IENUM(L, ImGuiKey_8, "Key_8");
+	BIND_IENUM(L, ImGuiKey_9, "Key_9");
+	BIND_IENUM(L, ImGuiKey_A, "Key_A");
+	BIND_IENUM(L, ImGuiKey_B, "Key_B");
+	BIND_IENUM(L, ImGuiKey_C, "Key_C");
+	BIND_IENUM(L, ImGuiKey_D, "Key_D");
+	BIND_IENUM(L, ImGuiKey_E, "Key_E");
+	BIND_IENUM(L, ImGuiKey_F, "Key_F");
+	BIND_IENUM(L, ImGuiKey_G, "Key_G");
+	BIND_IENUM(L, ImGuiKey_H, "Key_H");
+	BIND_IENUM(L, ImGuiKey_I, "Key_I");
+	BIND_IENUM(L, ImGuiKey_J, "Key_J");
+	BIND_IENUM(L, ImGuiKey_K, "Key_K");
+	BIND_IENUM(L, ImGuiKey_L, "Key_L");
+	BIND_IENUM(L, ImGuiKey_M, "Key_M");
+	BIND_IENUM(L, ImGuiKey_N, "Key_N");
+	BIND_IENUM(L, ImGuiKey_O, "Key_O");
+	BIND_IENUM(L, ImGuiKey_P, "Key_P");
+	BIND_IENUM(L, ImGuiKey_Q, "Key_Q");
+	BIND_IENUM(L, ImGuiKey_R, "Key_R");
+	BIND_IENUM(L, ImGuiKey_S, "Key_S");
+	BIND_IENUM(L, ImGuiKey_T, "Key_T");
+	BIND_IENUM(L, ImGuiKey_U, "Key_U");
+	BIND_IENUM(L, ImGuiKey_V, "Key_V");
+	BIND_IENUM(L, ImGuiKey_W, "Key_W");
+	BIND_IENUM(L, ImGuiKey_X, "Key_X");
+	BIND_IENUM(L, ImGuiKey_Y, "Key_Y");
+	BIND_IENUM(L, ImGuiKey_Z, "Key_Z");
+	BIND_IENUM(L, ImGuiKey_F1, "Key_F1");
+	BIND_IENUM(L, ImGuiKey_F2, "Key_F2");
+	BIND_IENUM(L, ImGuiKey_F3, "Key_F3");
+	BIND_IENUM(L, ImGuiKey_F4, "Key_F4");
+	BIND_IENUM(L, ImGuiKey_F5, "Key_F5");
+	BIND_IENUM(L, ImGuiKey_F6, "Key_F6");
+	BIND_IENUM(L, ImGuiKey_F7, "Key_F7");
+	BIND_IENUM(L, ImGuiKey_F8, "Key_F8");
+	BIND_IENUM(L, ImGuiKey_F9, "Key_F9");
+	BIND_IENUM(L, ImGuiKey_F10, "Key_F10");
+	BIND_IENUM(L, ImGuiKey_F11, "Key_F11");
+	BIND_IENUM(L, ImGuiKey_F12, "Key_F12");
+	BIND_IENUM(L, ImGuiKey_Apostrophe, "Key_Apostrophe");
+	BIND_IENUM(L, ImGuiKey_Comma, "Key_Comma");
+	BIND_IENUM(L, ImGuiKey_Minus, "Key_Minus");
+	BIND_IENUM(L, ImGuiKey_Period, "Key_Period");
+	BIND_IENUM(L, ImGuiKey_Slash, "Key_Slash");
+	BIND_IENUM(L, ImGuiKey_Semicolon, "Key_Semicolon");
+	BIND_IENUM(L, ImGuiKey_Equal, "Key_Equal");
+	BIND_IENUM(L, ImGuiKey_LeftBracket, "Key_LeftBracket");
+	BIND_IENUM(L, ImGuiKey_Backslash, "Key_Backslash");
+	BIND_IENUM(L, ImGuiKey_RightBracket, "Key_RightBracket");
+	BIND_IENUM(L, ImGuiKey_GraveAccent, "Key_GraveAccent");
+	BIND_IENUM(L, ImGuiKey_CapsLock, "Key_CapsLock");
+	BIND_IENUM(L, ImGuiKey_ScrollLock, "Key_ScrollLock");
+	BIND_IENUM(L, ImGuiKey_NumLock, "Key_NumLock");
+	BIND_IENUM(L, ImGuiKey_PrintScreen, "Key_PrintScreen");
+	BIND_IENUM(L, ImGuiKey_Pause, "Key_Pause");
+	BIND_IENUM(L, ImGuiKey_Keypad0, "Key_Keypad0");
+	BIND_IENUM(L, ImGuiKey_Keypad1, "Key_Keypad1");
+	BIND_IENUM(L, ImGuiKey_Keypad2, "Key_Keypad2");
+	BIND_IENUM(L, ImGuiKey_Keypad3, "Key_Keypad3");
+	BIND_IENUM(L, ImGuiKey_Keypad4, "Key_Keypad4");
+	BIND_IENUM(L, ImGuiKey_Keypad5, "Key_Keypad5");
+	BIND_IENUM(L, ImGuiKey_Keypad6, "Key_Keypad6");
+	BIND_IENUM(L, ImGuiKey_Keypad7, "Key_Keypad7");
+	BIND_IENUM(L, ImGuiKey_Keypad8, "Key_Keypad8");
+	BIND_IENUM(L, ImGuiKey_Keypad9, "Key_Keypad9");
+	BIND_IENUM(L, ImGuiKey_KeypadDecimal, "Key_KeypadDecimal");
+	BIND_IENUM(L, ImGuiKey_KeypadDivide, "Key_KeypadDivide");
+	BIND_IENUM(L, ImGuiKey_KeypadMultiply, "Key_KeypadMultiply");
+	BIND_IENUM(L, ImGuiKey_KeypadSubtract, "Key_KeypadSubtract");
+	BIND_IENUM(L, ImGuiKey_KeypadAdd, "Key_KeypadAdd");
+	BIND_IENUM(L, ImGuiKey_KeypadEnter, "Key_KeypadEnter");
+	BIND_IENUM(L, ImGuiKey_KeypadEqual, "Key_KeypadEqual");
+	
+	// Gamepad
+	BIND_IENUM(L, ImGuiKey_GamepadStart, "Key_GamepadStart");
+	BIND_IENUM(L, ImGuiKey_GamepadBack, "Key_GamepadBack");
+	BIND_IENUM(L, ImGuiKey_GamepadFaceUp, "Key_GamepadFaceUp");
+	BIND_IENUM(L, ImGuiKey_GamepadFaceDown, "Key_GamepadFaceDown");
+	BIND_IENUM(L, ImGuiKey_GamepadFaceLeft, "Key_GamepadFaceLeft");
+	BIND_IENUM(L, ImGuiKey_GamepadFaceRight, "Key_GamepadFaceRight");
+	BIND_IENUM(L, ImGuiKey_GamepadDpadUp, "Key_GamepadDpadUp");
+	BIND_IENUM(L, ImGuiKey_GamepadDpadDown, "Key_GamepadDpadDown");
+	BIND_IENUM(L, ImGuiKey_GamepadDpadLeft, "Key_GamepadDpadLeft");
+	BIND_IENUM(L, ImGuiKey_GamepadDpadRight, "Key_GamepadDpadRight");
+	BIND_IENUM(L, ImGuiKey_GamepadL1, "Key_GamepadL1");
+	BIND_IENUM(L, ImGuiKey_GamepadR1, "Key_GamepadR1");
+	BIND_IENUM(L, ImGuiKey_GamepadL2, "Key_GamepadL2");
+	BIND_IENUM(L, ImGuiKey_GamepadR2, "Key_GamepadR2");
+	BIND_IENUM(L, ImGuiKey_GamepadL3, "Key_GamepadL3");
+	BIND_IENUM(L, ImGuiKey_GamepadR3, "Key_GamepadR3");
+	BIND_IENUM(L, ImGuiKey_GamepadLStickUp, "Key_GamepadLStickUp");
+	BIND_IENUM(L, ImGuiKey_GamepadLStickDown, "Key_GamepadLStickDown");
+	BIND_IENUM(L, ImGuiKey_GamepadLStickLeft, "Key_GamepadLStickLeft");
+	BIND_IENUM(L, ImGuiKey_GamepadLStickRight, "Key_GamepadLStickRight");
+	BIND_IENUM(L, ImGuiKey_GamepadRStickUp, "Key_GamepadRStickUp");
+	BIND_IENUM(L, ImGuiKey_GamepadRStickDown, "Key_GamepadRStickDown");
+	BIND_IENUM(L, ImGuiKey_GamepadRStickLeft, "Key_GamepadRStickLeft");
+	BIND_IENUM(L, ImGuiKey_GamepadRStickRight, "Key_GamepadRStickRight");
+	
+	// Modifiers
+	BIND_IENUM(L, ImGuiKey_ModCtrl, "Key_ModCtrl");
+	BIND_IENUM(L, ImGuiKey_ModShift, "Key_ModShift");
+	BIND_IENUM(L, ImGuiKey_ModAlt, "Key_ModAlt");
+	BIND_IENUM(L, ImGuiKey_ModSuper, "Key_ModSuper");
+	
 	BIND_FENUM(L, FLT_MAX, "FLT_MAX");
 	BIND_FENUM(L, DBL_MAX, "DBL_MAX");
 	
@@ -1511,7 +1669,6 @@ private:
 ///
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-#error IO overhaul
 class EventListener : public EventDispatcher
 {
 private:
@@ -1520,42 +1677,27 @@ private:
 	void updateModifiers(int modifiers)
 	{
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.KeyAlt = modifiers & GINPUT_ALT_MODIFIER;
-		io.KeyCtrl = modifiers & GINPUT_CTRL_MODIFIER;
-		io.KeyShift = modifiers & GINPUT_SHIFT_MODIFIER;
-		io.KeySuper = modifiers & GINPUT_META_MODIFIER;
+		io.AddKeyEvent(ImGuiKey_ModAlt, modifiers & GINPUT_ALT_MODIFIER);
+		io.AddKeyEvent(ImGuiKey_ModCtrl, modifiers & GINPUT_CTRL_MODIFIER);
+		io.AddKeyEvent(ImGuiKey_ModShift, modifiers & GINPUT_SHIFT_MODIFIER);
+		io.AddKeyEvent(ImGuiKey_ModSuper, modifiers & GINPUT_META_MODIFIER);
 	}
 
-#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-	void keyUpOrDown(int keyCode, bool state)
+	void keyUpOrDown(int giderosKeyCode, bool state)
 	{
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.KeysDown[keyCode] = state;
-
-		if (keyCode == GINPUT_KEY_SHIFT)
-			io.KeyShift = state;
-		if (keyCode == GINPUT_KEY_CTRL)
-			io.KeyCtrl = state;
-		if (keyCode == GINPUT_KEY_ALT)
-			io.KeyAlt = state;
+		const ImGuiKey imguiKey = giderosKeyToImGuiKey(giderosKeyCode);
+		io.AddKeyEvent(imguiKey, state);
 	}
-#else
-	void keyUpOrDown(ImGuiKey key, bool state)
-	{
-		ImGuiIO& io = gidImGui->ctx->IO;
-		io.AddKeyEvent(key, state);
-	}
-#endif
 
 	void mouseUpOrDown(float x, float y, int giderosButton, bool state, int modifiers, float pressure = 0.0f)
 	{
-#error IO overhaul
-		int imguiButton = convertMouseButton(giderosButton);
+		ImGuiKey imguiKey = giderosMouseToImGui(giderosButton);
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+		const ImVec2 mpos = translateMousePos(gidImGui->proxy, x, y);
 		io.PenPressure = pressure;
-		if (giderosButton)
-			io.MouseDown[imguiButton] = state;
+		io.AddMouseButtonEvent(imguiKey, state);
+		io.AddMousePosEvent(mpos.x, mpos.y);
 		updateModifiers(modifiers);
 	}
 
@@ -1637,9 +1779,9 @@ public:
 
 	void mouseHover(float x, float y, int modifiers)
 	{
-#error IO overhaul
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+		ImVec2 mpos = translateMousePos(gidImGui->proxy, x, y);
+		io.AddMousePosEvent(mpos.x, mpos.y);
 		updateModifiers(modifiers);
 	}
 
@@ -1653,10 +1795,10 @@ public:
 
 	void mouseWheel(float x, float y, int wheel, int modifiers)
 	{
-#error IO overhaul
 		ImGuiIO& io = gidImGui->ctx->IO;
-		io.MouseWheel += wheel < 0 ? -1.0f : 1.0f;
-		io.MousePos = translateMousePos(gidImGui->proxy, x, y);
+		const ImVec2 mpos = translateMousePos(gidImGui->proxy, x, y);
+		io.AddMouseWheelEvent(0.0f, wheel < 0 ? -1.0f : 1.0f);
+		io.AddMousePosEvent(mpos.x, mpos.y);
 		updateModifiers(modifiers);
 	}
 
@@ -1738,44 +1880,37 @@ public:
 
 	void keyDown(KeyboardEvent* event)
 	{
-#error IO overhaul
 		keyDown(event->keyCode);
 	}
 
 	void keyDown(int keyCode)
 	{
-#error IO overhaul
 		keyUpOrDown(keyCode, true);
 	}
 
 	void keyUp(KeyboardEvent* event)
 	{
-#error IO overhaul
 		keyUpOrDown(event->keyCode, false);
 	}
 
 	void keyUp(int keyCode)
 	{
-#error IO overhaul
 		keyUpOrDown(keyCode, false);
 	}
 
 	void keyChar(KeyboardEvent* event)
 	{
-#error IO overhaul
 		keyChar(event->charCode);
 	}
 
 	void keyChar(std::string text)
 	{
-#error IO overhaul
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.AddInputCharactersUTF8(text.c_str());
 	}
 
 	void keyChar2(const char* text) // error when adding event listener to a proxy in GidImGui constructor
 	{
-#error IO overhaul
 		ImGuiIO& io = gidImGui->ctx->IO;
 		io.AddInputCharactersUTF8(text);
 	}
@@ -1807,6 +1942,10 @@ public:
 		r_app_scale.y = 1.0f / sy;
 	}
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+//static 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -1845,31 +1984,6 @@ GidImGui::GidImGui(LuaApplication* application, ImFontAtlas* atlas,
 	
 	io.BackendPlatformName = "Gideros Studio";
 	io.BackendRendererName = "Gideros Studio";
-
-#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-	// Keyboard map
-	// Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
-	io.KeyMap[ImGuiKey_Tab]         = GINPUT_KEY_TAB;
-	io.KeyMap[ImGuiKey_LeftArrow]   = GINPUT_KEY_LEFT;
-	io.KeyMap[ImGuiKey_RightArrow]  = GINPUT_KEY_RIGHT;
-	io.KeyMap[ImGuiKey_UpArrow]     = GINPUT_KEY_UP;
-	io.KeyMap[ImGuiKey_DownArrow]   = GINPUT_KEY_DOWN;
-	io.KeyMap[ImGuiKey_PageUp]      = GINPUT_KEY_PAGEUP;
-	io.KeyMap[ImGuiKey_PageDown]    = GINPUT_KEY_PAGEDOWN;
-	io.KeyMap[ImGuiKey_Home]        = GINPUT_KEY_HOME;
-	io.KeyMap[ImGuiKey_End]         = GINPUT_KEY_END;
-	io.KeyMap[ImGuiKey_Delete]      = GINPUT_KEY_DELETE;
-	io.KeyMap[ImGuiKey_Backspace]   = GINPUT_KEY_BACKSPACE;
-	io.KeyMap[ImGuiKey_Enter]       = GINPUT_KEY_ENTER;
-	io.KeyMap[ImGuiKey_Escape]      = GINPUT_KEY_ESC;
-	io.KeyMap[ImGuiKey_Insert]      = GINPUT_KEY_INSERT;
-	io.KeyMap[ImGuiKey_A]           = GINPUT_KEY_A;
-	io.KeyMap[ImGuiKey_C]           = GINPUT_KEY_C;
-	io.KeyMap[ImGuiKey_V]           = GINPUT_KEY_V;
-	io.KeyMap[ImGuiKey_X]           = GINPUT_KEY_X;
-	io.KeyMap[ImGuiKey_Y]           = GINPUT_KEY_Y;
-	io.KeyMap[ImGuiKey_Z]           = GINPUT_KEY_Z;
-#endif
 
 	// Create font atlas
 	if (!atlas)
@@ -8541,7 +8655,7 @@ int IsItemClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isItemClicked", 1);
 
-	ImGuiMouseButton mouse_button = convertMouseButton(luaL_optinteger(L, 2, GINPUT_LEFT_BUTTON));
+	ImGuiMouseButton mouse_button = giderosMouseToImGui(luaL_optinteger(L, 2, GINPUT_LEFT_BUTTON));
 	lua_pushboolean(L, ImGui::IsItemClicked(mouse_button));
 	return 1;
 }
@@ -8833,7 +8947,7 @@ int IsMouseDown(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDown", 1);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDown(button));
 	return 1;
 }
@@ -8842,7 +8956,7 @@ int IsMouseClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseClicked", 1);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	bool repeat = luaL_optboolean(L, 3, 0);
 	lua_pushboolean(L, ImGui::IsMouseClicked(button, repeat));
 	return 1;
@@ -8852,7 +8966,7 @@ int IsMouseReleased(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseReleased", 1);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseReleased(button));
 	return 1;
 }
@@ -8861,7 +8975,7 @@ int IsMouseDoubleClicked(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDoubleClicked", 1);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDoubleClicked(button));
 	return 1;
 }
@@ -8870,7 +8984,7 @@ int GetMouseClickedCount(lua_State* L)
 {
 	STACK_CHECKER(L, "getMouseClickedCount", 1);
 	
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	lua_pushnumber(L, ImGui::GetMouseClickedCount(button));
 	return 1;
 }
@@ -8927,7 +9041,7 @@ int IsMouseDragging(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseDragging", 1);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	float lock_threshold = luaL_optnumber(L, 3, -1.0f);
 	lua_pushboolean(L, ImGui::IsMouseDragging(button, lock_threshold));
 	return 1;
@@ -8937,7 +9051,7 @@ int GetMouseDragDelta(lua_State* L)
 {
 	STACK_CHECKER(L, "getMouseDragDelta", 2);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	float lock_threshold = luaL_optnumber(L, 3, -1.0f);
 	ImVec2 pos = ImGui::GetMouseDragDelta(button, lock_threshold);
 	lua_pushnumber(L, pos.x);
@@ -8949,7 +9063,7 @@ int ResetMouseDragDelta(lua_State* L)
 {
 	STACK_CHECKER(L, "resetMouseDragDelta", 0);
 
-	ImGuiMouseButton button = convertMouseButton(lua_tointeger(L, 2));
+	ImGuiMouseButton button = giderosMouseToImGui(lua_tointeger(L, 2));
 	ImGui::ResetMouseDragDelta(button);
 	return 0;
 }
@@ -10156,90 +10270,30 @@ int IO_GetDeltaTime(lua_State* L)
 
 int IO_GetMouseWheel(lua_State* L)
 {
-#error IO overhaul
-//	STACK_CHECKER(L, "getMouseWheel", 1);
 
-//	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-//	lua_pushnumber(L, io.MouseWheel);
-//	return 1;
+	STACK_CHECKER(L, "getMouseWheel", 1);
+
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	lua_pushnumber(L, io.MouseWheel);
+	return 1;
 }
 
 int IO_GetMouseWheelH(lua_State* L)
 {
-#error IO overhaul
-//	STACK_CHECKER(L, "getMouseWheelH", 1);
+	STACK_CHECKER(L, "getMouseWheelH", 1);
 
-//	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-//	lua_pushnumber(L, io.MouseWheel);
-//	return 1;
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	lua_pushnumber(L, io.MouseWheel);
+	return 1;
 }
 
 int IO_isMouseDown(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "isMouseDown", 1);
 
 	ImGuiKey button = giderosMouseToImGui(luaL_checkinteger(L, 2));
 	lua_pushboolean(L, ImGui::IsMouseDown(button));
 	return  1;
-}
-
-int IO_isKeyCtrl(lua_State* L)
-{
-#error IO overhaul
-	STACK_CHECKER(L, "isKeyCtrl", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, ImGui::IsKeyPressed(ImGuiKey_ModCtrl));
-	return 1;
-}
-
-int IO_isKeyShift(lua_State* L)
-{
-#error IO overhaul
-	STACK_CHECKER(L, "isKeyShift", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, ImGui::IsKeyPressed(ImGuiKey_ModShift));
-	return 1;
-}
-
-int IO_isKeyAlt(lua_State* L)
-{
-#error IO overhaul
-	STACK_CHECKER(L, "isKeyAlt", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, io.KeyAlt);
-	return 1;
-}
-
-int IO_isKeySuper(lua_State* L)
-{
-#error IO overhaul
-	STACK_CHECKER(L, "isKeySuper", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, io.KeySuper);
-	return 1;
-}
-
-int IO_GetKeysDown(lua_State* L)
-{
-#error IO overhaul
-	STACK_CHECKER(L, "getKeysDown", 1);
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-
-#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-	int index = luaL_checkinteger(L, 2);
-	LUA_ASSERT(index >= 0 && index <= 512, "KeyDown index is out of bounds!");
-	lua_pushboolean(L, io.KeysDown[index]);
-#else
-	ImGuiKey key = luaL_checkinteger(L, 2);
-	LUA_ASSERT(key >= 0 && key < ImGuiKey_KeysData_SIZE, "KeyDown index is out of bounds!");
-	lua_pushinteger(L, io.KeysData[key].Down);
-#endif
-	return 1;
 }
 
 int IO_WantCaptureMouse(lua_State* L)
@@ -10299,97 +10353,6 @@ int IO_WantSaveIniSettings(lua_State* L)
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	
 	lua_pushboolean(L, io.WantSaveIniSettings);
-	return 1;
-}
-
-int getNavButtonIndex(lua_State* L, int idx = 2)
-{
-	int index = luaL_checkinteger(L, idx);
-	LUA_ASSERTF(index >= 0 && index <= ImGuiNavInput_COUNT - 5, "Nav input index is out of bounds! Must be [%d; %d]", 0, ImGuiNavInput_COUNT - 5);
-	return index;
-}
-
-int IO_SetNavInput(lua_State* L)
-{
-#error IO overhaul?
-	STACK_CHECKER(L, "setNavInput", 0);
-
-	int index = getNavButtonIndex(L);
-	float value = luaL_checknumber(L, 3);
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	io.NavInputs[index] = value;
-	return 0;
-}
-
-int IO_GetNavInput(lua_State* L)
-{
-#error IO overhaul?
-	STACK_CHECKER(L, "getNavInput", 1);
-
-	int index = getNavButtonIndex(L);
-	
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushnumber(L, io.NavInputs[index]);
-	return 1;
-}
-
-int IO_IsNavActive(lua_State* L)
-{
-	STACK_CHECKER(L, "isNavActive", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, io.NavActive);
-	return 1;
-}
-
-int IO_IsNavVisible(lua_State* L)
-{
-	STACK_CHECKER(L, "isNavVisible", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	lua_pushboolean(L, io.NavVisible);
-	return 1;
-}
-
-int IO_SetNavInputsDownDuration(lua_State *L)
-{
-#error IO overhaul?
-	STACK_CHECKER(L, "setNavInputsDownDuration", 0);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int index = getNavButtonIndex(L);
-	io.NavInputsDownDuration[index] = luaL_checknumber(L, 2);
-	return 0;
-}
-
-int IO_GetNavInputsDownDuration(lua_State *L)
-{
-	STACK_CHECKER(L, "getNavInputsDownDuration", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int index = getNavButtonIndex(L);
-	lua_pushboolean(L, io.NavInputsDownDuration[index]);
-	return 1;
-}
-
-int IO_SetNavInputsDownDurationPrev(lua_State *L)
-{
-#error IO overhaul?
-	STACK_CHECKER(L, "setNavInputsDownDurationPrev", 0);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int index = getNavButtonIndex(L);
-	io.NavInputsDownDurationPrev[index] = luaL_checknumber(L, 2);
-	return 0;
-}
-
-int IO_GetNavInputsDownDurationPrev(lua_State *L)
-{
-	STACK_CHECKER(L, "getNavInputsDownDurationPrev", 1);
-
-	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int index = getNavButtonIndex(L);
-	lua_pushboolean(L, io.NavInputsDownDurationPrev[index]);
 	return 1;
 }
 
@@ -10455,7 +10418,6 @@ int IO_GetMetricsActiveAllocations(lua_State* L)
 
 int IO_GetMouseDelta(lua_State* L)
 {
-#error IO overhaul?
 	STACK_CHECKER(L, "getMouseDelta", 2);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
@@ -10466,11 +10428,10 @@ int IO_GetMouseDelta(lua_State* L)
 
 int IO_GetMouseDownSec(lua_State* L)
 {
-#error IO overhaul?
 	STACK_CHECKER(L, "getMouseDownSec", 1);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	int button = convertMouseButton(lua_tointeger(L, 2));
+	int button = giderosMouseToImGui(lua_tointeger(L, 2));
 	
 	lua_pushnumber(L, io.MouseDownDuration[button]);
 	return 1;
@@ -10660,7 +10621,6 @@ int IO_GetMouseDoubleClickTime(lua_State* L)
 
 int IO_SetMouseDoubleClickTime(lua_State* L)
 {
-#error IO overhaul?
 	STACK_CHECKER(L, "setMouseDoubleClickTime", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
@@ -10679,7 +10639,6 @@ int IO_GetMouseDragThreshold(lua_State* L)
 
 int IO_SetMouseDragThreshold(lua_State* L)
 {
-#error IO overhaul?
 	STACK_CHECKER(L, "setMouseDragThreshold", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
@@ -10955,50 +10914,44 @@ int IO_GetBackendRendererName(lua_State* L)
 
 int IO_SetMouseDown(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "IO:setMouseDown", 0);
 
-	int buttonIndex = luaL_checkinteger(L, 2);
-	LUA_ASSERTF(buttonIndex >= 0 && buttonIndex < ImGuiMouseButton_COUNT,
-				"Button index is out of bounds. Must be: [0..%d], but was: %d", ImGuiMouseButton_COUNT - 1, buttonIndex);
+	ImGuiMouseButton mouseButton = giderosMouseToImGui(luaL_checkinteger(L, 2));
 	bool state = lua_toboolean(L, 3);
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	io.MouseDown[buttonIndex] = state;
+	io.AddMouseButtonEvent(mouseButton, state);
 	return 0;
 }
 
 int IO_ResetMouseDown(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "resetMouseDown", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	for (int i = 0; i < ImGuiMouseButton_COUNT; ++i) {
-		io.MouseDown[i] = false;
+		io.AddMouseButtonEvent(i, false);
 	}
 	return 0;
 }
 
 int IO_SetMousePos(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "setMousePos", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	float x = luaL_checknumber(L, 2);
 	float y = luaL_checknumber(L, 3);
-	io.MousePos = ImVec2(x, y);
+	io.AddMousePosEvent(x, y);
 	return 0;
 }
 
 int IO_SetMouseWheel(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "setMouseWheel", 0);
 
 	float wheel = luaL_checknumber(L, 2);
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	io.MouseWheel = wheel;
+	io.AddMouseWheelEvent(0.0f, wheel);
 	return 0;
 }
 
@@ -11056,14 +11009,71 @@ int IO_GetPenPressure(lua_State* L)
 
 int SetMousePos(lua_State* L)
 {
-#error IO overhaul
 	STACK_CHECKER(L, "setMousePos", 0);
 
 	GidImGui* imgui = getImgui(L);
 	float x = luaL_checknumber(L, 2);
 	float y = luaL_checknumber(L, 3);
 	
-	imgui->ctx->IO.MousePos = imgui->eventListener->translateMousePos(imgui->proxy, x, y);
+	ImVec2 mpos = imgui->eventListener->translateMousePos(imgui->proxy, x, y);
+	imgui->ctx->IO.AddMousePosEvent(mpos.x, mpos.y);
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/// 
+/// 1.87 new input functions
+/// 
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int IO_AddKeyEvent(lua_State* L)
+{
+	STACK_CHECKER(L, "addKeyEvent", 0);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	int key = luaL_checkinteger(L, 2);
+	bool down = lua_toboolean(L, 3);
+	io.AddKeyEvent(key, down);
+	return 0;
+}
+
+int IO_AddKeyAnalogEvent(lua_State* L)
+{
+	STACK_CHECKER(L, "addKeyAnalogEvent", 0);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	int key = luaL_checkinteger(L, 2);
+	bool down = lua_toboolean(L, 3);
+	float v = luaL_checknumber(L, 4);
+	io.AddKeyAnalogEvent(key, down, v);
+	return 0;
+}
+
+int IO_AddMousePosEvent(lua_State* L)
+{
+	STACK_CHECKER(L, "addMousePosEvent", 0);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	io.AddMousePosEvent(x, y);
+	return 0;
+}
+
+int IO_AddMouseButtonEvent(lua_State* L)
+{
+	STACK_CHECKER(L, "addMouseButtonEvent", 0);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	int button = luaL_checkinteger(L, 2);
+	bool down = lua_toboolean(L, 3);
+	io.AddMouseButtonEvent(button, down);
+	return 0;
+}
+
+int IO_AddMouseWheelEvent(lua_State* L)
+{
+	STACK_CHECKER(L, "addMouseWheelEvent", 0);
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	io.AddMouseWheelEvent(x, y);
 	return 0;
 }
 
@@ -13790,65 +13800,6 @@ int HelpMarker(lua_State* L)
 	return 0;
 }
 
-#ifdef IMPLEMENT_VECTOR
-
-static int lua_vector(lua_State* L)
-{
-    double x = luaL_checknumber(L, 1);
-    double y = luaL_checknumber(L, 2);
-    double z = luaL_checknumber(L, 3);
-
-#if LUA_VECTOR_SIZE == 4
-    double w = luaL_optnumber(L, 4, 0.0);
-    lua_pushvector(L, float(x), float(y), float(z), float(w));
-#else
-    lua_pushvector(L, float(x), float(y), float(z));
-#endif
-    return 1;
-}
-
-static int lua_vector_dot(lua_State* L)
-{
-    const float* a = luaL_checkvector(L, 1);
-    const float* b = luaL_checkvector(L, 2);
-
-    lua_pushnumber(L, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
-    return 1;
-}
-
-static int lua_vector_index(lua_State* L)
-{
-    const float* v = luaL_checkvector(L, 1);
-    const char* name = luaL_checkstring(L, 2);
-
-    if (strcmp(name, "Magnitude") == 0)
-    {
-        lua_pushnumber(L, sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]));
-        return 1;
-    }
-
-    if (strcmp(name, "Dot") == 0)
-    {
-        lua_pushcfunction(L, lua_vector_dot, "Dot");
-        return 1;
-    }
-
-    luaL_error(L, "%s is not a valid member of vector", name);
-}
-
-static int lua_vector_namecall(lua_State* L)
-{
-    if (const char* str = lua_namecallatom(L, nullptr))
-    {
-        if (strcmp(str, "Dot") == 0)
-            return lua_vector_dot(L);
-    }
-
-    luaL_error(L, "%s is not a valid method of vector", luaL_checkstring(L, 1));
-}
-
-#endif
-
 int loader(lua_State* L)
 {
 	const luaL_Reg imguiEmptyFunctionsList[] = {
@@ -14010,11 +13961,11 @@ int loader(lua_State* L)
 		{"isMouseDown", IO_isMouseDown},
 		{"getMouseWheel", IO_GetMouseWheel},
 		{"getMouseWheelH", IO_GetMouseWheelH},
-		{"isKeyCtrl", IO_isKeyCtrl},
-		{"isKeyShift", IO_isKeyShift},
-		{"isKeyAlt", IO_isKeyAlt},
-		{"isKeySuper", IO_isKeySuper},
-		{"getKeysDown", IO_GetKeysDown},
+//		{"isKeyCtrl", IO_isKeyCtrl},
+//		{"isKeyShift", IO_isKeyShift},
+//		{"isKeyAlt", IO_isKeyAlt},
+//		{"isKeySuper", IO_isKeySuper},
+//		{"getKeysDown", IO_GetKeysDown},
 		{"setKeysDown", IO_SetKeysDown},
 		{"setModKeysDown", IO_SetModKeyDown},
 		{"resetKeysDown", IO_ResetKeysDown},
@@ -14025,15 +13976,23 @@ int loader(lua_State* L)
 		{"wantTextInput", IO_WantTextInput},
 		{"wantSetMousePos", IO_WantSetMousePos},
 		{"wantSaveIniSettings", IO_WantSaveIniSettings},
+		
+		/// 1.87 inputs
+		{"addKeyEvent", IO_AddKeyEvent},
+		{"addKeyAnalogEvent", IO_AddKeyAnalogEvent},
+		{"addMousePosEvent", IO_AddMousePosEvent},
+		{"addMouseButtonEvent", IO_AddMouseButtonEvent},
+		{"addMouseWheelEvent", IO_AddMouseWheelEvent},
+		
 		/// NAVIGATION +
-		{"setNavInput", IO_SetNavInput},
-		{"getNavInput", IO_GetNavInput},
-		{"setNavInputsDownDuration", IO_SetNavInputsDownDuration},
-		{"getNavInputsDownDuration", IO_GetNavInputsDownDuration},
-		{"setNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
-		{"getNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
-		{"isNavActive", IO_IsNavActive},
-		{"isNavVisible", IO_IsNavVisible},
+//		{"setNavInput", IO_SetNavInput},
+//		{"getNavInput", IO_GetNavInput},
+//		{"setNavInputsDownDuration", IO_SetNavInputsDownDuration},
+//		{"getNavInputsDownDuration", IO_GetNavInputsDownDuration},
+//		{"setNavInputsDownDurationPrev", IO_SetNavInputsDownDurationPrev},
+//		{"getNavInputsDownDurationPrev", IO_GetNavInputsDownDurationPrev},
+//		{"isNavActive", IO_IsNavActive},
+//		{"isNavVisible", IO_IsNavVisible},
 		/// NAVIGATION -
 		{"getFramerate", IO_GetFramerate},
 		{"getMetricsRenderVertices", IO_GetMetricsRenderVertices},
@@ -15021,27 +14980,6 @@ int loader(lua_State* L)
 	luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	
 	bindEnums(L);
-	
-	
-#ifdef IMPLEMENT_VECTOR
-	lua_pushcfunction(L, lua_vector, "vector");
-	lua_setglobal(L, "vector");
-#if LUA_VECTOR_SIZE == 4
-	lua_pushvector(L, 0.0f, 0.0f, 0.0f, 0.0f);
-#else
-	lua_pushvector(L, 0.0f, 0.0f, 0.0f);
-#endif
-	luaL_newmetatable(L, "vector");
-	lua_pushstring(L, "__index");
-	lua_pushcfunction(L, lua_vector_index, nullptr);
-	lua_settable(L, -3);
-	lua_pushstring(L, "__namecall");
-	lua_pushcfunction(L, lua_vector_namecall, nullptr);
-	lua_settable(L, -3);
-	lua_setreadonly(L, -1, true);
-	lua_setmetatable(L, -2);
-	lua_pop(L, 1);
-#endif
 	
 	lua_getglobal(L, "ImGui");
 	lua_pushstring(L, ImGui::GetVersion());

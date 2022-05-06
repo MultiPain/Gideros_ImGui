@@ -196,31 +196,6 @@ stage:addEventListener("keyDown", function(e) UI:onKeyDown(e) end)
 stage:addEventListener("keyChar", function(e) UI:onKeyChar(e) end)
 ```
 
-## Available KeyCodes
-List of KeyCodes that can be used with IO:isKeyDown/IO:isKeyPressed/IO:isKeyReleased
-```lua
-KeyCode.TAB
-KeyCode.LEFT
-KeyCode.RIGHT
-KeyCode.UP
-KeyCode.DOWN
-KeyCode.PAGE_UP
-KeyCode.PAGE_DOWN
-KeyCode.HOME
-KeyCode.END
-KeyCode.DELETE
-KeyCode.BACKSPACE
-KeyCode.ENTER
-KeyCode.ESC
-KeyCode.INSERT
-KeyCode.A
-KeyCode.C
-KeyCode.V
-KeyCode.X
-KeyCode.Y
-KeyCode.Z
-```
-
 ## Style setters/getters
 ### Get style settings instance
 ```lua
@@ -385,15 +360,6 @@ string = IO:getBackendRendererName()
 bool = IO:IsMouseDown(button)
 number = IO:getMouseWheel()
 number = IO:getMouseWheelH()
-bool = IO:isKeyCtrl()
-bool = IO:isKeyShift()
-bool = IO:isKeyAlt()
-bool = IO:isKeySuper()
-flag = IO:getKeysDown(key_index)
-IO:setNavInput(ImGui.NavInput, value) -- see enums
-value = IO:getNavInput(ImGui.NavInput)
-flag = IO:isNavActive()
-flag = IO:isNavVisible()
 flag = IO:wantCaptureMouse()
 flag = IO:wantCaptureKeyboard()
 flag = IO:wantTextInput()
@@ -426,6 +392,15 @@ IO:setMouseWheel(number)
 IO:setMousePos(x, y)
 -- set mouse state, where index: 0 - left mouse, 1 - right, 2 - middle, 3 - unused, 4 - unused.
 IO:setMouseDown(index, state) 
+
+-- "key" is any ImGui KeyCode (check [here](#keyboard-keys))
+-- "down" is a boolean
+IO:addKeyEvent(key, down)
+IO:addKeyAnalogEvent(key, down, number)
+IO:AddMousePosEvent(x, y)
+-- "button" is any ImGui button (check [here](#MouseButton))
+IO:addMouseButtonEvent(button, down)
+IO:addMouseWheelEvent(x, y)
 ```
 
 # Context
@@ -1414,6 +1389,152 @@ number = Breakpoints:getSize()
 
 
 ## ENUMS
+
+### Keyboard keys
+
+#### Keys
+```lua
+ImGui.ImGuiKey_None
+ImGui.ImGuiKey_Tab
+ImGui.ImGuiKey_LeftArrow
+ImGui.ImGuiKey_RightArrow
+ImGui.ImGuiKey_UpArrow
+ImGui.ImGuiKey_DownArrow
+ImGui.ImGuiKey_PageUp
+ImGui.ImGuiKey_PageDown
+ImGui.ImGuiKey_Home
+ImGui.ImGuiKey_End
+ImGui.ImGuiKey_Insert
+ImGui.ImGuiKey_Delete
+ImGui.ImGuiKey_Backspace
+ImGui.ImGuiKey_Space
+ImGui.ImGuiKey_Enter
+ImGui.ImGuiKey_Escape
+ImGui.ImGuiKey_LeftCtrl
+ImGui.ImGuiKey_LeftShift
+ImGui.ImGuiKey_LeftAlt
+ImGui.ImGuiKey_LeftSuper
+ImGui.ImGuiKey_RightCtrl
+ImGui.ImGuiKey_RightShift
+ImGui.ImGuiKey_RightAlt
+ImGui.ImGuiKey_RightSuper
+ImGui.ImGuiKey_Menu
+ImGui.ImGuiKey_0
+ImGui.ImGuiKey_1
+ImGui.ImGuiKey_2
+ImGui.ImGuiKey_3
+ImGui.ImGuiKey_4
+ImGui.ImGuiKey_5
+ImGui.ImGuiKey_6
+ImGui.ImGuiKey_7
+ImGui.ImGuiKey_8
+ImGui.ImGuiKey_9
+ImGui.ImGuiKey_A
+ImGui.ImGuiKey_B
+ImGui.ImGuiKey_C
+ImGui.ImGuiKey_D
+ImGui.ImGuiKey_E
+ImGui.ImGuiKey_F
+ImGui.ImGuiKey_G
+ImGui.ImGuiKey_H
+ImGui.ImGuiKey_I
+ImGui.ImGuiKey_J
+ImGui.ImGuiKey_K
+ImGui.ImGuiKey_L
+ImGui.ImGuiKey_M
+ImGui.ImGuiKey_N
+ImGui.ImGuiKey_O
+ImGui.ImGuiKey_P
+ImGui.ImGuiKey_Q
+ImGui.ImGuiKey_R
+ImGui.ImGuiKey_S
+ImGui.ImGuiKey_T
+ImGui.ImGuiKey_U
+ImGui.ImGuiKey_V
+ImGui.ImGuiKey_W
+ImGui.ImGuiKey_X
+ImGui.ImGuiKey_Y
+ImGui.ImGuiKey_Z
+ImGui.ImGuiKey_F1
+ImGui.ImGuiKey_F2
+ImGui.ImGuiKey_F3
+ImGui.ImGuiKey_F4
+ImGui.ImGuiKey_F5
+ImGui.ImGuiKey_F6
+ImGui.ImGuiKey_F7
+ImGui.ImGuiKey_F8
+ImGui.ImGuiKey_F9
+ImGui.ImGuiKey_F10
+ImGui.ImGuiKey_F11
+ImGui.ImGuiKey_F12
+ImGui.ImGuiKey_Apostrophe
+ImGui.ImGuiKey_Comma
+ImGui.ImGuiKey_Minus
+ImGui.ImGuiKey_Period
+ImGui.ImGuiKey_Slash
+ImGui.ImGuiKey_Semicolon
+ImGui.ImGuiKey_Equal
+ImGui.ImGuiKey_LeftBracket
+ImGui.ImGuiKey_Backslash
+ImGui.ImGuiKey_RightBracket
+ImGui.ImGuiKey_GraveAccent
+ImGui.ImGuiKey_CapsLock
+ImGui.ImGuiKey_ScrollLock
+ImGui.ImGuiKey_NumLock
+ImGui.ImGuiKey_PrintScreen
+ImGui.ImGuiKey_Pause
+ImGui.ImGuiKey_Keypad0
+ImGui.ImGuiKey_Keypad1
+ImGui.ImGuiKey_Keypad2
+ImGui.ImGuiKey_Keypad3
+ImGui.ImGuiKey_Keypad4
+ImGui.ImGuiKey_Keypad5
+ImGui.ImGuiKey_Keypad6
+ImGui.ImGuiKey_Keypad7
+ImGui.ImGuiKey_Keypad8
+ImGui.ImGuiKey_Keypad9
+ImGui.ImGuiKey_KeypadDecimal
+ImGui.ImGuiKey_KeypadDivide
+ImGui.ImGuiKey_KeypadMultiply
+ImGui.ImGuiKey_KeypadSubtract
+ImGui.ImGuiKey_KeypadAdd
+ImGui.ImGuiKey_KeypadEnter
+ImGui.ImGuiKey_KeypadEqual
+```
+#### Gamepad
+```lua
+ImGui.ImGuiKey_GamepadStart
+ImGui.ImGuiKey_GamepadBack
+ImGui.ImGuiKey_GamepadFaceUp
+ImGui.ImGuiKey_GamepadFaceDown
+ImGui.ImGuiKey_GamepadFaceLeft
+ImGui.ImGuiKey_GamepadFaceRight
+ImGui.ImGuiKey_GamepadDpadUp
+ImGui.ImGuiKey_GamepadDpadDown
+ImGui.ImGuiKey_GamepadDpadLeft
+ImGui.ImGuiKey_GamepadDpadRight
+ImGui.ImGuiKey_GamepadL1
+ImGui.ImGuiKey_GamepadR1
+ImGui.ImGuiKey_GamepadL2
+ImGui.ImGuiKey_GamepadR2
+ImGui.ImGuiKey_GamepadL3
+ImGui.ImGuiKey_GamepadR3
+ImGui.ImGuiKey_GamepadLStickUp
+ImGui.ImGuiKey_GamepadLStickDown
+ImGui.ImGuiKey_GamepadLStickLeft
+ImGui.ImGuiKey_GamepadLStickRight
+ImGui.ImGuiKey_GamepadRStickUp
+ImGui.ImGuiKey_GamepadRStickDown
+ImGui.ImGuiKey_GamepadRStickLeft
+ImGui.ImGuiKey_GamepadRStickRight
+```
+#### Modifiers
+```lua
+ImGui.ImGuiKey_ModCtrl
+ImGui.ImGuiKey_ModShift
+ImGui.ImGuiKey_ModAlt
+ImGui.ImGuiKey_ModSuper
+```
 
 ### FocusedFlags
 ```lua

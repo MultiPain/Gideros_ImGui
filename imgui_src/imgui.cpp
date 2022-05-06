@@ -1012,6 +1012,11 @@ static void             UpdateViewportsNewFrame();
 ImGuiContext*   GImGui = NULL;
 #endif
 
+// @MultiPain
+#if defined(_GSTDIO_H_) && !defined(GLUA)
+lua_State* GLUA = NULL;
+#endif
+
 // Memory Allocator functions. Use SetAllocatorFunctions() to change them.
 // - You probably don't want to modify that mid-program, and if you use global/static e.g. ImVector<> instances you may need to keep them accessible during program destruction.
 // - DLL users: read comments above.
