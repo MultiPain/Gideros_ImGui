@@ -333,8 +333,6 @@ flag = IO:getMouseDrawCursor()
 IO:setMouseDrawCursor(flag)
 number = IO:getMouseDoubleClickMaxDist()
 IO:setMouseDoubleClickMaxDist(number)
-index = IO:getKeyMapValue()
-IO:setKeyMapValue(index, value)
 number = IO:getKeyRepeatDelay()
 IO:setKeyRepeatDelay(number)
 number = IO:getKeyRepeatRate()
@@ -381,9 +379,9 @@ IO:resetMouseDown()
 -- reset key states (including ALT/SHIFT/CTRL/SUPER (META))
 IO:resetKeysDown()
 -- set ALT/SHIFT/CTRL/SUPER (META) key state
-IO:setModKeyDown(key_code, bool) 
+IO:setModKeyDown(key_code, bool) -- "key_code" is a gideros MOD key
 -- set any key state
-IO:setKeysDown(key_code, bool)
+IO:setKeysDown(key_code, bool) -- "key_code" is a gideros regular "keyCode"
 -- adds text to active text input widget
 IO:addInputCharactersUTF8(text)
 -- emulate wheel scrolling
@@ -391,7 +389,7 @@ IO:setMouseWheel(number)
 -- sets mouse position (data only, no visual changes)
 IO:setMousePos(x, y)
 -- set mouse state, where index: 0 - left mouse, 1 - right, 2 - middle, 3 - unused, 4 - unused.
-IO:setMouseDown(index, state) 
+IO:setMouseDown(mouse_button, state) -- "mouse_button" is a gideros mouse button code
 
 -- "key" is any ImGui KeyCode (check [here](#keyboard-keys))
 -- "down" is a boolean
@@ -1184,16 +1182,17 @@ w, h = ImGui:calcTextSize(text [, hide_text_after_double_hash = false, wrap_widt
 
 ## Inputs Utilities: Keyboard
 ```lua
-number = ImGui:getKeyIndex(ImGui.Key)
-flag = ImGui:isKeyDown(user_key_index)
-flag = ImGui:isKeyPressed(user_key_index [, repeat = true])
-flag = ImGui:isKeyReleased(user_key_index)
-number = ImGui:getKeyPressedAmount(key_index, repeat_delay, rate)
+string = ImGui:getKeyName(keyCode)
+flag = ImGui:isKeyDown(keyCode)
+flag = ImGui:isKeyPressed(keyCode [, repeat = true])
+flag = ImGui:isKeyReleased(keyCode)
+number = ImGui:getKeyPressedAmount(keyCode, repeat_delay, rate)
 ImGui:captureKeyboardFromApp([want_capture_keyboard_value = true])
 ```
 
 ## Inputs Utilities: Mouse
 ```lua
+-- "mouse_button" is any gideros mouse button code
 flag = ImGui:isMouseDown(mouse_button)
 flag = ImGui:isMouseClicked(mouse_button [, repeat = false])
 flag = ImGui:isMouseReleased(mouse_button)

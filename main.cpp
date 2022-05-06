@@ -14784,6 +14784,7 @@ int loader(lua_State* L)
 		{"calcTextSize", CalcTextSize},
 		
 		// Inputs Utilities: Keyboard
+		{"getKeyName", GetKeyName},
 		{"isKeyDown", IsKeyDown},
 		{"isKeyPressed", IsKeyPressed},
 		{"isKeyReleased", IsKeyReleased},
