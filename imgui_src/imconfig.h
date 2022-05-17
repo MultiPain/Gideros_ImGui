@@ -19,13 +19,28 @@
 
 #include "gstdio.h"
 #include "lua.hpp"
+#include "stdio.h"
 
 typedef G_FILE* ImFileHandle;
 
 extern lua_State* GLUA;
 
 //---- Define assertion handler. Defaults to calling assert().
+#ifdef IS_BETA_BUILD
+
+#include "debugapi.h"
+#define DEBUG_PRINT(text) {\
+	OutputDebugStringA(text); }
+
+#define DEBUG_PRINTF(format, ...) {\
+	char buffer[256]; \
+	sprintf_s(buffer, format, __VA_ARGS__); \
+	OutputDebugStringA(buffer); }
+#define IM_ASSERT( exp ) do { if (!(exp)) { char buff[256]; sprintf(buff, "[%d] %s: %s",  __LINE__, __FILE__, #exp); OutputDebugStringA(buff); }} while(0)
+#else
 #define IM_ASSERT( exp ) do { if (!(exp)) { lua_pushfstring(GLUA, "[%d] %s: %s",  __LINE__, __FILE__, #exp); lua_error(GLUA); }} while(0)
+#endif
+
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows
