@@ -468,72 +468,72 @@ static ImGuiKey giderosKeyToImGuiKey(const int key)
 		case GINPUT_KEY_ESC:		return ImGuiKey_Escape;
 		case GINPUT_KEY_SPACE:		return ImGuiKey_Space;
 		case GINPUT_KEY_LEFT:		return ImGuiKey_LeftArrow;
-		case GINPUT_KEY_UP:			return ImGuiKey_UpArrow;
+		case GINPUT_KEY_UP:		return ImGuiKey_UpArrow;
 		case GINPUT_KEY_RIGHT:		return ImGuiKey_RightArrow;
 		case GINPUT_KEY_DOWN:		return ImGuiKey_DownArrow;
-		case GINPUT_KEY_0:			return ImGuiKey_0;
-		case GINPUT_KEY_1:			return ImGuiKey_1;
-		case GINPUT_KEY_2:			return ImGuiKey_2;
-		case GINPUT_KEY_3:			return ImGuiKey_3;
-		case GINPUT_KEY_4:			return ImGuiKey_4;
-		case GINPUT_KEY_5:			return ImGuiKey_5;
-		case GINPUT_KEY_6:			return ImGuiKey_6;
-		case GINPUT_KEY_7:			return ImGuiKey_7;
-		case GINPUT_KEY_8:			return ImGuiKey_8;
-		case GINPUT_KEY_9:			return ImGuiKey_9;
-		case GINPUT_KEY_A:			return ImGuiKey_A;
-		case GINPUT_KEY_B:			return ImGuiKey_B;
-		case GINPUT_KEY_C:			return ImGuiKey_C;
-		case GINPUT_KEY_D:			return ImGuiKey_D;
-		case GINPUT_KEY_E:			return ImGuiKey_E;
-		case GINPUT_KEY_F:			return ImGuiKey_F;
-		case GINPUT_KEY_G:			return ImGuiKey_G;
-		case GINPUT_KEY_H:			return ImGuiKey_H;
-		case GINPUT_KEY_I:			return ImGuiKey_I;
-		case GINPUT_KEY_J:			return ImGuiKey_J;
-		case GINPUT_KEY_K:			return ImGuiKey_K;
-		case GINPUT_KEY_L:			return ImGuiKey_L;
-		case GINPUT_KEY_M:			return ImGuiKey_M;
-		case GINPUT_KEY_N:			return ImGuiKey_N;
-		case GINPUT_KEY_O:			return ImGuiKey_O;
-		case GINPUT_KEY_P:			return ImGuiKey_P;
-		case GINPUT_KEY_Q:			return ImGuiKey_Q;
-		case GINPUT_KEY_R:			return ImGuiKey_R;
-		case GINPUT_KEY_S:			return ImGuiKey_S;
-		case GINPUT_KEY_T:			return ImGuiKey_T;
-		case GINPUT_KEY_U:			return ImGuiKey_U;
-		case GINPUT_KEY_V:			return ImGuiKey_V;
-		case GINPUT_KEY_W:			return ImGuiKey_W;
-		case GINPUT_KEY_X:			return ImGuiKey_X;
-		case GINPUT_KEY_Y:			return ImGuiKey_Y;
-		case GINPUT_KEY_Z:			return ImGuiKey_Z;
+		case GINPUT_KEY_0:		return ImGuiKey_0;
+		case GINPUT_KEY_1:		return ImGuiKey_1;
+		case GINPUT_KEY_2:		return ImGuiKey_2;
+		case GINPUT_KEY_3:		return ImGuiKey_3;
+		case GINPUT_KEY_4:		return ImGuiKey_4;
+		case GINPUT_KEY_5:		return ImGuiKey_5;
+		case GINPUT_KEY_6:		return ImGuiKey_6;
+		case GINPUT_KEY_7:		return ImGuiKey_7;
+		case GINPUT_KEY_8:		return ImGuiKey_8;
+		case GINPUT_KEY_9:		return ImGuiKey_9;
+		case GINPUT_KEY_A:		return ImGuiKey_A;
+		case GINPUT_KEY_B:		return ImGuiKey_B;
+		case GINPUT_KEY_C:		return ImGuiKey_C;
+		case GINPUT_KEY_D:		return ImGuiKey_D;
+		case GINPUT_KEY_E:		return ImGuiKey_E;
+		case GINPUT_KEY_F:		return ImGuiKey_F;
+		case GINPUT_KEY_G:		return ImGuiKey_G;
+		case GINPUT_KEY_H:		return ImGuiKey_H;
+		case GINPUT_KEY_I:		return ImGuiKey_I;
+		case GINPUT_KEY_J:		return ImGuiKey_J;
+		case GINPUT_KEY_K:		return ImGuiKey_K;
+		case GINPUT_KEY_L:		return ImGuiKey_L;
+		case GINPUT_KEY_M:		return ImGuiKey_M;
+		case GINPUT_KEY_N:		return ImGuiKey_N;
+		case GINPUT_KEY_O:		return ImGuiKey_O;
+		case GINPUT_KEY_P:		return ImGuiKey_P;
+		case GINPUT_KEY_Q:		return ImGuiKey_Q;
+		case GINPUT_KEY_R:		return ImGuiKey_R;
+		case GINPUT_KEY_S:		return ImGuiKey_S;
+		case GINPUT_KEY_T:		return ImGuiKey_T;
+		case GINPUT_KEY_U:		return ImGuiKey_U;
+		case GINPUT_KEY_V:		return ImGuiKey_V;
+		case GINPUT_KEY_W:		return ImGuiKey_W;
+		case GINPUT_KEY_X:		return ImGuiKey_X;
+		case GINPUT_KEY_Y:		return ImGuiKey_Y;
+		case GINPUT_KEY_Z:		return ImGuiKey_Z;
 //		case GINPUT_KEY_BACK:		return ImGuiKey_;
 //		case GINPUT_KEY_SEARCH:		return ImGuiKey_;
 //		case GINPUT_KEY_MENU:		return ImGuiKey_;
 //		case GINPUT_KEY_CENTER:		return ImGuiKey_;
 //		case GINPUT_KEY_SELECT:		return ImGuiKey_;
 //		case GINPUT_KEY_START:		return ImGuiKey_;
-//		case GINPUT_KEY_L1:			return ImGuiKey_;
-//		case GINPUT_KEY_R1:			return ImGuiKey_;
+//		case GINPUT_KEY_L1:		return ImGuiKey_;
+//		case GINPUT_KEY_R1:		return ImGuiKey_;
 		case GINPUT_KEY_HOME:		return ImGuiKey_Home;
 		case GINPUT_KEY_END:		return ImGuiKey_End;
 		case GINPUT_KEY_INSERT:		return ImGuiKey_Insert;
 		case GINPUT_KEY_DELETE:		return ImGuiKey_Delete;
 		case GINPUT_KEY_PAGEUP:		return ImGuiKey_PageUp;
 		case GINPUT_KEY_PAGEDOWN:	return ImGuiKey_PageDown;
-		case GINPUT_KEY_F1:			return ImGuiKey_F1;
-		case GINPUT_KEY_F2:			return ImGuiKey_F2;
-		case GINPUT_KEY_F3:			return ImGuiKey_F3;
-		case GINPUT_KEY_F4:			return ImGuiKey_F4;
-		case GINPUT_KEY_F5:			return ImGuiKey_F5;
-		case GINPUT_KEY_F6:			return ImGuiKey_F6;
-		case GINPUT_KEY_F7:			return ImGuiKey_F7;
-		case GINPUT_KEY_F8:			return ImGuiKey_F8;
-		case GINPUT_KEY_F9:			return ImGuiKey_F9;
+		case GINPUT_KEY_F1:		return ImGuiKey_F1;
+		case GINPUT_KEY_F2:		return ImGuiKey_F2;
+		case GINPUT_KEY_F3:		return ImGuiKey_F3;
+		case GINPUT_KEY_F4:		return ImGuiKey_F4;
+		case GINPUT_KEY_F5:		return ImGuiKey_F5;
+		case GINPUT_KEY_F6:		return ImGuiKey_F6;
+		case GINPUT_KEY_F7:		return ImGuiKey_F7;
+		case GINPUT_KEY_F8:		return ImGuiKey_F8;
+		case GINPUT_KEY_F9:		return ImGuiKey_F9;
 		case GINPUT_KEY_F10:		return ImGuiKey_F10;
 		case GINPUT_KEY_F11:		return ImGuiKey_F11;
 		case GINPUT_KEY_F12:		return ImGuiKey_F12;
-		default:					return ImGuiKey_None;
+		default:			return ImGuiKey_None;
 	}
 }
 
@@ -549,6 +549,87 @@ static ImGuiKey giderosModKeyToImGuiMod(const int key)
 	}
 }
 
+static int imGuiKeyToGideros(const int key)
+{
+	switch (key)
+	{
+		case ImGuiKey_ModShift:		return GINPUT_KEY_SHIFT;
+		case ImGuiKey_ModCtrl:		return GINPUT_KEY_CTRL;
+		case ImGuiKey_ModAlt:		return GINPUT_KEY_ALT;
+		case ImGuiKey_Backspace:	return GINPUT_KEY_BACKSPACE;
+		case ImGuiKey_Tab:		return GINPUT_KEY_TAB;
+		case ImGuiKey_Enter:		return GINPUT_KEY_ENTER;
+		case ImGuiKey_Escape:		return GINPUT_KEY_ESC;
+		case ImGuiKey_Space:		return GINPUT_KEY_SPACE;
+		case ImGuiKey_LeftArrow:	return GINPUT_KEY_LEFT;
+		case ImGuiKey_UpArrow:		return GINPUT_KEY_UP;
+		case ImGuiKey_RightArrow:	return GINPUT_KEY_RIGHT;
+		case ImGuiKey_DownArrow:	return GINPUT_KEY_DOWN;
+		case ImGuiKey_0:		return GINPUT_KEY_0;
+		case ImGuiKey_1:		return GINPUT_KEY_1;
+		case ImGuiKey_2:		return GINPUT_KEY_2;
+		case ImGuiKey_3:		return GINPUT_KEY_3;
+		case ImGuiKey_4:		return GINPUT_KEY_4;
+		case ImGuiKey_5:		return GINPUT_KEY_5;
+		case ImGuiKey_6:		return GINPUT_KEY_6;
+		case ImGuiKey_7:		return GINPUT_KEY_7;
+		case ImGuiKey_8:		return GINPUT_KEY_8;
+		case ImGuiKey_9:		return GINPUT_KEY_9;
+		case ImGuiKey_A:		return GINPUT_KEY_A;
+		case ImGuiKey_B:		return GINPUT_KEY_B;
+		case ImGuiKey_C:		return GINPUT_KEY_C;
+		case ImGuiKey_D:		return GINPUT_KEY_D;
+		case ImGuiKey_E:		return GINPUT_KEY_E;
+		case ImGuiKey_F:		return GINPUT_KEY_F;
+		case ImGuiKey_G:		return GINPUT_KEY_G;
+		case ImGuiKey_H:		return GINPUT_KEY_H;
+		case ImGuiKey_I:		return GINPUT_KEY_I;
+		case ImGuiKey_J:		return GINPUT_KEY_J;
+		case ImGuiKey_K:		return GINPUT_KEY_K;
+		case ImGuiKey_L:		return GINPUT_KEY_L;
+		case ImGuiKey_M:		return GINPUT_KEY_M;
+		case ImGuiKey_N:		return GINPUT_KEY_N;
+		case ImGuiKey_O:		return GINPUT_KEY_O;
+		case ImGuiKey_P:		return GINPUT_KEY_P;
+		case ImGuiKey_Q:		return GINPUT_KEY_Q;
+		case ImGuiKey_R:		return GINPUT_KEY_R;
+		case ImGuiKey_S:		return GINPUT_KEY_S;
+		case ImGuiKey_T:		return GINPUT_KEY_T;
+		case ImGuiKey_U:		return GINPUT_KEY_U;
+		case ImGuiKey_V:		return GINPUT_KEY_V;
+		case ImGuiKey_W:		return GINPUT_KEY_W;
+		case ImGuiKey_X:		return GINPUT_KEY_X;
+		case ImGuiKey_Y:		return GINPUT_KEY_Y;
+		case ImGuiKey_Z:		return GINPUT_KEY_Z;
+		//case ImGuiKey_:		return GINPUT_KEY_BACK;
+		//case ImGuiKey_:		return GINPUT_KEY_SEARCH;
+		//case ImGuiKey_:		return GINPUT_KEY_MENU;
+		//case ImGuiKey_:		return GINPUT_KEY_CENTER;
+		//case ImGuiKey_:		return GINPUT_KEY_SELECT;
+		//case ImGuiKey_:		return GINPUT_KEY_START;
+		//case ImGuiKey_:		return GINPUT_KEY_L1;
+		//case ImGuiKey_:		return GINPUT_KEY_R1;
+		case ImGuiKey_Home:		return GINPUT_KEY_HOME;
+		case ImGuiKey_End:		return GINPUT_KEY_END;
+		case ImGuiKey_Insert:		return GINPUT_KEY_INSERT;
+		case ImGuiKey_Delete:		return GINPUT_KEY_DELETE;
+		case ImGuiKey_PageUp:		return GINPUT_KEY_PAGEUP;
+		case ImGuiKey_PageDown:		return GINPUT_KEY_PAGEDOWN;
+		case ImGuiKey_F1:		return GINPUT_KEY_F1;
+		case ImGuiKey_F2:		return GINPUT_KEY_F2;
+		case ImGuiKey_F3:		return GINPUT_KEY_F3;
+		case ImGuiKey_F4:		return GINPUT_KEY_F4;
+		case ImGuiKey_F5:		return GINPUT_KEY_F5;
+		case ImGuiKey_F6:		return GINPUT_KEY_F6;
+		case ImGuiKey_F7:		return GINPUT_KEY_F7;
+		case ImGuiKey_F8:		return GINPUT_KEY_F8;
+		case ImGuiKey_F9:		return GINPUT_KEY_F9;
+		case ImGuiKey_F10:		return GINPUT_KEY_F10;
+		case ImGuiKey_F11:		return GINPUT_KEY_F11;
+		case ImGuiKey_F12:		return GINPUT_KEY_F12;
+		default: 			return 0;
+	}
+}
 
 static lua_Number getAppProperty(lua_State *L, const char* name)
 {
@@ -6702,12 +6783,8 @@ int ITCD_GetEventKey(lua_State* L)
 	STACK_CHECKER(L, "getEventKey", 1);
 
 	ImGuiInputTextCallbackData* data = getPtr<ImGuiInputTextCallbackData>(L, "ImGuiInputTextCallbackData");
-#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-	lua_pushinteger(L, ImGui::GetIO().KeyMap[data->EventKey]);
-#else
-	ImGuiIO& io = ImGui::GetIO();
-	lua_pushinteger(L, io.KeysData[data->EventKey].Down);
-#endif
+	int giderosKeyCode = imGuiKeyToGideros(data->EventKey);
+	lua_pushinteger(L, giderosKeyCode);
 	return 1;
 }
 
