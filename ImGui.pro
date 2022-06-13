@@ -22,15 +22,12 @@ SOURCES += \
     imgui_src/imgui_tables.cpp \
     imgui_user.cpp \
     TextEditor.cpp \
-    implot_src/implot.cpp \
-    implot_src/implot_demo.cpp \
-    implot_src/implot_items.cpp\
     ../../gideros_master/2dsg/bitmapdata.cpp \
     ../../gideros_master/2dsg/Matrices.cpp \
     ../../gideros_master/2dsg/mouseevent.cpp \
     ../../gideros_master/2dsg/touchevent.cpp \
     ../../gideros_master/2dsg/keyboardevent.cpp \
-	../../gideros_master/luabinding/stackchecker.cpp \
+    ../../gideros_master/luabinding/stackchecker.cpp \
     main.cpp
 
 HEADERS += \
@@ -42,13 +39,11 @@ HEADERS += \
     imgui_src/imstb_truetype.h \
     imgui_user.h \
     TextEditor.h \
-    implot_src/implot.h \
-    implot_src/implot_internal.h \
     ../../gideros_master/2dsg/bitmapdata.h \
     ../../gideros_master/2dsg/mouseevent.h \
     ../../gideros_master/2dsg/touchevent.h \
     ../../gideros_master/2dsg/keyboardevent.h  \
-	../../gideros_master/luabinding/stackchecker.h
+    ../../gideros_master/luabinding/stackchecker.h
 
 LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs #-lpystring
 

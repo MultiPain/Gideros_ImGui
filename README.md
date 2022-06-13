@@ -145,7 +145,7 @@ local icon = "\u{2590}"
 
 ## Font
 ```lua
-number = Font:getFontSize()
+number = Font:getSize()
 FontAtlas = Font:getContainerAtlas()
 Font:setScale(number)
 number = Font:getScale()
@@ -479,16 +479,29 @@ Can be used to set minimum and maximum window size, plus contraint the size if n
 ImGui:setNextWindowSizeConstraints(min_w, min_h, max_w, max_h [, resize_callback, user_data]))
 -- resizeCallback is a function:
 function (callbackData [, user_data])
-	-- get window position
-	local x, y = callbackData:getPos()
-	-- get currrent size
-	local current_width, current_height = callbackData:getCurrentSize()
-	-- get desired size
-	local deserid_width, deserid_height = callbackData:getDesiredSize()
 	-- do some math, and return desired size
 	-- ...
 	return desired_width, desired_height
 end
+```
+
+### Resize callback
+```lua
+-- get window position
+x, y = callbackData:getPos()
+x = callbackData:getX()
+y = callbackData:getY()
+
+-- get currrent size
+current_width, current_height = callbackData:getCurrentSize()
+current_width = callbackData:getCurrentWidth()
+current_height = callbackData:getCurrentHeight()
+
+-- get desired size
+deserid_width, deserid_height = callbackData:getDesiredSize()
+deserid_width = callbackData:getDesiredWidth()
+deserid_height = callbackData:getDesiredHeight()
+
 ```
 
 ### Example
@@ -754,27 +767,44 @@ end
 ```lua
 ImGuiInputTextFlags = callback_data:getEventFlag()
 ImGuiInputTextFlags = callback_data:getFlags()
+
 number = callback_data:getEventChar()
+
 callback_data:setEventChar(number)
-number = callback_data:getEventKey()
+
+keyCode = callback_data:getEventKey()
+
 string = callback_data:getBuf()
+
 callback_data:setBuf(string)
+
 number = callback_data:getBufTextLen()
+
 callback_data:setBufTextLen(number)
+
 number = callback_data:getBufSize()
-bool = callback_data:getBufDirty()
+
 callback_data:setBufDirty(bool)
-number = callback_data:getCursorPos()
+bool = callback_data:isBufDirty()
+
 callback_data:setCursorPos(number)
+number = callback_data:getCursorPos()
+
+callback_data:setSelectionStart(s_start)
 number = callback_data:getSelectionStart()
-callback_data:setSelectionStart(number)
-number = callback_data:getSelectionEnd()
-callback_data:setSelectionEnd(number)
-callback_data:deleteChars(position, bytesCount)
-callback_data:insertChars(position, text)
+
+callback_data:setSelectionEnd(s_end)
+s_end = callback_data:getSelectionEnd()
+
+callback_data:setSelection(s_start, s_end)
+s_start, s_end = callback_data:getSelection()
+
 callback_data:selectAll()
 callback_data:clearSelection()
 bool = callback_data:hasSelection()
+
+callback_data:deleteChars(position, bytesCount)
+callback_data:insertChars(position, text)
 ```
 
 ### Example
