@@ -74,6 +74,8 @@
 #define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
 #define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
 
+#include "impl_ImGui_nodes.h"
+
 static lua_State* L;
 static Application* application;
 static char keyWeak = ' ';
