@@ -2076,7 +2076,10 @@ int destroyImGui(LUA_STATE* p)
 	void* ptr = GIDEROS_DTOR_UDATA(p);
 	GidImGui* imgui = static_cast<GidImGui*>(static_cast<SpriteProxy *>(ptr)->getContext());
 
-	gtexture_delete((g_id)(uintptr_t)imgui->ctx->IO.Fonts->TexID);
+	if (imgui->ctx->IO.Fonts->TexID)
+	{
+		gtexture_delete((g_id)(uintptr_t)imgui->ctx->IO.Fonts->TexID);
+	}
 
 	ImGui::DestroyContext(imgui->ctx);
 
@@ -5025,9 +5028,9 @@ int Selectable(lua_State* L)
 	ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
 	
 	bool result = ImGui::Selectable(label, &selected, flags, size);
-	
-	lua_pushboolean(L, selected);
+
 	lua_pushboolean(L, result);
+	lua_pushboolean(L, selected);
 	return 2;
 }
 
@@ -8063,12 +8066,12 @@ int GetKeyPressedAmount(lua_State* L)
 	return 1;
 }
 
-int CaptureKeyboardFromApp(lua_State* L)
+int SetNextFrameWantCaptureKeyboard(lua_State* L)
 {
-	STACK_CHECKER(L, "captureKeyboardFromApp", 0);
+	STACK_CHECKER(L, "setNextFrameWantCaptureKeyboard", 0);
 
 	bool want_capture_keyboard_value = luaL_optboolean(L, 2, 1);
-	ImGui::CaptureKeyboardFromApp(want_capture_keyboard_value);
+	ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard_value);
 	return 0;
 }
 
@@ -8220,12 +8223,12 @@ int SetMouseCursor(lua_State* L)
 	return 0;
 }
 
-int CaptureMouseFromApp(lua_State* L)
+int SetNextFrameWantCaptureMouse(lua_State* L)
 {
-	STACK_CHECKER(L, "captureMouseFromApp", 0);
+	STACK_CHECKER(L, "setNextFrameWantCaptureMouse", 0);
 
 	bool want_capture_mouse_value = luaL_optboolean(L, 2, 1) > 0;
-	ImGui::CaptureMouseFromApp(want_capture_mouse_value);
+	ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse_value);
 	return 0;
 }
 
@@ -10050,7 +10053,7 @@ int IO_GetBackendRendererName(lua_State* L)
 
 int IO_SetMouseDown(lua_State* L)
 {
-	STACK_CHECKER(L, "IO:setMouseDown", 0);
+	STACK_CHECKER(L, "setMouseDown", 0);
 
 	ImGuiMouseButton mouseButton = giderosMouseToImGui(luaL_checkinteger(L, 2));
 	bool state = lua_toboolean(L, 3);
@@ -10137,10 +10140,20 @@ int IO_ResetKeysDown(lua_State* L)
 int IO_GetPenPressure(lua_State* L)
 {
 	STACK_CHECKER(L, "getPenPressure", 1);
-	
+
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
 	lua_pushnumber(L, io.PenPressure);
 	return 1;
+}
+
+int IO_SetAppAcceptingEvents(lua_State* L)
+{
+	STACK_CHECKER(L, "SetAppAcceptingEvents", 0);
+	bool accepting_events = luaL_optboolean(L, 2, 1);
+
+	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
+	io.SetAppAcceptingEvents(accepting_events);
+	return 0;
 }
 
 int SetMousePos(lua_State* L)
@@ -13962,7 +13975,7 @@ int loader(lua_State* L)
 		{"isKeyPressed", IsKeyPressed},
 		{"isKeyReleased", IsKeyReleased},
 		{"getKeyPressedAmount", GetKeyPressedAmount},
-		{"captureKeyboardFromApp", CaptureKeyboardFromApp},
+		{"setNextFrameWantCaptureKeyboard", SetNextFrameWantCaptureKeyboard},
 		
 		// Inputs Utilities: Mouse
 		{"isMouseDown", IsMouseDown},
@@ -13980,7 +13993,7 @@ int loader(lua_State* L)
 		{"resetMouseDragDelta", ResetMouseDragDelta},
 		{"getMouseCursor", GetMouseCursor},
 		{"setMouseCursor", SetMouseCursor},
-		{"captureMouseFromApp", CaptureMouseFromApp},
+		{"setNextFrameWantCaptureMouse", SetNextFrameWantCaptureMouse},
 		
 		// Windows
 		{"beginWindow", Begin},

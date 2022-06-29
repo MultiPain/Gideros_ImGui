@@ -399,6 +399,8 @@ IO:AddMousePosEvent(x, y)
 -- "button" is any ImGui button (check [here](#MouseButton))
 IO:addMouseButtonEvent(button, down)
 IO:addMouseWheelEvent(x, y)
+
+IO:setAppAcceptingEvents([accepting_events = true]);
 ```
 
 # Context
@@ -1217,7 +1219,7 @@ flag = ImGui:isKeyDown(keyCode)
 flag = ImGui:isKeyPressed(keyCode [, repeat = true])
 flag = ImGui:isKeyReleased(keyCode)
 number = ImGui:getKeyPressedAmount(keyCode, repeat_delay, rate)
-ImGui:captureKeyboardFromApp([want_capture_keyboard_value = true])
+ImGui:setNextFrameWantCaptureKeyboard([want_capture_keyboard_value = true])
 ```
 
 ## Inputs Utilities: Mouse
