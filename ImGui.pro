@@ -39,6 +39,8 @@ SOURCES += \
     main.cpp
 
 HEADERS += \
+    GColor.h \
+    Helpers.h \
     imgui_src/imconfig.h \
     imgui_src/imgui.h \
     imgui_src/imgui_internal.h \

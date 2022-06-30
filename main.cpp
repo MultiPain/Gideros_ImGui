@@ -62,19 +62,14 @@
 #define STACK_CHECKER(L, pre, delta) ((void)0)
 #endif
 
-#define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
-#define LUA_ASSERTF(EXP, FMT, ...) if (!(EXP)) { lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L); }
-#define LUA_THROW_ERROR(MSG) lua_pushstring(L, MSG); lua_error(L);
-#define LUA_THROW_ERRORF(FMT, ...) lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L);
-#define LUA_PRINTF(FMT, ...) lua_getglobal(L, "print"); lua_pushfstring(L, FMT, __VA_ARGS__); lua_call(L, 1, 0);
-#define LUA_PRINT(MSG) lua_getglobal(L, "print"); lua_pushstring(L, MSG); lua_call(L, 1, 0);
-
-#define CC 0.0039215686274509803921568627451f
 
 #define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
 #define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
 
 #include "impl_ImGui_nodes.h"
+
+#include "GColor.h"
+#include "Helpers.h"
 
 static lua_State* L;
 static Application* application;
@@ -83,121 +78,6 @@ static const char* touchTypes[4]{"finger","pen","mouse","penTablet"};
 
 namespace ImGui_impl
 {
-////////////////////////////////////////////////////////////////////////////////
-///
-/// DEBUG TOOL
-///
-////////////////////////////////////////////////////////////////////////////////
-
-static int DUMP_INDEX = 0;
-
-static void stackDump(lua_State* L, const char* prefix = "")
-{
-	int i = lua_gettop(L);
-	LUA_PRINTF("----------------      %d      ----------------\n>%s\n----------------  Stack Dump ----------------", DUMP_INDEX, prefix);
-	while (i)
-	{
-		int t = lua_type(L, i);
-		switch (t)
-		{
-		case LUA_TSTRING:
-			{
-				LUA_PRINTF("[S] %d:'%s'", i, lua_tostring(L, i));
-			}
-			break;
-		case LUA_TBOOLEAN:
-			{
-				LUA_PRINTF("[B] %d: %s", i, lua_toboolean(L, i) ? "true" : "false");
-			}
-			break;
-		case LUA_TNUMBER:
-			{
-				LUA_PRINTF("[N] %d: %f", i, lua_tonumber(L, i));
-			}
-			break;
-#ifdef LUA_IS_LUAU
-		case LUA_TVECTOR:
-			{
-				const float* v = lua_tovector(L, i);
-				LUA_PRINTF("[V] %d: [%f; %f; %f; %f]", i, v[0], v[1], v[2], v[3]);
-			}
-			break;
-#endif
-		default:
-			{
-				LUA_PRINTF("[D] %d: %s", i, lua_typename(L, t));
-			}
-			break;
-		}
-		i--;
-	}
-	LUA_PRINT("------------ Stack Dump Finished ------------\n");
-	
-	DUMP_INDEX++;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///
-/// TEMPLATES
-///
-////////////////////////////////////////////////////////////////////////////////
-
-template<class T>
-inline T* getPtr(lua_State* L, const char* name, int idx = 1)
-{
-	return static_cast<T*>(g_getInstance(L, name, idx));
-}
-
-template <typename T>
-T* getTableValues(lua_State* L, int idx, unsigned int len)
-{
-	T* values = new T[len];
-	lua_pushvalue(L, idx);
-	for (unsigned int i = 0; i < len; i++)
-	{
-		lua_rawgeti(L, idx, i+1);
-		
-		T v = luaL_checknumber(L, -1);
-		values[i] = v;
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	return values;
-}
-
-template <>
-const char** getTableValues<const char*>(lua_State* L, int idx, unsigned int len)
-{
-	const char** values = new const char*[len];
-	lua_pushvalue(L, idx);
-	for (unsigned int i = 0; i < len; i++)
-	{
-		lua_rawgeti(L, idx, i+1);
-		
-		const char* v = luaL_checkstring(L, -1);
-		values[i] = v;
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	return values;
-}
-
-template <typename T>
-T* getTableValues(lua_State* L, int idx)
-{
-	unsigned int len = luaL_getn(L, idx);
-	T* values = getTableValues<T>(L, idx, len);
-	return values;
-}
-
-template<typename T>
-inline void destroyObject(void* p)
-{
-	void* data = GIDEROS_DTOR_UDATA(p);
-	T* ptr = static_cast<T*>(data);
-	delete ptr;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// TEXTURES / COLORS
@@ -257,120 +137,6 @@ struct GTextureData
 struct VColor
 {
 	uint8_t r,g,b,a;
-};
-
-struct GColor {
-	int hex; // 0xffffff
-	double alpha; // [0..1]
-
-	GColor()
-	{
-		hex = 0;
-		alpha = 0;
-	}
-
-	GColor(ImU32 color)
-	{
-		GColor converted = GColor::toHex(color);
-		hex = converted.hex;
-		alpha = converted.alpha;
-	}
-
-	GColor(ImVec4 color)
-	{
-		GColor converted = GColor::toHex(color);
-		hex = converted.hex;
-		alpha = converted.alpha;
-	}
-
-	GColor(int _hex, double _alpha = 1.0)
-	{
-		hex = _hex;
-		alpha = _alpha;
-	}
-
-	GColor(double _r, double _g, double _b, double _a = 1.0)
-	{
-		GColor converted = GColor::toHex(_r, _g, _b, _a);
-		hex = converted.hex;
-		alpha = converted.alpha;
-	}
-
-	static ImVec4 toVec4(int hex, double alpha = 1.0)
-	{
-		return ImVec4(
-					((hex >> IM_COL32_B_SHIFT) & 0xFF) * CC,
-					((hex >> IM_COL32_G_SHIFT) & 0xFF) * CC,
-					((hex >> IM_COL32_R_SHIFT) & 0xFF) * CC,
-					alpha);
-	}
-
-	static ImVec4 toVec4(GColor color)
-	{
-		return GColor::toVec4(color.hex, color.alpha);
-	}
-
-	static ImVec4 toVec4(ImU32 color)
-	{
-		GColor converted(color);
-		return toVec4(converted);
-	}
-
-	static GColor toHex(double _r, double _g, double _b, double _a = 1.0)
-	{
-		int r = _r * 255;
-		int g = _g * 255;
-		int b = _b * 255;
-
-		int hex = (r << IM_COL32_B_SHIFT) + (g << IM_COL32_G_SHIFT) + (b << IM_COL32_R_SHIFT);
-
-		return GColor(hex, _a);
-	}
-
-	static GColor toHex(ImVec4 color)
-	{
-		return GColor::toHex(color.x, color.y, color.z, color.w);
-	}
-
-	static GColor toHex(ImU32 color)
-	{
-		int a = color >> IM_COL32_A_SHIFT;
-		int hex = color & ~IM_COL32_A_MASK;
-		float alpha = a / 255.0f;
-		return GColor(hex, alpha);
-	}
-
-	static ImU32 toU32(double _r, double _g, double _b, double _a = 1.0)
-	{
-		ImU32 r = _r * 255;
-		ImU32 g = _g * 255;
-		ImU32 b = _b * 255;
-		ImU32 a = _a * 255;
-		return ((a << IM_COL32_A_SHIFT) | (b << IM_COL32_B_SHIFT) | (g << IM_COL32_G_SHIFT) | (r << IM_COL32_R_SHIFT));
-	}
-
-	static ImU32 toU32(ImVec4 color)
-	{
-		return GColor::toU32(color.x, color.y, color.y, color.w);
-	}
-
-	static ImU32 toU32(int hex, double alpha = 1.0)
-	{
-		alpha *= 255.0f;
-		ImU32 ghex = (int)alpha | hex << 8;
-
-		ImU32 out =
-				(((ghex << IM_COL32_R_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT) |
-				(((ghex << IM_COL32_G_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_B_SHIFT) |
-				(((ghex << IM_COL32_B_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_G_SHIFT) |
-				(((ghex << IM_COL32_A_SHIFT) & IM_COL32_A_MASK) >> IM_COL32_R_SHIFT);
-		return out;
-	}
-
-	static ImU32 toU32(GColor color)
-	{
-		return GColor::toU32(color.hex, color.alpha);
-	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -14106,6 +13872,8 @@ int loader(lua_State* L)
 	luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	
 	bindEnums(L);
+
+	ImNodes_impl::nodes_loader(L);
 
 	lua_getglobal(L, "ImGui");
 	lua_pushstring(L, ImGui::GetVersion());
