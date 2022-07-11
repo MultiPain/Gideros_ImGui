@@ -309,18 +309,18 @@ int ImNodes_impl::BeginCreate(lua_State* L)
 	const ImVec4 color = GColor::toVec4opt(L, 2);
 	float thickness = luaL_optnumber(L, 4, 1.0f);
 	lua_pushboolean(L, NodeEditor::BeginCreate(color, thickness));
-	return 0;
+	return 1;
 }
 
 int ImNodes_impl::QueryNewLink(lua_State* L)
 {
-	NodeEditor::PinId startId = luaL_checkinteger(L, 2);
-	NodeEditor::PinId endId = luaL_checkinteger(L, 3);
+	NodeEditor::PinId startId = 0;
+	NodeEditor::PinId endId = 0;
 
-	if (lua_gettop(L) > 3)
+	if (lua_gettop(L) > 2)
 	{
-		const ImVec4 color = GColor::toVec4(L, 4);
-		float thickness = luaL_optnumber(L, 6, 1.0f);
+		const ImVec4 color = GColor::toVec4(L, 2);
+		float thickness = luaL_optnumber(L, 4, 1.0f);
 		lua_pushboolean(L, NodeEditor::QueryNewLink(&startId, &endId, color, thickness));
 		lua_pushinteger(L, startId.Get());
 		lua_pushinteger(L, endId.Get());
@@ -336,7 +336,7 @@ int ImNodes_impl::QueryNewLink(lua_State* L)
 
 int ImNodes_impl::QueryNewNode(lua_State* L)
 {
-	NodeEditor::PinId id = luaL_checkinteger(L, 2);
+	NodeEditor::PinId id = 0;
 
 	if (lua_gettop(L) > 2)
 	{
@@ -392,14 +392,23 @@ int ImNodes_impl::EndCreate(lua_State* L)
 int ImNodes_impl::BeginDelete(lua_State* L)
 {
 	lua_pushboolean(L, NodeEditor::BeginDelete());
-	return 0;
+	return 1;
 }
 
 int ImNodes_impl::QueryDeletedLink(lua_State* L)
 {
-	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
-	NodeEditor::PinId startId = luaL_checkinteger(L, 3);
-	NodeEditor::PinId endId = luaL_checkinteger(L, 4);
+	NodeEditor::LinkId id = 0;
+
+	lua_pushboolean(L, NodeEditor::QueryDeletedLink(&id));
+	lua_pushinteger(L, id.Get());
+	return 2;
+}
+
+int ImNodes_impl::QueryDeletedLink2(lua_State* L)
+{
+	NodeEditor::LinkId id = 0;
+	NodeEditor::PinId startId = 0;
+	NodeEditor::PinId endId = 0;
 
 	lua_pushboolean(L, NodeEditor::QueryDeletedLink(&id, &startId, &endId));
 	lua_pushinteger(L, id.Get());
@@ -410,7 +419,7 @@ int ImNodes_impl::QueryDeletedLink(lua_State* L)
 
 int ImNodes_impl::QueryDeletedNode(lua_State* L)
 {
-	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	NodeEditor::NodeId id = 0;
 	lua_pushboolean(L, NodeEditor::QueryDeletedNode(&id));
 	lua_pushinteger(L, id.Get());
 	return 2;
@@ -419,7 +428,7 @@ int ImNodes_impl::QueryDeletedNode(lua_State* L)
 int ImNodes_impl::AcceptDeletedItem(lua_State* L)
 {
 	lua_pushboolean(L, NodeEditor::AcceptDeletedItem());
-	return 0;
+	return 1;
 }
 
 int ImNodes_impl::RejectDeletedItem(lua_State* L)
@@ -636,7 +645,7 @@ int ImNodes_impl::ShowLinkContextMenu(lua_State* L)
 int ImNodes_impl::ShowBackgroundContextMenu(lua_State* L)
 {
 	lua_pushboolean(L, NodeEditor::ShowBackgroundContextMenu());
-	return 0;
+	return 1;
 }
 
 int ImNodes_impl::EnableShortcuts(lua_State* L)
@@ -849,7 +858,6 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 		{"flow", Flow},
 		{"beginCreate", BeginCreate},
 		{"queryNewLink", QueryNewLink},
-		{"queryNewLink", QueryNewLink},
 		{"queryNewNode", QueryNewNode},
 		{"queryNewNode", QueryNewNode},
 		{"acceptNewItem", AcceptNewItem},
@@ -859,6 +867,7 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 		{"endCreate", EndCreate},
 		{"beginDelete", BeginDelete},
 		{"queryDeletedLink", QueryDeletedLink},
+		{"queryDeletedLink2", QueryDeletedLink2},
 		{"queryDeletedNode", QueryDeletedNode},
 		{"acceptDeletedItem", AcceptDeletedItem},
 		{"rejectDeletedItem", RejectDeletedItem},
