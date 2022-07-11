@@ -1239,7 +1239,7 @@ x, y = ImGui:getMouseDragDelta(mouse_button [, lock_threshold = -1])
 ImGui:resetMouseDragDelta(mouse_button)
 ImGuiMouseCursor = ImGui:getMouseCursor()
 ImGui:setMouseCursor(ImGui.MouseCursor)
-ImGui:captureMouseFromApp([want_capture_mouse_value = true])
+ImGui:setNextFrameWantCaptureMouse([want_capture_mouse_value = true])
 ImGui:setAutoUpdateCursor(flag) -- uses application:set("cursor", name) to modify native cursor
 flag = ImGui:getAutoUpdateCursor()
 ```

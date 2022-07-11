@@ -28,6 +28,7 @@ SOURCES += \
     ../../gideros_master/2dsg/touchevent.cpp \
     ../../gideros_master/2dsg/keyboardevent.cpp \
     ../../gideros_master/luabinding/stackchecker.cpp \
+    imnodes_src/imnodes.cpp \
     main.cpp
 
 HEADERS += \
@@ -43,7 +44,9 @@ HEADERS += \
     ../../gideros_master/2dsg/mouseevent.h \
     ../../gideros_master/2dsg/touchevent.h \
     ../../gideros_master/2dsg/keyboardevent.h  \
-    ../../gideros_master/luabinding/stackchecker.h
+    ../../gideros_master/luabinding/stackchecker.h \
+    imnodes_src/imnodes.h \
+    imnodes_src/imnodes_internal.h
 
 LIBS += -L"../../Sdk/lib/desktop" -llua -lgid -lgideros -lgvfs #-lpystring
 

@@ -27,6 +27,8 @@
 #include "bitmapdata.h"
 #include "bitmap.h"
 
+#include "imnodes_src/imnodes.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1540,6 +1542,82 @@ void bindEnums(lua_State* L)
 	BIND_FENUM(L, DBL_MAX, "DBL_MAX");
 	
 	lua_pop(L, 1);	
+
+#ifdef IMNODES_NAMESPACE
+	lua_getglobal(L, "ImNodes");
+
+	BIND_IENUM(L, ImNodesCol_NodeBackground, "Col_NodeBackground");
+	BIND_IENUM(L, ImNodesCol_NodeBackgroundHovered, "Col_NodeBackgroundHovered");
+	BIND_IENUM(L, ImNodesCol_NodeBackgroundSelected, "Col_NodeBackgroundSelected");
+	BIND_IENUM(L, ImNodesCol_NodeOutline, "Col_NodeOutline");
+	BIND_IENUM(L, ImNodesCol_TitleBar, "Col_TitleBar");
+	BIND_IENUM(L, ImNodesCol_TitleBarHovered, "Col_TitleBarHovered");
+	BIND_IENUM(L, ImNodesCol_TitleBarSelected, "Col_TitleBarSelected");
+	BIND_IENUM(L, ImNodesCol_Link, "Col_Link");
+	BIND_IENUM(L, ImNodesCol_LinkHovered, "Col_LinkHovered");
+	BIND_IENUM(L, ImNodesCol_LinkSelected, "Col_LinkSelected");
+	BIND_IENUM(L, ImNodesCol_Pin, "Col_Pin");
+	BIND_IENUM(L, ImNodesCol_PinHovered, "Col_PinHovered");
+	BIND_IENUM(L, ImNodesCol_BoxSelector, "Col_BoxSelector");
+	BIND_IENUM(L, ImNodesCol_BoxSelectorOutline, "Col_BoxSelectorOutline");
+	BIND_IENUM(L, ImNodesCol_GridBackground, "Col_GridBackground");
+	BIND_IENUM(L, ImNodesCol_GridLine, "Col_GridLine");
+	BIND_IENUM(L, ImNodesCol_GridLinePrimary, "Col_GridLinePrimary");
+	BIND_IENUM(L, ImNodesCol_MiniMapBackground, "Col_MiniMapBackground");
+	BIND_IENUM(L, ImNodesCol_MiniMapBackgroundHovered, "Col_MiniMapBackgroundHovered");
+	BIND_IENUM(L, ImNodesCol_MiniMapOutline, "Col_MiniMapOutline");
+	BIND_IENUM(L, ImNodesCol_MiniMapOutlineHovered, "Col_MiniMapOutlineHovered");
+	BIND_IENUM(L, ImNodesCol_MiniMapNodeBackground, "Col_MiniMapNodeBackground");
+	BIND_IENUM(L, ImNodesCol_MiniMapNodeBackgroundHovered, "Col_MiniMapNodeBackgroundHovered");
+	BIND_IENUM(L, ImNodesCol_MiniMapNodeBackgroundSelected, "Col_MiniMapNodeBackgroundSelected");
+	BIND_IENUM(L, ImNodesCol_MiniMapNodeOutline, "Col_MiniMapNodeOutline");
+	BIND_IENUM(L, ImNodesCol_MiniMapLink, "Col_MiniMapLink");
+	BIND_IENUM(L, ImNodesCol_MiniMapLinkSelected, "Col_MiniMapLinkSelected");
+	BIND_IENUM(L, ImNodesCol_MiniMapCanvas, "Col_MiniMapCanvas");
+	BIND_IENUM(L, ImNodesCol_MiniMapCanvasOutline, "Col_MiniMapCanvasOutline");
+	BIND_IENUM(L, ImNodesCol_COUNT, "Col_COUNT");
+
+	BIND_IENUM(L, ImNodesStyleVar_GridSpacing, "StyleVar_GridSpacing");
+	BIND_IENUM(L, ImNodesStyleVar_NodeCornerRounding, "StyleVar_NodeCornerRounding");
+	BIND_IENUM(L, ImNodesStyleVar_NodePadding, "StyleVar_NodePadding");
+	BIND_IENUM(L, ImNodesStyleVar_NodeBorderThickness, "StyleVar_NodeBorderThickness");
+	BIND_IENUM(L, ImNodesStyleVar_LinkThickness, "StyleVar_LinkThickness");
+	BIND_IENUM(L, ImNodesStyleVar_LinkLineSegmentsPerLength, "StyleVar_LinkLineSegmentsPerLength");
+	BIND_IENUM(L, ImNodesStyleVar_LinkHoverDistance, "StyleVar_LinkHoverDistance");
+	BIND_IENUM(L, ImNodesStyleVar_PinCircleRadius, "StyleVar_PinCircleRadius");
+	BIND_IENUM(L, ImNodesStyleVar_PinQuadSideLength, "StyleVar_PinQuadSideLength");
+	BIND_IENUM(L, ImNodesStyleVar_PinTriangleSideLength, "StyleVar_PinTriangleSideLength");
+	BIND_IENUM(L, ImNodesStyleVar_PinLineThickness, "StyleVar_PinLineThickness");
+	BIND_IENUM(L, ImNodesStyleVar_PinHoverRadius, "StyleVar_PinHoverRadius");
+	BIND_IENUM(L, ImNodesStyleVar_PinOffset, "StyleVar_PinOffset");
+	BIND_IENUM(L, ImNodesStyleVar_MiniMapPadding, "StyleVar_MiniMapPadding");
+	BIND_IENUM(L, ImNodesStyleVar_MiniMapOffset, "StyleVar_MiniMapOffset");
+	BIND_IENUM(L, ImNodesStyleVar_COUNT, "StyleVar_COUNT");
+
+	BIND_IENUM(L, ImNodesStyleFlags_None, "StyleFlags_None");
+	BIND_IENUM(L, ImNodesStyleFlags_NodeOutline, "StyleFlags_NodeOutline");
+	BIND_IENUM(L, ImNodesStyleFlags_GridLines, "StyleFlags_GridLines");
+	BIND_IENUM(L, ImNodesStyleFlags_GridLinesPrimary, "StyleFlags_GridLinesPrimary");
+	BIND_IENUM(L, ImNodesStyleFlags_GridSnapping, "StyleFlags_GridSnapping");
+
+	BIND_IENUM(L, ImNodesPinShape_Circle, "PinShape_Circle");
+	BIND_IENUM(L, ImNodesPinShape_CircleFilled, "PinShape_CircleFilled");
+	BIND_IENUM(L, ImNodesPinShape_Triangle, "PinShape_Triangle");
+	BIND_IENUM(L, ImNodesPinShape_TriangleFilled, "PinShape_TriangleFilled");
+	BIND_IENUM(L, ImNodesPinShape_Quad, "PinShape_Quad");
+	BIND_IENUM(L, ImNodesPinShape_QuadFilled, "PinShape_QuadFilled");
+
+	BIND_IENUM(L, ImNodesAttributeFlags_None, "AttributeFlags_None");
+	BIND_IENUM(L, ImNodesAttributeFlags_EnableLinkDetachWithDragClick, "AttributeFlags_EnableLinkDetachWithDragClick");
+	BIND_IENUM(L, ImNodesAttributeFlags_EnableLinkCreationOnSnap, "AttributeFlags_EnableLinkCreationOnSnap");
+
+	BIND_IENUM(L, ImNodesMiniMapLocation_BottomLeft, "MiniMapLocation_BottomLeft");
+	BIND_IENUM(L, ImNodesMiniMapLocation_BottomRight, "MiniMapLocation_BottomRight");
+	BIND_IENUM(L, ImNodesMiniMapLocation_TopLeft, "MiniMapLocation_TopLeft");
+	BIND_IENUM(L, ImNodesMiniMapLocation_TopRight, "MiniMapLocation_TopRight");
+
+	lua_pop(L, 1);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -12669,6 +12747,977 @@ int EM_BSize(lua_State* L)
 	return 1;
 }
 
+#ifdef IMNODES_NAMESPACE
+
+ImVec2 luaL_checkvec2(lua_State* L, int idx)
+{
+	ImVec2 vec = ImVec2();
+	vec.x = luaL_checknumber(L, idx);
+	vec.y = luaL_checknumber(L, idx + 1);
+
+	return vec;
+}
+
+int initImNodes(lua_State* L)
+{
+	ImNodesContext* ctx = ImNodes::CreateContext();
+	g_pushInstance(L, "ImNodes", ctx);
+	return 1;
+}
+
+int destroyImNodes(LUA_STATE* p)
+{
+	void* ptr = GIDEROS_DTOR_UDATA(p);
+	ImNodesContext* ctx = static_cast<ImNodesContext*>(ptr);
+	ImNodes::DestroyContext(ctx);
+	return 0;
+}
+
+int ImNodesEditorContextGetPanning(lua_State* L)
+{
+	ImVec2 panning = ImNodes::EditorContextGetPanning();
+	lua_pushnumber(L, panning.x);
+	lua_pushnumber(L, panning.y);
+	return 2;
+}
+
+int ImNodesEditorContextResetPanning(lua_State* L)
+{
+	const ImVec2 pos = luaL_checkvec2(L, 2);
+	ImNodes::EditorContextResetPanning(pos);
+	return 0;
+}
+
+int ImNodesEditorContextMoveToNode(lua_State* L)
+{
+	const int node_id = luaL_checkinteger(L, 2);
+	ImNodes::EditorContextMoveToNode(node_id);
+	return 0;
+}
+
+int ImNodesGetIO(lua_State* L)
+{
+	ImNodesIO& io = ImNodes::GetIO();
+	g_pushInstance(L, "ImNodesIO", &io);
+	return 0;
+}
+
+int ImNodesGetStyle(lua_State* L)
+{
+	ImNodesStyle* style = &ImNodes::GetStyle();
+	g_pushInstance(L, "ImNodesStyle", style);
+	return 1;
+}
+
+int ImNodesStyleColorsDark(lua_State* L)
+{
+	ImNodes::StyleColorsDark();
+	return 0;
+}
+
+int ImNodesStyleColorsClassic(lua_State* L)
+{
+	ImNodes::StyleColorsClassic();
+	return 0;
+}
+
+int ImNodesStyleColorsLight(lua_State* L)
+{
+	ImNodes::StyleColorsLight();
+	return 0;
+}
+
+int ImNodesBeginNodeEditor(lua_State* L)
+{
+	ImNodes::BeginNodeEditor();
+	return 0;
+}
+
+int ImNodesEndNodeEditor(lua_State* L)
+{
+	ImNodes::EndNodeEditor();
+	return 0;
+}
+
+int ImNodesMiniMap(lua_State* L)
+{
+	const float minimap_size_fraction = luaL_checknumber(L, 2);
+	const ImNodesMiniMapLocation location = luaL_checkinteger(L, 3);
+
+	ImNodes::MiniMap(minimap_size_fraction, location);
+	return 0;
+}
+
+int ImNodesPushColorStyle(lua_State* L)
+{
+	ImNodesCol item = luaL_checkinteger(L, 2);
+	int hex = luaL_checkinteger(L, 3);
+	float alpha = luaL_optnumber(L, 4, 1.0f);
+	unsigned int color = GColor::toU32(hex, alpha);
+
+	ImNodes::PushColorStyle(item, color);
+	return 0;
+}
+
+int ImNodesPopColorStyle(lua_State* L)
+{
+	ImNodes::PopColorStyle();
+	return 0;
+}
+
+int ImNodesPushStyleVar(lua_State* L)
+{
+	ImNodesStyleVar style_item = luaL_checkinteger(L, 2);
+
+	if (lua_gettop(L) > 3)
+	{
+		ImVec2 value = luaL_checkvec2(L, 3);
+		ImNodes::PushStyleVar(style_item, value);
+	}
+	else
+	{
+		float value = luaL_checknumber(L, 3);
+		ImNodes::PushStyleVar(style_item, value);
+	}
+
+	return 0;
+}
+
+int ImNodesPopStyleVar(lua_State* L)
+{
+	int count = luaL_optinteger(L, 2, 1);
+	ImNodes::PopStyleVar(count);
+	return 0;
+}
+
+int ImNodesBeginNode(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImNodes::BeginNode(id);
+	return 0;
+}
+
+int ImNodesEndNode(lua_State* L)
+{
+	ImNodes::EndNode();
+	return 0;
+}
+
+int ImNodesGetNodeDimensions(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 dim = ImNodes::GetNodeDimensions(id);
+	lua_pushnumber(L, dim.x);
+	lua_pushnumber(L, dim.y);
+	return 2;
+}
+
+int ImNodesBeginNodeTitleBar(lua_State* L)
+{
+	ImNodes::BeginNodeTitleBar();
+	return 0;
+}
+
+int ImNodesEndNodeTitleBar(lua_State* L)
+{
+	ImNodes::EndNodeTitleBar();
+	return 0;
+}
+
+int ImNodesBeginInputAttribute(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImNodesPinShape shape = luaL_optinteger(L, 3, ImNodesPinShape_CircleFilled);
+
+	ImNodes::BeginInputAttribute(id, shape);
+	return 0;
+}
+
+int ImNodesEndInputAttribute(lua_State* L)
+{
+	ImNodes::EndInputAttribute();
+	return 0;
+}
+
+int ImNodesBeginOutputAttribute(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImNodesPinShape shape = luaL_optinteger(L, 3, ImNodesPinShape_CircleFilled);
+	ImNodes::BeginOutputAttribute(id, shape);
+	return 0;
+}
+
+int ImNodesEndOutputAttribute(lua_State* L)
+{
+	ImNodes::EndOutputAttribute();
+	return 0;
+}
+
+int ImNodesBeginStaticAttribute(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImNodes::BeginStaticAttribute(id);
+	return 0;
+}
+
+int ImNodesEndStaticAttribute(lua_State* L)
+{
+	ImNodes::EndStaticAttribute();
+	return 0;
+}
+
+int ImNodesPushAttributeFlag(lua_State* L)
+{
+	ImNodesAttributeFlags flag = luaL_checkinteger(L, 2);
+	ImNodes::PushAttributeFlag(flag);
+	return 0;
+}
+
+int ImNodesPopAttributeFlag(lua_State* L)
+{
+	ImNodes::PopAttributeFlag();
+	return 0;
+}
+
+int ImNodesLink(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	int start_attribute_id = luaL_checkinteger(L, 3);
+	int end_attribute_id = luaL_checkinteger(L, 4);
+
+	ImNodes::Link(id, start_attribute_id, end_attribute_id);
+	return 0;
+}
+
+int ImNodesSetNodeDraggable(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	const bool draggable = lua_toboolean(L, 3);
+
+	ImNodes::SetNodeDraggable(id, draggable);
+	return 0;
+}
+
+int ImNodesSetNodeScreenSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 screen_space_pos = luaL_checkvec2(L, 3);
+
+	ImNodes::SetNodeScreenSpacePos(id, screen_space_pos);
+	return 0;
+}
+
+int ImNodesSetNodeEditorSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 editor_space_pos = luaL_checkvec2(L, 3);
+	ImNodes::SetNodeEditorSpacePos(id, editor_space_pos);
+	return 0;
+}
+
+int ImNodesSetNodeGridSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 grid_pos = luaL_checkvec2(L, 3);
+	ImNodes::SetNodeGridSpacePos(id, grid_pos);
+	return 0;
+}
+
+int ImNodesGetNodeScreenSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 screen_space_pos = ImNodes::GetNodeScreenSpacePos(id);
+	lua_pushnumber(L, screen_space_pos.x);
+	lua_pushnumber(L, screen_space_pos.y);
+	return 2;
+}
+
+int ImNodesGetNodeEditorSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 editor_space_pos = ImNodes::GetNodeEditorSpacePos(id);
+	lua_pushnumber(L, editor_space_pos.x);
+	lua_pushnumber(L, editor_space_pos.y);
+	return 2;
+}
+
+int ImNodesGetNodeGridSpacePos(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImVec2 grid_pos = ImNodes::GetNodeGridSpacePos(id);
+	lua_pushnumber(L, grid_pos.x);
+	lua_pushnumber(L, grid_pos.y);
+	return 2;
+}
+
+int ImNodesSnapNodeToGrid(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	ImNodes::SnapNodeToGrid(id);
+	return 0;
+}
+
+int ImNodesIsEditorHovered(lua_State* L)
+{
+	lua_pushboolean(L, ImNodes::IsEditorHovered());
+	return 1;
+}
+
+int ImNodesIsNodeHovered(lua_State* L)
+{
+	int id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsNodeHovered(&id));
+	lua_pushinteger(L, id);
+	return 2;
+}
+
+int ImNodesIsLinkHovered(lua_State* L)
+{
+	int link_id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsLinkHovered(&link_id));
+	lua_pushinteger(L, link_id);
+	return 2;
+}
+
+int ImNodesIsPinHovered(lua_State* L)
+{
+	int attribute_id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsPinHovered(&attribute_id));
+	lua_pushinteger(L, attribute_id);
+	return 2;
+}
+
+int ImNodesNumSelectedNodes(lua_State* L)
+{
+	lua_pushinteger(L, ImNodes::NumSelectedNodes());
+	return 1;
+}
+
+int ImNodesNumSelectedLinks(lua_State* L)
+{
+	lua_pushinteger(L, ImNodes::NumSelectedLinks());
+	return 1;
+}
+
+int ImNodesGetArray(int* arr, int len, lua_State* L)
+{
+	lua_createtable(L, len, 0);
+
+	for (int i = 0; i < len; i++)
+	{
+		lua_pushinteger(L, arr[i]);
+		lua_rawseti(L, -2, i + 1);
+	}
+}
+
+int ImNodesGetSelectedNodes(lua_State* L)
+{
+	int len = ImNodes::NumSelectedNodes();
+	int* ids = new int[len];
+
+	ImNodes::GetSelectedNodes(ids);
+
+	ImNodesGetArray(ids, len, L);
+
+	delete[] ids;
+	return 1;
+}
+
+int ImNodesGetSelectedLinks(lua_State* L)
+{
+	int len = ImNodes::NumSelectedLinks();
+	int* link_ids = new int[len];
+
+	ImNodes::GetSelectedLinks(link_ids);
+
+	ImNodesGetArray(link_ids, len, L);
+
+	delete[] link_ids;
+	return 1;
+}
+
+int ImNodesClearNodeSelection(lua_State* L)
+{
+	if (lua_gettop(L) > 2)
+	{
+		int node_id = luaL_checkinteger(L, 2);
+		ImNodes::ClearNodeSelection(node_id);
+	}
+	else
+		ImNodes::ClearNodeSelection();
+	return 0;
+}
+
+int ImNodesClearLinkSelection(lua_State* L)
+{
+	if (lua_gettop(L) > 2)
+	{
+		int link_id = luaL_checkinteger(L, 2);
+		ImNodes::ClearLinkSelection(link_id);
+	}
+	else
+		ImNodes::ClearLinkSelection();
+	return 0;
+}
+
+int ImNodesSelectNode(lua_State* L)
+{
+	int node_id = luaL_checkinteger(L, 2);
+	ImNodes::SelectNode(node_id);
+	return 0;
+}
+
+int ImNodesIsNodeSelected(lua_State* L)
+{
+	int node_id = luaL_checkinteger(L, 2);
+	ImNodes::IsNodeSelected(node_id);
+	return 0;
+}
+
+int ImNodesSelectLink(lua_State* L)
+{
+	int link_id = luaL_checkinteger(L, 2);
+	ImNodes::SelectLink(link_id);
+	return 0;
+}
+
+int ImNodesIsLinkSelected(lua_State* L)
+{
+	int link_id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsLinkSelected(link_id));
+	return 1;
+}
+
+int ImNodesIsAttributeActive(lua_State* L)
+{
+	lua_pushboolean(L, ImNodes::IsAttributeActive());
+	return 1;
+}
+
+int ImNodesIsAnyAttributeActive(lua_State* L)
+{
+	if (lua_gettop(L) > 1)
+	{
+		int attribute_id = luaL_checkinteger(L, 2);
+		lua_pushboolean(L, ImNodes::IsAnyAttributeActive(&attribute_id));
+		lua_pushinteger(L, attribute_id);
+		return 2;
+	}
+	else
+	{
+		lua_pushboolean(L, ImNodes::IsAnyAttributeActive());
+		return 1;
+	}
+}
+
+int ImNodesIsLinkStarted(lua_State* L)
+{
+
+	int started_at_attribute_id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsLinkStarted(&started_at_attribute_id));
+	lua_pushinteger(L, started_at_attribute_id);
+	return 2;
+}
+
+int ImNodesIsLinkDropped(lua_State* L)
+{
+	if (lua_gettop(L) > 1)
+	{
+		int started_at_attribute_id = luaL_checkinteger(L, 2);
+		bool including_detached_links = luaL_optboolean(L, 3, true);
+		lua_pushboolean(L, ImNodes::IsLinkDropped(&started_at_attribute_id, including_detached_links));
+		lua_pushinteger(L, started_at_attribute_id);
+		return 2;
+	}
+	else
+	{
+		lua_pushboolean(L, ImNodes::IsLinkDropped());
+		return 1;
+	}
+}
+
+int ImNodesIsLinkCreated(lua_State* L)
+{
+	int started_at_attribute_id = 0;
+	int ended_at_attribute_id = 0;
+	bool created_from_snap = false;
+
+	lua_pushboolean(L, ImNodes::IsLinkCreated(&started_at_attribute_id, &ended_at_attribute_id, &created_from_snap));
+	lua_pushinteger(L, started_at_attribute_id);
+	lua_pushinteger(L, ended_at_attribute_id);
+	lua_pushboolean(L, created_from_snap);
+	return 4;
+}
+
+int ImNodesIsLinkCreated2(lua_State* L)
+{
+	int started_at_node_id = 0;
+	int started_at_attribute_id = 0;
+	int ended_at_node_id = 0;
+	int ended_at_attribute_id = 0;
+	bool created_from_snap = false;
+
+	lua_pushboolean(L, ImNodes::IsLinkCreated(&started_at_node_id, &started_at_attribute_id, &ended_at_node_id, &ended_at_attribute_id, &created_from_snap));
+	lua_pushinteger(L, started_at_node_id);
+	lua_pushinteger(L, started_at_attribute_id);
+	lua_pushinteger(L, ended_at_node_id);
+	lua_pushinteger(L, ended_at_attribute_id);
+	lua_pushboolean(L, created_from_snap);
+	return 6;
+}
+
+int ImNodesIsLinkDestroyed(lua_State* L)
+{
+	int link_id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, ImNodes::IsLinkDestroyed(&link_id));
+	lua_pushinteger(L, link_id);
+	return 2;
+}
+
+int ImNodesSaveCurrentEditorStateToIniString(lua_State* L)
+{
+	lua_pushstring(L, ImNodes::SaveCurrentEditorStateToIniString());
+	return 1;
+}
+
+int ImNodesLoadCurrentEditorStateFromIniString(lua_State* L)
+{
+	const char* data = luaL_checkstring(L, 2);
+	size_t data_size = luaL_getn(L, 2);
+
+	ImNodes::LoadCurrentEditorStateFromIniString(data, data_size);
+	return 0;
+}
+
+int ImNodesSaveCurrentEditorStateToIniFile(lua_State* L)
+{
+	const char* file_name = luaL_checkstring(L, 2);
+	ImNodes::SaveCurrentEditorStateToIniFile(file_name);
+	return 0;
+}
+
+int ImNodesLoadCurrentEditorStateFromIniFile(lua_State* L)
+{
+	const char* file_name = luaL_checkstring(L, 2);
+	ImNodes::LoadCurrentEditorStateFromIniFile(file_name);
+	return 0;
+}
+
+ImNodesStyle& getImNodesStyle(lua_State* L)
+{
+	return *getPtr<ImNodesStyle>(L, "ImNodesStyle");
+}
+
+int ImNodesStyleSetGridSpacing(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.GridSpacing = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetGridSpacing(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.GridSpacing;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetNodeCornerRounding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.NodeCornerRounding = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetNodeCornerRounding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.NodeCornerRounding;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetNodePadding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.NodePadding.x = luaL_checknumber(L, 2);
+	style.NodePadding.y = luaL_checknumber(L, 3);
+	return 0;
+}
+
+int ImNodesStyleGetNodePadding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	ImVec2 value = style.NodePadding;
+	lua_pushnumber(L, value.x);
+	lua_pushnumber(L, value.y);
+	return 2;
+}
+
+int ImNodesStyleSetNodeBorderThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.NodeBorderThickness = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetNodeBorderThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.NodeBorderThickness;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetLinkThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.LinkThickness = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetLinkThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.LinkThickness;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetLinkLineSegmentsPerLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.LinkLineSegmentsPerLength = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetLinkLineSegmentsPerLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.LinkLineSegmentsPerLength;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetLinkHoverDistance(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.LinkHoverDistance = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetLinkHoverDistance(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.LinkHoverDistance;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinCircleRadius(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinCircleRadius = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinCircleRadius(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinCircleRadius;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinQuadSideLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinQuadSideLength = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinQuadSideLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinQuadSideLength;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinTriangleSideLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinTriangleSideLength = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinTriangleSideLength(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinTriangleSideLength;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinLineThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinLineThickness = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinLineThickness(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinLineThickness;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinHoverRadius(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinHoverRadius = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinHoverRadius(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinHoverRadius;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetPinOffset(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.PinOffset = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetPinOffset(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	float value = style.PinOffset;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetMiniMapPadding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.MiniMapPadding.x = luaL_checknumber(L, 2);
+	style.MiniMapPadding.y = luaL_checknumber(L, 3);
+	return 0;
+}
+
+int ImNodesStyleGetMiniMapPadding(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	ImVec2 value = style.MiniMapPadding;
+	lua_pushnumber(L, value.x);
+	lua_pushnumber(L, value.y);
+	return 2;
+}
+
+int ImNodesStyleSetMiniMapOffset(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.MiniMapOffset.x = luaL_checknumber(L, 2);
+	style.MiniMapOffset.y = luaL_checknumber(L, 3);
+	return 0;
+}
+
+int ImNodesStyleGetMiniMapOffset(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	ImVec2 value = style.MiniMapOffset;
+	lua_pushnumber(L, value.x);
+	lua_pushnumber(L, value.y);
+	return 2;
+}
+
+int ImNodesStyleSetFlags(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	style.Flags = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodesStyleGetFlags(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	ImNodesStyleFlags value = style.Flags;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodesStyleSetColors(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	int idx = luaL_checknumber(L, 2);
+	int hex = luaL_checknumber(L, 3);
+	float alpha = luaL_optnumber(L, 4, 1.0f);
+	style.Colors[idx] = GColor::toU32(hex, alpha);
+	return 0;
+}
+
+int ImNodesStyleGetColors(lua_State* L)
+{
+	ImNodesStyle& style = getImNodesStyle(L);
+	int idx = luaL_checknumber(L, 2);
+	GColor color = GColor::toHex(style.Colors[idx]);
+	lua_pushnumber(L, color.hex);
+	lua_pushnumber(L, color.alpha);
+	return 2;
+}
+
+
+void imNodesLoader(lua_State* L)
+{
+	const luaL_Reg imnodesFunctionsList[] = {
+		//{"editorContextCreate", ImNodesEditorContextCreate},
+		//{"editorContextFree", ImNodesEditorContextFree},
+		//{"editorContextSet", ImNodesEditorContextSet},
+		{"editorContextGetPanning", ImNodesEditorContextGetPanning},
+		{"editorContextResetPanning", ImNodesEditorContextResetPanning},
+		{"editorContextMoveToNode", ImNodesEditorContextMoveToNode},
+		{"getIO", ImNodesGetIO},
+		{"getStyle", ImNodesGetStyle},
+		{"styleColorsDark", ImNodesStyleColorsDark},
+		{"styleColorsClassic", ImNodesStyleColorsClassic},
+		{"styleColorsLight", ImNodesStyleColorsLight},
+		{"beginNodeEditor", ImNodesBeginNodeEditor},
+		{"endNodeEditor", ImNodesEndNodeEditor},
+		{"miniMap", ImNodesMiniMap},
+		{"pushColorStyle", ImNodesPushColorStyle},
+		{"popColorStyle", ImNodesPopColorStyle},
+		{"pushStyleVar", ImNodesPushStyleVar},
+		{"pushStyleVar", ImNodesPushStyleVar},
+		{"popStyleVar", ImNodesPopStyleVar},
+		{"beginNode", ImNodesBeginNode},
+		{"endNode", ImNodesEndNode},
+		{"getNodeDimensions", ImNodesGetNodeDimensions},
+		{"beginNodeTitleBar", ImNodesBeginNodeTitleBar},
+		{"endNodeTitleBar", ImNodesEndNodeTitleBar},
+		{"beginInputAttribute", ImNodesBeginInputAttribute},
+		{"endInputAttribute", ImNodesEndInputAttribute},
+		{"beginOutputAttribute", ImNodesBeginOutputAttribute},
+		{"endOutputAttribute", ImNodesEndOutputAttribute},
+		{"beginStaticAttribute", ImNodesBeginStaticAttribute},
+		{"endStaticAttribute", ImNodesEndStaticAttribute},
+		{"pushAttributeFlag", ImNodesPushAttributeFlag},
+		{"popAttributeFlag", ImNodesPopAttributeFlag},
+		{"link", ImNodesLink},
+		{"setNodeDraggable", ImNodesSetNodeDraggable},
+		{"setNodeScreenSpacePos", ImNodesSetNodeScreenSpacePos},
+		{"setNodeEditorSpacePos", ImNodesSetNodeEditorSpacePos},
+		{"setNodeGridSpacePos", ImNodesSetNodeGridSpacePos},
+		{"getNodeScreenSpacePos", ImNodesGetNodeScreenSpacePos},
+		{"getNodeEditorSpacePos", ImNodesGetNodeEditorSpacePos},
+		{"getNodeGridSpacePos", ImNodesGetNodeGridSpacePos},
+		{"snapNodeToGrid", ImNodesSnapNodeToGrid},
+		{"isEditorHovered", ImNodesIsEditorHovered},
+		{"isNodeHovered", ImNodesIsNodeHovered},
+		{"isLinkHovered", ImNodesIsLinkHovered},
+		{"isPinHovered", ImNodesIsPinHovered},
+		{"numSelectedNodes", ImNodesNumSelectedNodes},
+		{"numSelectedLinks", ImNodesNumSelectedLinks},
+		{"getSelectedNodes", ImNodesGetSelectedNodes},
+		{"getSelectedLinks", ImNodesGetSelectedLinks},
+		{"clearNodeSelection", ImNodesClearNodeSelection},
+		{"clearLinkSelection", ImNodesClearLinkSelection},
+		{"selectNode", ImNodesSelectNode},
+		{"clearNodeSelection", ImNodesClearNodeSelection},
+		{"isNodeSelected", ImNodesIsNodeSelected},
+		{"selectLink", ImNodesSelectLink},
+		{"clearLinkSelection", ImNodesClearLinkSelection},
+		{"isLinkSelected", ImNodesIsLinkSelected},
+		{"isAttributeActive", ImNodesIsAttributeActive},
+		{"isAnyAttributeActive", ImNodesIsAnyAttributeActive},
+		{"isLinkStarted", ImNodesIsLinkStarted},
+		{"isLinkDropped", ImNodesIsLinkDropped},
+		{"isLinkCreated", ImNodesIsLinkCreated},
+		{"isLinkCreated2", ImNodesIsLinkCreated2},
+		{"isLinkDestroyed", ImNodesIsLinkDestroyed},
+		{"saveCurrentEditorStateToIniString", ImNodesSaveCurrentEditorStateToIniString},
+		{"loadCurrentEditorStateFromIniString", ImNodesLoadCurrentEditorStateFromIniString},
+		{"saveCurrentEditorStateToIniFile", ImNodesSaveCurrentEditorStateToIniFile},
+		{"loadCurrentEditorStateFromIniFile", ImNodesLoadCurrentEditorStateFromIniFile},
+		{NULL, NULL}
+	};
+
+	g_createClass(L, "ImNodes", NULL, initImNodes, destroyImNodes, imnodesFunctionsList);
+
+	const luaL_Reg imnodesIOFunctionsList[] = {
+		{NULL, NULL}
+	};
+
+	g_createClass(L, "ImNodesIO", NULL, NULL, NULL, imnodesIOFunctionsList);
+
+	const luaL_Reg imnodesStyleFunctionsList[] = {
+		{"setGridSpacing", ImNodesStyleSetGridSpacing},
+		{"getGridSpacing", ImNodesStyleGetGridSpacing},
+
+		{"setNodeCornerRounding", ImNodesStyleSetNodeCornerRounding},
+		{"getNodeCornerRounding", ImNodesStyleGetNodeCornerRounding},
+
+		{"setNodePadding", ImNodesStyleSetNodePadding},
+		{"getNodePadding", ImNodesStyleGetNodePadding},
+
+		{"setNodeBorderThickness", ImNodesStyleSetNodeBorderThickness},
+		{"getNodeBorderThickness", ImNodesStyleGetNodeBorderThickness},
+
+		{"setLinkThickness", ImNodesStyleSetLinkThickness},
+		{"getLinkThickness", ImNodesStyleGetLinkThickness},
+
+		{"setLinkLineSegmentsPerLength", ImNodesStyleSetLinkLineSegmentsPerLength},
+		{"getLinkLineSegmentsPerLength", ImNodesStyleGetLinkLineSegmentsPerLength},
+
+		{"setLinkHoverDistance", ImNodesStyleSetLinkHoverDistance},
+		{"getLinkHoverDistance", ImNodesStyleGetLinkHoverDistance},
+
+		{"setPinCircleRadius", ImNodesStyleSetPinCircleRadius},
+		{"getPinCircleRadius", ImNodesStyleGetPinCircleRadius},
+
+		{"setPinQuadSideLength", ImNodesStyleSetPinQuadSideLength},
+		{"getPinQuadSideLength", ImNodesStyleGetPinQuadSideLength},
+
+		{"setPinTriangleSideLength", ImNodesStyleSetPinTriangleSideLength},
+		{"getPinTriangleSideLength", ImNodesStyleGetPinTriangleSideLength},
+
+		{"setPinLineThickness", ImNodesStyleSetPinLineThickness},
+		{"getPinLineThickness", ImNodesStyleGetPinLineThickness},
+
+		{"setPinHoverRadius", ImNodesStyleSetPinHoverRadius},
+		{"getPinHoverRadius", ImNodesStyleGetPinHoverRadius},
+
+		{"setPinOffset", ImNodesStyleSetPinOffset},
+		{"getPinOffset", ImNodesStyleGetPinOffset},
+
+		{"setMiniMapPadding", ImNodesStyleSetMiniMapPadding},
+		{"getMiniMapPadding", ImNodesStyleGetMiniMapPadding},
+
+		{"setMiniMapOffset", ImNodesStyleSetMiniMapOffset},
+		{"getMiniMapOffset", ImNodesStyleGetMiniMapOffset},
+
+		{"setFlags", ImNodesStyleSetFlags},
+		{"getFlags", ImNodesStyleGetFlags},
+
+		{"setColor", ImNodesStyleSetColors},
+		{"getColor", ImNodesStyleGetColors},
+
+		{NULL, NULL}
+	};
+
+	g_createClass(L, "ImNodesStyle", NULL, NULL, NULL, imnodesStyleFunctionsList);
+}
+
+
+#endif
+
 static void HelpMarker(const char* desc)
 {
 	ImGui::TextDisabled("(?)");
@@ -13076,7 +14125,7 @@ int loader(lua_State* L)
 		{NULL, NULL},
 	};
 	
-	g_createClass(L, "ImGuiStyle", 0, NULL, NULL, imguiStylesFunctionList);
+	g_createClass(L, "ImGuiStyle", NULL, NULL, NULL, imguiStylesFunctionList);
 	
 	const luaL_Reg imguiDrawListFunctionList[] =
 	{
@@ -14100,6 +15149,10 @@ int loader(lua_State* L)
 	};
 	g_createClass(L, "ImGui", "Sprite", initImGui, destroyImGui, imguiFunctionList);
 	
+#ifdef IMNODES_NAMESPACE
+	imNodesLoader(L);
+#endif
+
 	luaL_newweaktable(L);
 	luaL_rawsetptr(L, LUA_REGISTRYINDEX, &keyWeak);
 	
