@@ -650,27 +650,44 @@ ImGui:bullet()
 ```lua
 -- Images are streched (ImGui default functions)
 ImGui:image(texture, w, h [, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
+ImGui:imageUV(texture, 
+	w, h,
+	uv0x, uv0y,
+	uv1x, uv1y,
+	[, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
 pressFlag = ImGui:imageButton(texture, w, h [, padding = -1, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
+pressFlag = ImGui:imageButtonUV(texture, 
+	w, h,
+	uv0x, uv0y,
+	uv1x, uv1y,
+	[, padding = -1, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
 -- Images are scaled (extended by @MultiPain)
 -- padding deprecated (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
 ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-		  anchor_x = 0.5, anchor_y = 0.5, 
-		  tint_col = 0xffffff, tint_alpha = 1, 
-		  border_col = 0, border_alpha = 0, 
-		  bg_col = 0, bg_alpha = 0])
+	anchor_x = 0.5, anchor_y = 0.5, 
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+		  
 pressFlag = ImGui:scaledImageButton(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-				    ImGui.ButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
-		 		    clip_offset_x = 0, clip_offset_y = 0,
-				    tint_col = 0xffffff, tint_alpha = 1, 
-				    border_col = 0, border_alpha = 0, 
-				    bg_col = 0, bg_alpha = 0])
+	ImGui.ButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
+	clip_offset_x = 0, clip_offset_y = 0,
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+					
 pressFlag = ImGui:scaledImageButtonWithText(texture, label, image_w, image_h [, button_w = 0, button_h = 0, 
-					    ImGui.ButtonFlags = 0, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-					    anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
-					    clip_offset_x = 0, clip_offset_y = 0,
-					    tint_col = 0xffffff, tint_alpha = 1, 
-					    border_col = 0, border_alpha = 0, 
-					    bg_col = 0, bg_alpha = 0])
+	ImGui.ButtonFlags = 0, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
+	anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
+	clip_offset_x = 0, clip_offset_y = 0,
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+						
 ```
 
 ## Widgets: Combo Box
@@ -1937,16 +1954,17 @@ ImGui.DragDropFlags_SourceNoDisableHover
 
 ### corner_flags
 ```lua
-ImGui.corner_flags_None
-ImGui.corner_flags_TopLeft
-ImGui.corner_flags_TopRight
-ImGui.corner_flags_BotLeft
-ImGui.corner_flags_BotRight
-ImGui.corner_flags_Top
-ImGui.corner_flags_Bot
-ImGui.corner_flags_Left
-ImGui.corner_flags_Right
-ImGui.CornerFlags_All
+ImGui.DrawFlags_None
+ImGui.DrawFlags_Closed
+ImGui.DrawFlags_RoundCornersTopLeft
+ImGui.DrawFlags_RoundCornersTopRight
+ImGui.DrawFlags_RoundCornersBottomLeft
+ImGui.DrawFlags_RoundCornersBottomRight
+ImGui.DrawFlags_RoundCornersTop
+ImGui.DrawFlags_RoundCornersBottom
+ImGui.DrawFlags_RoundCornersLeft
+ImGui.DrawFlags_RoundCornersRight
+ImGui.DrawFlags_RoundCornersAll
 ```
 
 ### ConfigFlags
@@ -2175,7 +2193,13 @@ DrawList:popTextureID()
 x, y = DrawList:getClipRectMin()
 x, y = DrawList:getClipRectMax()
 DrawList:addLine(p1_x, p1_y, p2_x, p2_y, color [, alpha = 1, thickness = 1])
-DrawList:addRect(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
+DrawList:addRect(
+	p_min_x, p_min_y, 
+	p_max_x, p_max_y, 
+	color 
+	[, alpha = 1, 
+	rounding = 0, rounding_corners = ImGui.CornerFlags_All, 
+	thickness = 1])
 DrawList:addRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.CornerFlags_All])
 DrawList:addRectFilledMultiColor(p_min_x, p_min_y, p_max_x, p_max_y, color_upr_left, color_upr_right, color_bot_right, color_bot_left)
 DrawList:addQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color [, alpha = 1, thickness = 1])
@@ -2187,14 +2211,59 @@ DrawList:addCircleFilled(center_x, center_y, radius, color [, alpha = 1, num_seg
 DrawList:addNgon(center_x, center_y, radius, color [, alpha = 1, num_segments = 12, thickness = 1])
 DrawList:addNgonFilled(center_x, center_y, radius, color [, alpha = 1, num_segments = 12])
 DrawList:addText(x, y, color, alpha, text) -- x, y (number), text_begin (string), text_end (string)
-DrawList:addFontText(font, font_size, pos_x, pos_y, color, alpha, text [, wrap_with = 0, cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
+DrawList:addFontText(font, font_size, 
+	pos_x, pos_y, 
+	color, alpha, 
+	text 
+	[, wrap_with = 0, 
+	cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, 
+	cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
 DrawList:addPolyline(points_table, color, alpha, closed, thickness) -- points_table (table), color (number), closed (bool), thickness (number)
 DrawList:addConvexPolyFilled(points_table, color) -- points_table (table), color (number)
-DrawList:addBezierCubic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, alpha, thickness [, num_segments = 0])
-DrawList:addBezierQuadratic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, alpha, thickness [, num_segments = 0])
-DrawList:addImage(texture, x, y, x + w, y + h [, tint_color = 0xffffff, tint_alpha = 1]) 
-DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h [, tint_color = 0xffffff, tint_alpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = 
-DrawList:addImageRounded(texture, x, y, x + w, y + h, tint_color, tint_alpha, round_radius [, corner_flags = ImGui.CorenerFlags_All])
+DrawList:addBezierCubic(
+	p1_x, p1_y, 
+	p2_x, p2_y, 
+	p3_x, p3_y, 
+	p4_x, p4_y, 
+	color, alpha, thickness [, num_segments = 0])
+DrawList:addBezierQuadratic(
+	p1_x, p1_y, 
+	p2_x, p2_y, 
+	p3_x, p3_y, 
+	color, alpha, thickness [, num_segments = 0])
+DrawList:addImage(texture, 
+	x, y, 
+	x + w, y + h 
+	[, tint_color = 0xffffff, tint_alpha = 1]) 
+DrawList:addImageUV(texture, 
+	x, y, 
+	x + w, y + h, 
+	uv0x, uv0y, 
+	uv1x, uv1y 
+	[, tint_color = 0xffffff, tint_alpha = 1]) 
+DrawList:addImageQuad(texture, 
+	x, y, 
+	x + w, y, 
+	x + w, y + h, 
+	x, y + h 
+	[, tint_color = 0xffffff, tint_alpha = 1, 
+	uv0x = 0, uv0y = 0, 
+	uv1x = 1, uv1y = 0, 
+	uv2x = 1, uv2y = 1, 
+	uv3x = 0, uv3y = 1])
+DrawList:addImageRounded(texture, 
+	x, y, 
+	x + w, 
+	y + h, 
+	tint_color, tint_alpha, round_radius 
+	[, corner_flags = ImGui.CorenerFlags_All])
+DrawList:addImageRoundedUV(texture, 
+	x, y, 
+	x + w, y + h, 
+	uv0x, uv0y, 
+	uv1x, uv1y, 
+	tint_color, tint_alpha, round_radius 
+	[, corner_flags = ImGui.CorenerFlags_All])
 DrawList:pathClear()
 DrawList:pathLineTo(x, y)
 DrawList:pathLineToMergeDuplicate(x, y)
