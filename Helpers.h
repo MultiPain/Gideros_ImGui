@@ -11,6 +11,7 @@
 
 #include "gplugin.h"
 #include "imgui_src/imgui.h"
+#include "imgui_src/imgui_internal.h"
 #include "lualib.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,18 +165,46 @@ static const ImVec4 luaL_optvec4(lua_State* L, int idx, float defX = 0.0f, float
 	return ImVec4(x, y, z, w);
 }
 
-static inline void lua_pushvec2(lua_State* L, ImVec2& vec)
+static ImRect luaL_checkrect(lua_State* L, int idx)
+{
+	float x1 = luaL_checknumber(L, idx + 0);
+	float y1 = luaL_checknumber(L, idx + 1);
+	float x2 = luaL_checknumber(L, idx + 2);
+	float y2 = luaL_checknumber(L, idx + 3);
+
+	return ImRect(x1, y1, x2, y2);
+}
+
+static ImRect luaL_optrect(lua_State* L, int idx, float defX1 = 0.0f, float defY1 = 0.0f, float defX2 = 0.0f, float defY2 = 0.0f)
+{
+	float x1 = luaL_optnumber(L, idx + 0, defX1);
+	float y1 = luaL_optnumber(L, idx + 1, defY1);
+	float x2 = luaL_optnumber(L, idx + 2, defX2);
+	float y2 = luaL_optnumber(L, idx + 3, defY2);
+
+	return ImRect(x1, y1, x2, y2);
+}
+
+static inline void lua_pushvec2(lua_State* L, ImVec2 vec)
 {
 	lua_pushnumber(L, vec.x);
 	lua_pushnumber(L, vec.y);
 }
 
-static inline void lua_pushvec4(lua_State* L, ImVec4& vec)
+static inline void lua_pushvec4(lua_State* L, ImVec4 vec)
 {
 	lua_pushnumber(L, vec.x);
 	lua_pushnumber(L, vec.y);
 	lua_pushnumber(L, vec.z);
 	lua_pushnumber(L, vec.w);
+}
+
+static inline void lua_pushrect(lua_State* L, ImRect& rect)
+{
+	lua_pushnumber(L, rect.Min.x);
+	lua_pushnumber(L, rect.Min.y);
+	lua_pushnumber(L, rect.Max.x);
+	lua_pushnumber(L, rect.Max.y);
 }
 
 #endif // HELPERS_H

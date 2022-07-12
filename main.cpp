@@ -541,7 +541,7 @@ static void NextWindowSizeConstraintCallback(ImGuiSizeCallbackData* data)
 	{
 		lua_call(L, 1, 2);
 	}
-	data->DesiredSize = ImVec2(luaL_checknumber(L, -2), luaL_checknumber(L, -1));
+	data->DesiredSize = luaL_checkvec2(L, -2);
 	lua_pop(L, 2);
 }
 
@@ -2142,7 +2142,7 @@ int BeginChild(lua_State* L)
 {
 	STACK_CHECKER(L, "beginChild", 1);
 
-	ImVec2 size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+	ImVec2 size = luaL_optvec2(L, 3);
 	bool border = luaL_optboolean(L, 5, 0);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 6, 0);
 	bool result;
@@ -2278,9 +2278,9 @@ int SetNextWindowPos(lua_State* L)
 {
 	STACK_CHECKER(L, "setNextWindowPos", 0);
 
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 pos = luaL_checkvec2(L, 2);
 	ImGuiCond cond = luaL_optinteger(L, 4, 0);
-	ImVec2 pivot = ImVec2(luaL_optnumber(L, 5, 0), luaL_optnumber(L, 6, 0));
+	ImVec2 pivot = luaL_optvec2(L, 5);
 	
 	ImGui::SetNextWindowPos(pos, cond, pivot);
 	
@@ -2291,9 +2291,7 @@ int SetNextWindowSize(lua_State* L)
 {
 	STACK_CHECKER(L, "setNextWindowSize", 0);
 
-	double w = luaL_checknumber(L, 2);
-	double h = luaL_checknumber(L, 3);
-	const ImVec2& size = ImVec2(w, h);
+	ImVec2 size = luaL_checkvec2(L, 2);
 	ImGuiCond cond = luaL_optinteger(L, 4, 0);
 	
 	ImGui::SetNextWindowSize(size, cond);
@@ -2304,8 +2302,8 @@ int SetNextWindowSize(lua_State* L)
 int SetNextWindowSizeConstraints(lua_State* L)
 {
 	GidImGui* imgui = getImgui(L);
-	ImVec2 size_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 size_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 size_min = luaL_checkvec2(L, 2);
+	ImVec2 size_max = luaL_checkvec2(L, 4);
 	
 	if (lua_type(L, 6) == LUA_TFUNCTION)
 	{
@@ -2325,9 +2323,7 @@ int SetNextWindowContentSize(lua_State* L)
 {
 	STACK_CHECKER(L, "setNextWindowContentSize", 0);
 
-	double w = luaL_checknumber(L, 2);
-	double h = luaL_checknumber(L, 3);
-	const ImVec2& size = ImVec2(w, h);
+	const ImVec2 size = luaL_checkvec2(L, 2);
 	
 	ImGui::SetNextWindowContentSize(size);
 	
@@ -2369,18 +2365,14 @@ int SetWindowPos(lua_State* L)
 	if (lua_type(L, 2) == LUA_TSTRING)
 	{
 		const char* name = luaL_checkstring(L, 2);
-		double x = luaL_checknumber(L, 3);
-		double y = luaL_checknumber(L, 4);
-		const ImVec2& pos = ImVec2(x, y);
+		const ImVec2 pos = luaL_checkvec2(L, 3);
 		ImGuiCond cond = luaL_optinteger(L, 5, 0);
 		
 		ImGui::SetWindowPos(name, pos, cond);
 	}
 	else
 	{
-		double x = luaL_checknumber(L, 2);
-		double y = luaL_checknumber(L, 3);
-		const ImVec2& pos = ImVec2(x, y);
+		const ImVec2 pos = luaL_checkvec2(L, 2);
 		ImGuiCond cond = luaL_optinteger(L, 4, 0);
 		
 		ImGui::SetWindowPos(pos, cond);
@@ -2396,18 +2388,14 @@ int SetWindowSize(lua_State* L)
 	if (lua_type(L, 2) == LUA_TSTRING)
 	{
 		const char* name = luaL_checkstring(L, 2);
-		double w = luaL_checknumber(L, 3);
-		double h = luaL_checknumber(L, 4);
-		const ImVec2& size = ImVec2(w, h);
+		const ImVec2 size = luaL_checkvec2(L, 3);
 		ImGuiCond cond = luaL_optinteger(L, 5, 0);
 		
 		ImGui::SetWindowSize(name, size, cond);
 	}
 	else
 	{
-		double w = luaL_checknumber(L, 2);
-		double h = luaL_checknumber(L, 3);
-		const ImVec2& size = ImVec2(w, h);
+		const ImVec2 size = luaL_checkvec2(L, 2);
 		ImGuiCond cond = luaL_optinteger(L, 4, 0);
 		
 		ImGui::SetWindowSize(size, cond);
@@ -2899,7 +2887,7 @@ int SetCursorPos(lua_State* L)
 {
 	STACK_CHECKER(L, "setCursorPos", 0);
 
-	ImVec2 local_pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 local_pos = luaL_checkvec2(L, 2);
 	ImGui::SetCursorPos(local_pos);
 	return 0;
 }
@@ -2946,7 +2934,7 @@ int SetCursorScreenPos(lua_State* L)
 {
 	STACK_CHECKER(L, "setCursorScreenPos", 0);
 
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 pos = luaL_checkvec2(L, 2);
 	ImGui::SetCursorScreenPos(pos);
 	return 0;
 }
@@ -3133,7 +3121,7 @@ int Button(lua_State* L)
 	STACK_CHECKER(L, "button", 1);
 
 	const char* label = luaL_checkstring(L, 2);
-	const ImVec2& size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+	const ImVec2 size = luaL_optvec2(L, 3);
 	lua_pushboolean(L, ImGui::Button(label, size));
 	return 1;
 }
@@ -3152,7 +3140,7 @@ int InvisibleButton(lua_State* L)
 	STACK_CHECKER(L, "invisibleButton", 1);
 
 	const char* str_id = luaL_checkstring(L, 2);
-	const ImVec2& size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+	const ImVec2 size = luaL_optvec2(L, 3);
 	lua_pushboolean(L, ImGui::InvisibleButton(str_id, size));
 	return 1;
 }
@@ -3172,9 +3160,9 @@ int Image(lua_State* L)
 	STACK_CHECKER(L, "image", 0);
 
 	GTextureData data(L, 2);
-	const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 5, 0xffffff), luaL_optnumber(L, 6, 1.0f));
-	const ImVec4& border = GColor::toVec4(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 0.0f));
+	const ImVec2 size = luaL_checkvec2(L, 3);
+	const ImVec4 tint = GColor::toVec4opt(L, 5);
+	const ImVec4 border = GColor::toVec4opt(L, 7, 0xffffff, 0.0f);
 	
 	setupUVs(L, data, 9);
 	
@@ -3187,10 +3175,10 @@ int ImageButton(lua_State* L)
 	STACK_CHECKER(L, "imageButton", 1);
 
 	GTextureData data(L, 2);
-	const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	const ImVec2 size = luaL_checkvec2(L, 3);
 	int frame_padding = luaL_optinteger(L, 5, -1);
-	const ImVec4& tint = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
-	const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 8, 0xffffff), luaL_optnumber(L, 9, 0.0f));
+	const ImVec4 tint = GColor::toVec4opt(L, 6);
+	const ImVec4 bg_col = GColor::toVec4opt(L, 8, 0xffffff, 0.0f);
 	
 	setupUVs(L, data, 10);
 	
@@ -3203,13 +3191,13 @@ int ScaledImage(lua_State* L)
 	STACK_CHECKER(L, "scaledImage", 0);
 
 	GTextureData data(L, 2);
-	const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	const ImVec2 size = luaL_checkvec2(L, 3);
 	ImGuiImageScaleMode fit_mode = luaL_optinteger(L, 5, ImGuiImageScaleMode_LetterBox);
 	bool keep_size = lua_toboolean(L, 6);
-	const ImVec2& anchor = ImVec2(luaL_optnumber(L, 7, 0.5f), luaL_optnumber(L, 8, 0.5f));
-	const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 9, 0xffffff), luaL_optnumber(L, 10, 1.0f));
-	const ImVec4& border_col = GColor::toVec4(luaL_optinteger(L, 11, 0), luaL_optnumber(L, 12, 0.0f));
-	const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 13, 0), luaL_optnumber(L, 14, 0.0f));
+	const ImVec2 anchor = luaL_optvec2(L, 7, 0.5f, 0.5f);
+	const ImVec4 tint_col = GColor::toVec4opt(L, 9);
+	const ImVec4 border_col = GColor::toVec4opt(L, 11, 0, 0.0f);
+	const ImVec4 bg_col = GColor::toVec4opt(L, 13, 0, 0.0f);
 	
 	setupUVs(L, data, 15);
 	
@@ -3223,15 +3211,15 @@ int ScaledImageButton(lua_State* L)
 	STACK_CHECKER(L, "scaledImageButton", 1);
 
 	GTextureData data(L, 2);
-	const ImVec2& size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	const ImVec2 size = luaL_checkvec2(L, 3);
 	int fit_mode = luaL_optinteger(L, 5, 0);
 	bool keep_size = lua_toboolean(L, 6);
 	int flags = luaL_optinteger(L, 7, 0);
-	const ImVec2& anchor = ImVec2(luaL_optnumber(L, 8, 0.5f), luaL_optnumber(L, 9, 0.5f));
-	const ImVec2& clip_offset = ImVec2(luaL_optnumber(L, 10, 0.0f), luaL_optnumber(L, 11, 0.0f));
-	const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 12, 0xffffff), luaL_optnumber(L, 13, 1.0f));
-	const ImVec4& border_col = GColor::toVec4(luaL_optinteger(L, 14, 0), luaL_optnumber(L, 15, 0.0f));
-	const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 16, 0), luaL_optnumber(L, 17, 0.0f));
+	const ImVec2 anchor = luaL_optvec2(L, 8, 0.5f, 0.5f);
+	const ImVec2 clip_offset = luaL_optvec2(L, 10);
+	const ImVec4 tint_col = GColor::toVec4opt(L, 12);
+	const ImVec4 border_col = GColor::toVec4opt(L, 14, 0, 0.0f);
+	const ImVec4 bg_col = GColor::toVec4opt(L, 16, 0, 0.0f);
 	
 	setupUVs(L, data, 18);
 	
@@ -3245,17 +3233,17 @@ int ScaledImageButtonWithText(lua_State* L)
 
 	GTextureData data(L, 2);
 	const char* label = luaL_checkstring(L, 3);
-	const ImVec2& size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	const ImVec2& button_size = ImVec2(luaL_optnumber(L, 6, 0.0f), luaL_optnumber(L, 7, 0.0f));
+	const ImVec2 size = luaL_checkvec2(L, 4);
+	const ImVec2 button_size = luaL_optvec2(L, 6);
 	ImGuiButtonFlags flags = luaL_optinteger(L, 8, 0);
 	ImGuiImageScaleMode fit_mode = luaL_optinteger(L, 9, 0);
 	bool keep_size = lua_toboolean(L, 10);
-	const ImVec2& anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+	const ImVec2 anchor = luaL_optvec2(L, 11, 0.5f, 0.5f);
 	int image_side = luaL_optinteger(L, 13, ImGuiDir_Left);
-	const ImVec2& clip_offset = ImVec2(luaL_optnumber(L, 14, 0.0f), luaL_optnumber(L, 15, 0.0f));
-	const ImVec4& tint_col = GColor::toVec4(luaL_optinteger(L, 16, 0xffffff), luaL_optnumber(L, 17, 1.0f));
-	const ImVec4& boreder_col = GColor::toVec4(luaL_optinteger(L, 18, 0), luaL_optnumber(L, 19, 0.0f));
-	const ImVec4& bg_col = GColor::toVec4(luaL_optinteger(L, 20, 0), luaL_optnumber(L, 21, 0.0f));
+	const ImVec2 clip_offset = luaL_optvec2(L, 14);
+	const ImVec4 tint_col = GColor::toVec4opt(L, 12);
+	const ImVec4 boreder_col = GColor::toVec4opt(L, 18, 0, 0.0f);
+	const ImVec4 bg_col = GColor::toVec4opt(L, 20, 0, 0.0f);
 	
 	setupUVs(L, data, 22);
 	
@@ -3317,7 +3305,7 @@ int ProgressBar(lua_State* L)
 	STACK_CHECKER(L, "progressBar", 0);
 
 	double fraction = luaL_checknumber(L, 2);
-	ImVec2 size = ImVec2(luaL_optnumber(L, 3, -1.0f), luaL_optnumber(L, 4, 0.0f));
+	ImVec2 size = luaL_optvec2(L, 3, -1.0f, 0.0f);
 	const char* overlay = luaL_optstring(L, 5, "");
 	ImGui::ProgressBar(fraction, size, overlay);
 	return  0;
@@ -3949,7 +3937,7 @@ int VSliderFloat(lua_State* L)
 	STACK_CHECKER(L, "vSliderFloat", 2);
 
 	const char* label = luaL_checkstring(L, 2);
-	const ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	const ImVec2 size = luaL_checkvec2(L, 3);
 	float v = luaL_checknumber(L, 5);
 	float v_min = luaL_checknumber(L, 6);
 	float v_max = luaL_checknumber(L, 7);
@@ -3968,7 +3956,7 @@ int VSliderInt(lua_State* L)
 	STACK_CHECKER(L, "vSliderInt", 2);
 
 	const char* label = luaL_checkstring(L, 2);
-	const ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	const ImVec2 size = luaL_checkvec2(L, 3);
 	int v = luaL_checkinteger(L, 5);
 	int v_min = luaL_checkinteger(L, 6);
 	int v_max = luaL_checkinteger(L, 7);
@@ -4245,7 +4233,7 @@ int VFilledSliderFloat(lua_State* L)
 
 	const char* label = luaL_checkstring(L, 2);
 	bool mirror = lua_toboolean(L, 3) > 0;
-	const ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	const ImVec2 size = luaL_checkvec2(L, 4);
 	float v = luaL_checknumber(L, 6);
 	float v_min = luaL_checknumber(L, 7);
 	float v_max = luaL_checknumber(L, 8);
@@ -4265,7 +4253,7 @@ int VFilledSliderInt(lua_State* L)
 
 	const char* label = luaL_checkstring(L, 2);
 	bool mirror = lua_toboolean(L, 3) > 0;
-	const ImVec2 size = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	const ImVec2 size = luaL_checkvec2(L, 4);
 	int v = luaL_checkinteger(L, 6);
 	int v_min = luaL_checkinteger(L, 7);
 	int v_max = luaL_checkinteger(L, 8);
@@ -4317,7 +4305,7 @@ int InputTextMultiline(lua_State* L)
 	const char* label = luaL_checkstring(L, 2);
 	const char* text = luaL_checkstring(L, 3);
 	int buffer_size = luaL_checkinteger(L, 4);
-	ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
+	ImVec2 size = luaL_optvec2(L, 5);
 	ImGuiInputTextFlags flags = luaL_optinteger(L, 7, 0);
 	char* buffer = new char[buffer_size];
 	sprintf(buffer, "%s", text);
@@ -4650,7 +4638,7 @@ int ColorPicker4(lua_State* L)
 	const char* label = luaL_checkstring(L, 2);
 	ImVec4 col = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
 	ImGuiColorEditFlags flags = luaL_optinteger(L, 5, 0);
-	ImVec4 refCol = GColor::toVec4(luaL_optinteger(L, 6, 0xffffff), luaL_optnumber(L, 7, 1.0f));
+	ImVec4 refCol = GColor::toVec4opt(L, 12);
 	
 	bool result = ImGui::ColorPicker4(label, (float*)&col, flags, (float*)&refCol);
 	
@@ -4670,7 +4658,7 @@ int ColorButton(lua_State* L)
 
 	const char* desc_id = luaL_checkstring(L, 2);
 	ImVec4 col = GColor::toVec4(luaL_checkinteger(L, 3), luaL_optnumber(L, 4, 1.0f));
-	ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0), luaL_optnumber(L, 6, 0));
+	ImVec2 size = luaL_optvec2(L, 5);
 	ImGuiColorEditFlags flags = luaL_optinteger(L, 7, 0);
 	
 	lua_pushboolean(L, ImGui::ColorButton(desc_id, col, flags, size));
@@ -4793,7 +4781,7 @@ int Selectable(lua_State* L)
 	const char* label = luaL_checkstring(L, 2);
 	bool selected = lua_toboolean(L, 3) > 0;
 	ImGuiSelectableFlags flags = luaL_optinteger(L, 4, 0);
-	ImVec2 size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
+	ImVec2 size = luaL_optvec2(L, 5);
 	
 	bool result = ImGui::Selectable(label, &selected, flags, size);
 
@@ -4843,7 +4831,7 @@ int BeginListBox(lua_State* L)
 	STACK_CHECKER(L, "listBoxHeader", 1);
 
 	const char* label = luaL_checkstring(L, 2);
-	ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	ImVec2 size = luaL_checkvec2(L, 3);
 	lua_pushboolean(L, ImGui::BeginListBox(label, size));
 	return 1;
 }
@@ -4875,7 +4863,7 @@ int PlotLines(lua_State* L)
 	const char* overlay_text = luaL_optstring(L, 5, NULL);
 	float scale_min = luaL_optnumber(L, 6, FLT_MAX);
 	float scale_max = luaL_optnumber(L, 7, FLT_MAX);
-	ImVec2 graph_size = ImVec2(luaL_optnumber(L, 8, 0), luaL_optnumber(L, 9, 0));
+	ImVec2 graph_size = luaL_optvec2(L, 8);
 	int stride = sizeof(float);
 	
 	ImGui::PlotLines(label, values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
@@ -4896,7 +4884,7 @@ int PlotHistogram(lua_State* L)
 	const char* overlay_text = luaL_optstring(L, 5, NULL);
 	float scale_min = luaL_optnumber(L, 6, FLT_MAX);
 	float scale_max = luaL_optnumber(L, 7, FLT_MAX);
-	ImVec2 graph_size = ImVec2(luaL_optnumber(L, 8, 0), luaL_optnumber(L, 9, 0));
+	ImVec2 graph_size = luaL_optvec2(L, 8);
 	int stride = sizeof(float);
 	
 	ImGui::PlotHistogram(label, values, len, values_offset, overlay_text, scale_min, scale_max, graph_size, stride);
@@ -5225,7 +5213,7 @@ int BeginTable(lua_State* L)
 	const char* str_id = luaL_checkstring(L, 2);
 	int column = luaL_checkinteger(L, 3);
 	ImGuiTableFlags flags = luaL_optinteger(L, 4, 0);
-	ImVec2 outer_size = ImVec2(luaL_optnumber(L, 5, 0.0f), luaL_optnumber(L, 6, 0.0f));
+	ImVec2 outer_size = luaL_optvec2(L, 5);
 	float inner_width = luaL_optnumber(L, 7, 0.0f);
 	bool flag = ImGui::BeginTable(str_id, column, flags, outer_size, inner_width);
 	lua_pushboolean(L, flag);
@@ -6073,7 +6061,7 @@ int DockSpace(lua_State* L)
 	STACK_CHECKER(L, "dockSpace", 0);
 
 	ImGuiID id = checkID(L);
-	ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	ImVec2 size = luaL_checkvec2(L, 3);
 	ImGuiDockNodeFlags flags = luaL_optinteger(L, 5, 0);
 	ImGui::DockSpace(id, size, flags);
 	return 0;
@@ -6146,7 +6134,7 @@ int DockBuilderSetNodePos(lua_State* L)
 	STACK_CHECKER(L, "dockBuilderSetNodePos", 0);
 
 	ImGuiID node_id = checkID(L);
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	ImVec2 pos = luaL_checkvec2(L, 3);
 	ImGui::DockBuilderSetNodePos((ImGuiID)node_id, pos);
 	return 0;
 }
@@ -6156,7 +6144,7 @@ int DockBuilderSetNodeSize(lua_State* L)
 	STACK_CHECKER(L, "dockBuilderSetNodeSize", 0);
 
 	ImGuiID node_id = checkID(L);
-	ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	ImVec2 size = luaL_checkvec2(L, 3);
 	ImGui::DockBuilderSetNodeSize((ImGuiID)node_id, size);
 	return 0;
 }
@@ -7488,8 +7476,8 @@ int PushClipRect(lua_State* L)
 {
 	STACK_CHECKER(L, "pushClipRect", 0);
 
-	const ImVec2 clip_rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	const ImVec2 clip_rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	const ImVec2 clip_rect_min = luaL_checkvec2(L, 2);
+	const ImVec2 clip_rect_max = luaL_checkvec2(L, 4);
 	bool intersect_with_current_clip_rect = lua_toboolean(L, 6);
 	ImGui::PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 	return 0;
@@ -7686,10 +7674,10 @@ int IsRectVisible(lua_State* L)
 {
 	STACK_CHECKER(L, "isRectVisible", 1);
 
-	ImVec2 size = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 size = luaL_checkvec2(L, 2);
 	if (lua_gettop(L) > 3)
 	{
-		ImVec2 rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+		ImVec2 rect_max = luaL_checkvec2(L, 4);
 		lua_pushboolean(L, ImGui::IsRectVisible(size, rect_max));
 	}
 	else
@@ -7741,7 +7729,7 @@ int BeginChildFrame(lua_State* L)
 
 	
 	ImGuiID id = checkID(L);
-	ImVec2 size = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	ImVec2 size = luaL_checkvec2(L, 3);
 	ImGuiWindowFlags flags = luaL_optinteger(L, 5, 0);
 	
 	lua_pushboolean(L, ImGui::BeginChildFrame(id, size, flags));
@@ -7899,8 +7887,8 @@ int IsMouseHoveringRect(lua_State* L)
 {
 	STACK_CHECKER(L, "isMouseHoveringRect", 1);
 
-	ImVec2 r_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 r_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 r_min = luaL_checkvec2(L, 2);
+	ImVec2 r_max = luaL_checkvec2(L, 4);
 	bool clip = luaL_optboolean(L, 6, 1);
 	lua_pushboolean(L, ImGui::IsMouseHoveringRect(r_min, r_max, clip));
 	return 1;
@@ -8717,7 +8705,7 @@ int Style_SetWindowPadding(lua_State* L)
 	STACK_CHECKER(L, "setWindowPadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.WindowPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.WindowPadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8736,7 +8724,7 @@ int Style_SetWindowMinSize(lua_State* L)
 	STACK_CHECKER(L, "setWindowMinSize", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.WindowMinSize = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.WindowMinSize = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8755,7 +8743,7 @@ int Style_SetWindowTitleAlign(lua_State* L)
 	STACK_CHECKER(L, "setWindowTitleAlign", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.WindowTitleAlign = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.WindowTitleAlign = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8774,7 +8762,7 @@ int Style_SetFramePadding(lua_State* L)
 	STACK_CHECKER(L, "setFramePadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.FramePadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.FramePadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8793,7 +8781,7 @@ int Style_SetCellPadding(lua_State* L)
 	STACK_CHECKER(L, "setCellPadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.CellPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.CellPadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8830,7 +8818,7 @@ int Style_SetItemSpacing(lua_State* L)
 	STACK_CHECKER(L, "setItemSpacing", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.ItemSpacing = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.ItemSpacing = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8849,7 +8837,7 @@ int Style_SetItemInnerSpacing(lua_State* L)
 	STACK_CHECKER(L, "setItemInnerSpacing", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.ItemInnerSpacing = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.ItemInnerSpacing = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8868,7 +8856,7 @@ int Style_SetTouchExtraPadding(lua_State* L)
 	STACK_CHECKER(L, "setTouchExtraPadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.TouchExtraPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.TouchExtraPadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8887,7 +8875,7 @@ int Style_SetButtonTextAlign(lua_State* L)
 	STACK_CHECKER(L, "setButtonTextAlign", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.ButtonTextAlign = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.ButtonTextAlign = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8906,7 +8894,7 @@ int Style_SetSelectableTextAlign(lua_State* L)
 	STACK_CHECKER(L, "setSelectableTextAlign", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.SelectableTextAlign = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.SelectableTextAlign = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8925,7 +8913,7 @@ int Style_SetDisplayWindowPadding(lua_State* L)
 	STACK_CHECKER(L, "setDisplayWindowPadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.DisplayWindowPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.DisplayWindowPadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -8944,7 +8932,7 @@ int Style_SetDisplaySafeAreaPadding(lua_State* L)
 	STACK_CHECKER(L, "setDisplaySafeAreaPadding", 0);
 
 	ImGuiStyle &style = *getPtr<ImGuiStyle>(L, "ImGuiStyle");
-	style.DisplaySafeAreaPadding = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	style.DisplaySafeAreaPadding = luaL_checkvec2(L, 2);
 	return 0;
 }
 
@@ -9676,7 +9664,7 @@ int IO_SetDisplayFramebufferScale(lua_State* L)
 	STACK_CHECKER(L, "setDisplayFramebufferScale", 0);
 
 	ImGuiIO& io = *getPtr<ImGuiIO>(L, "ImGuiIO");
-	ImVec2 scale = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 scale = luaL_checkvec2(L, 2);
 	io.DisplayFramebufferScale = scale;
 	return 0;
 }
@@ -10430,7 +10418,7 @@ int FontAtlas_AddCustomRectFontGlyph(lua_State* L)
 	int width = luaL_checkinteger(L, 4);
 	int height = luaL_checkinteger(L, 5);
 	float advance_x = luaL_checkinteger(L, 6);
-	const ImVec2& offset = ImVec2(luaL_optnumber(L, 7, 0.0f), luaL_optnumber(L, 8, 0.0f));
+	const ImVec2 offset = luaL_optvec2(L, 7);
 
 	lua_pushinteger(L, atlas->AddCustomRectFontGlyph(font, id, width, height, advance_x, offset));
 	return 1;
@@ -10640,8 +10628,8 @@ int DrawList_PushClipRect(lua_State* L)
 {
 	STACK_CHECKER(L, "pushClipRect", 0);
 
-	ImVec2 clip_rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 clip_rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 clip_rect_min = luaL_checkvec2(L, 2);
+	ImVec2 clip_rect_max = luaL_checkvec2(L, 4);
 	bool intersect_with_current_clip_rect = luaL_optboolean(L, 6, 0) > 0;
 	
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -10712,8 +10700,8 @@ int DrawList_AddLine(lua_State* L)
 {
 	STACK_CHECKER(L, "addLine", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
 	double thickness = luaL_optnumber(L, 8, 1.0f);
 	
@@ -10726,8 +10714,8 @@ int DrawList_AddRect(lua_State* L)
 {
 	STACK_CHECKER(L, "addRect", 0);
 
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 p_min = luaL_checkvec2(L, 2);
+	ImVec2 p_max = luaL_checkvec2(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
 	double rounding = luaL_optnumber(L, 8, 0.0f);
 	ImDrawFlags rounding_corners = luaL_optinteger(L, 9, ImDrawFlags_RoundCornersAll);
@@ -10743,8 +10731,8 @@ int DrawList_AddRectFilled(lua_State* L)
 {
 	STACK_CHECKER(L, "addRectFilled", 0);
 
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 p_min = luaL_checkvec2(L, 2);
+	ImVec2 p_max = luaL_checkvec2(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
 	double rounding = luaL_optnumber(L, 8, 0.0f);
 	ImDrawFlags rounding_corners = luaL_optinteger(L, 9, ImDrawFlags_RoundCornersAll);
@@ -10759,8 +10747,8 @@ int DrawList_AddRectFilledMultiColor(lua_State* L)
 {
 	STACK_CHECKER(L, "addRectFilledMultiColor", 0);
 
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 p_min = luaL_checkvec2(L, 2);
+	ImVec2 p_max = luaL_checkvec2(L, 4);
 	ImU32 col_upr_left  = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
 	ImU32 col_upr_right = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
 	ImU32 col_bot_right = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
@@ -10776,10 +10764,10 @@ int DrawList_AddQuad(lua_State* L)
 {
 	STACK_CHECKER(L, "addQuad", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-	ImVec2 p4 = ImVec2(luaL_checknumber(L, 8), luaL_checknumber(L, 9));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
+	ImVec2 p4 = luaL_checkvec2(L, 8);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
 	double thickness = luaL_optnumber(L, 12, 1.0f);
 	
@@ -10793,10 +10781,10 @@ int DrawList_AddQuadFilled(lua_State* L)
 {
 	STACK_CHECKER(L, "addQuadFilled", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-	ImVec2 p4 = ImVec2(luaL_checknumber(L, 8), luaL_checknumber(L, 9));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
+	ImVec2 p4 = luaL_checkvec2(L, 8);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
 	
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -10809,9 +10797,9 @@ int DrawList_AddTriangle(lua_State* L)
 {
 	STACK_CHECKER(L, "addTriangle", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
 	double thickness = luaL_optnumber(L, 10, 1.0f);
 	
@@ -10825,9 +10813,9 @@ int DrawList_AddTriangleFilled(lua_State* L)
 {
 	STACK_CHECKER(L, "addTriangleFilled", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
 	
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -10840,7 +10828,7 @@ int DrawList_AddCircle(lua_State* L)
 {
 	STACK_CHECKER(L, "addCircle", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
 	int num_segments = luaL_optinteger(L, 7, 12);
@@ -10856,7 +10844,7 @@ int DrawList_AddCircleFilled(lua_State* L)
 {
 	STACK_CHECKER(L, "addCircleFilled", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
 	int num_segments = luaL_optinteger(L, 7, 12);
@@ -10871,7 +10859,7 @@ int DrawList_AddNgon(lua_State* L)
 {
 	STACK_CHECKER(L, "addNgon", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
 	int num_segments = luaL_optinteger(L, 7, 12);
@@ -10887,7 +10875,7 @@ int DrawList_AddNgonFilled(lua_State* L)
 {
 	STACK_CHECKER(L, "addNgonFilled", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 5), luaL_optnumber(L, 6, 1.0f));
 	int num_segments = luaL_optinteger(L, 7, 12);
@@ -10902,7 +10890,7 @@ int DrawList_AddText(lua_State* L)
 {
 	STACK_CHECKER(L, "addText", 0);
 
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 pos = luaL_checkvec2(L, 2);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 4), luaL_optnumber(L, 5, 1.0f));
 	const char* text = luaL_checkstring(L, 6);
 	
@@ -10919,14 +10907,14 @@ int DrawList_AddFontText(lua_State* L)
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	ImFont* font = getPtr<ImFont>(L, "ImFont", 2);
 	double font_size = luaL_checknumber(L, 3);
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 pos = luaL_checkvec2(L, 4);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 6), luaL_optnumber(L, 7, 1.0f));
 	const char* text = luaL_checkstring(L, 8);
 	double wrap_width = luaL_optnumber(L, 9, 0.0f);
 	ImVec4* cpu_fine_clip_rect = NULL;
 	if (lua_gettop(L) > 9)
 	{
-		ImVec4 rect = ImVec4(luaL_checknumber(L, 10), luaL_checknumber(L, 11), luaL_checknumber(L, 12), luaL_checknumber(L, 13));
+		ImVec4 rect = luaL_checkvec4(L, 10);
 		cpu_fine_clip_rect = &rect;
 	}
 	list->AddText(font, font_size, pos, col, text, NULL, wrap_width, cpu_fine_clip_rect);
@@ -11007,10 +10995,10 @@ int DrawList_AddBezierCubic(lua_State* L)
 {
 	STACK_CHECKER(L, "addBezierCubic", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-	ImVec2 p4 = ImVec2(luaL_checknumber(L, 8), luaL_checknumber(L, 9));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
+	ImVec2 p4 = luaL_checkvec2(L, 8);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 10), luaL_optnumber(L, 11, 1.0f));
 	double thickness = luaL_checknumber(L, 12);
 	int num_segments = luaL_optinteger(L, 13, 0);
@@ -11024,9 +11012,9 @@ int DrawList_AddBezierQuadratic(lua_State* L)
 {
 	STACK_CHECKER(L, "addBezierQuadratic", 0);
 
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+	ImVec2 p1 = luaL_checkvec2(L, 2);
+	ImVec2 p2 = luaL_checkvec2(L, 4);
+	ImVec2 p3 = luaL_checkvec2(L, 6);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 8), luaL_optnumber(L, 9, 1.0f));
 	double thickness = luaL_checknumber(L, 10);
 	int num_segments = luaL_optinteger(L, 11, 0);
@@ -11042,11 +11030,28 @@ int DrawList_AddImage(lua_State* L)
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	GTextureData data(L, 2);
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
 	ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
-	
+
 	list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
+	return 0;
+}
+
+
+int DrawList_AddImageUV(lua_State* L)
+{
+	STACK_CHECKER(L, "addImage", 0);
+
+	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
+	GTextureData data(L, 2);
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
+	ImVec2 uv0 = luaL_checkvec2(L, 7);
+	ImVec2 uv1 = luaL_checkvec2(L, 9);
+	ImU32 col = GColor::toU32(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 1.0f));
+
+	list->AddImage(data.texture, p_min, p_max, uv0, uv1, col);
 	return 0;
 }
 
@@ -11056,15 +11061,15 @@ int DrawList_AddImageQuad(lua_State* L)
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	GTextureData data(L, 2);
-	ImVec2 p1 = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 7), luaL_checknumber(L, 8));
-	ImVec2 p4 = ImVec2(luaL_checknumber(L, 9), luaL_checknumber(L, 10));
+	ImVec2 p1 = luaL_checkvec2(L, 3);
+	ImVec2 p2 = luaL_checkvec2(L, 5);
+	ImVec2 p3 = luaL_checkvec2(L, 7);
+	ImVec2 p4 = luaL_checkvec2(L, 9);
 	ImU32 col = GColor::toU32(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 1.0f));
-	ImVec2 uv1 = ImVec2(luaL_optnumber(L, 13, 0.0f), luaL_optnumber(L, 14, 0.0f));
-	ImVec2 uv2 = ImVec2(luaL_optnumber(L, 15, 1.0f), luaL_optnumber(L, 16, 0.0f));
-	ImVec2 uv3 = ImVec2(luaL_optnumber(L, 17, 1.0f), luaL_optnumber(L, 18, 1.0f));
-	ImVec2 uv4 = ImVec2(luaL_optnumber(L, 19, 0.0f), luaL_optnumber(L, 20, 1.0f));
+	ImVec2 uv1 = luaL_optvec2(L, 13, 0.0f, 0.0f);
+	ImVec2 uv2 = luaL_optvec2(L, 15, 1.0f, 0.0f);
+	ImVec2 uv3 = luaL_optvec2(L, 17, 1.0f, 1.0f);
+	ImVec2 uv4 = luaL_optvec2(L, 19, 0.0f, 1.0f);
 	
 	list->AddImageQuad(data.texture, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
 	return 0;
@@ -11076,12 +11081,29 @@ int DrawList_AddImageRounded(lua_State* L)
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	GTextureData data(L, 2);
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, 1.0f));
 	double rounding = luaL_checknumber(L, 9);
 	ImDrawFlags rounding_corners = luaL_optinteger(L, 10, ImDrawFlags_RoundCornersAll);
 	list->AddImageRounded(data.texture, p_min, p_max, data.uv0, data.uv1, col, rounding, rounding_corners);
+	return 0;
+}
+
+int DrawList_AddImageRoundedUV(lua_State* L)
+{
+	STACK_CHECKER(L, "addImageRounded", 0);
+
+	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
+	GTextureData data(L, 2);
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
+	ImVec2 uv0 = luaL_checkvec2(L, 7);
+	ImVec2 uv1 = luaL_checkvec2(L, 9);
+	ImU32 col = GColor::toU32(luaL_checkinteger(L, 11), luaL_optnumber(L, 12, 1.0f));
+	double rounding = luaL_checknumber(L, 13);
+	ImDrawFlags rounding_corners = luaL_optinteger(L, 14, ImDrawFlags_RoundCornersAll);
+	list->AddImageRounded(data.texture, p_min, p_max, uv0, uv1, col, rounding, rounding_corners);
 	return 0;
 }
 
@@ -11091,17 +11113,39 @@ int DrawList_AddScaledImage(lua_State* L)
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	GTextureData data(L, 2);
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
 	ImU32 col = GColor::toU32(luaL_optinteger(L, 7, 0xffffff), luaL_optnumber(L, 8, 1.0f));
-	ImVec2 anchor = ImVec2(luaL_optnumber(L, 9, 0.5f), luaL_optnumber(L, 10, 0.5f));
+	ImVec2 anchor = luaL_optvec2(L, 9, 0.5f, 0.5f);
 	int scale_mode = luaL_optinteger(L, 11, 0);
 	bool keep_size = lua_toboolean(L, 12);
-	
-	
+
+
 	ImRect bb(p_min, p_max);
 	ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
 	list->AddImage(data.texture, p_min, p_max, data.uv0, data.uv1, col);
+	return 0;
+}
+
+int DrawList_AddScaledImageUV(lua_State* L)
+{
+	STACK_CHECKER(L, "addScaledImage", 0);
+
+	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
+	GTextureData data(L, 2);
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
+	ImVec2 uv0 = luaL_checkvec2(L, 7);
+	ImVec2 uv1 = luaL_checkvec2(L, 9);
+	ImU32 col = GColor::toU32(luaL_optinteger(L, 11, 0xffffff), luaL_optnumber(L, 12, 1.0f));
+	ImVec2 anchor = luaL_optvec2(L, 13, 0.5f, 0.5f);
+	int scale_mode = luaL_optinteger(L, 15, 0);
+	bool keep_size = lua_toboolean(L, 16);
+
+
+	ImRect bb(p_min, p_max);
+	ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
+	list->AddImage(data.texture, p_min, p_max, uv0, uv1, col);
 	return 0;
 }
 
@@ -11111,15 +11155,45 @@ int DrawList_AddScaledImageRounded(lua_State* L)
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	GTextureData data(L, 2);
-	ImVec2 p_min = ImVec2(luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-	ImVec2 p_max = ImVec2(luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
 	ImU32 col = GColor::toU32(luaL_checkinteger(L, 7), luaL_optnumber(L, 8, 1.0f));
 	double rounding = luaL_checknumber(L, 9);
 	ImDrawFlags rounding_corners = luaL_optinteger(L, 10, ImDrawFlags_RoundCornersAll);
-	ImVec2 anchor = ImVec2(luaL_optnumber(L, 11, 0.5f), luaL_optnumber(L, 12, 0.5f));
+	ImVec2 anchor = luaL_optvec2(L, 11, 0.5f, 0.5f);
 	int scale_mode = luaL_optinteger(L, 13, 0);
 	bool keep_size = lua_toboolean(L, 14);
-	
+
+	ImRect bb(p_min, p_max);
+	ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
+	list->AddImageRounded(data.texture, bb.Min, bb.Max, data.uv0, data.uv1, col, rounding, rounding_corners);
+	return 0;
+}
+
+int DrawList_AddScaledImageRoundedUV(lua_State* L)
+{
+	STACK_CHECKER(L, "addScaledImageRounded", 0);
+
+	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
+	GTextureData data(L, 2);
+
+	if (lua_istable(L, 3))
+	{
+
+		return 0;
+	}
+
+	ImVec2 p_min = luaL_checkvec2(L, 3);
+	ImVec2 p_max = luaL_checkvec2(L, 5);
+	ImVec2 uv0 = luaL_checkvec2(L, 7);
+	ImVec2 uv1 = luaL_checkvec2(L, 9);
+	ImU32 col = GColor::toU32(luaL_checkinteger(L, 11), luaL_optnumber(L, 12, 1.0f));
+	double rounding = luaL_checknumber(L, 13);
+	ImDrawFlags rounding_corners = luaL_optinteger(L, 14, ImDrawFlags_RoundCornersAll);
+	ImVec2 anchor = luaL_optvec2(L, 15, 0.5f, 0.5f);
+	int scale_mode = luaL_optinteger(L, 17, 0);
+	bool keep_size = lua_toboolean(L, 18);
+
 	ImRect bb(p_min, p_max);
 	ImGui::FitImage(bb.Min, bb.Max, p_max - p_min, data.texture_size, anchor, scale_mode, keep_size);
 	list->AddImageRounded(data.texture, bb.Min, bb.Max, data.uv0, data.uv1, col, rounding, rounding_corners);
@@ -11141,7 +11215,7 @@ int DrawList_PathLineTo(lua_State* L)
 {
 	STACK_CHECKER(L, "pathLineTo", 0);
 
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 pos = luaL_checkvec2(L, 2);
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->PathLineTo(pos);
 	return 0;
@@ -11151,7 +11225,7 @@ int DrawList_PathLineToMergeDuplicate(lua_State* L)
 {
 	STACK_CHECKER(L, "pathLineToMergeDuplicate", 0);
 
-	ImVec2 pos = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 pos = luaL_checkvec2(L, 2);
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->PathLineToMergeDuplicate(pos);
 	return 0;
@@ -11184,7 +11258,7 @@ int DrawList_PathArcTo(lua_State* L)
 {
 	STACK_CHECKER(L, "pathArcTo", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	double a_min = luaL_checknumber(L, 5);
 	double a_max = luaL_checknumber(L, 6);
@@ -11199,7 +11273,7 @@ int DrawList_PathArcToFast(lua_State* L)
 {
 	STACK_CHECKER(L, "pathArcToFast", 0);
 
-	ImVec2 center = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
+	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	int a_min = luaL_checkinteger(L, 5);
 	int a_max = luaL_checkinteger(L, 6);
@@ -11213,9 +11287,9 @@ int DrawList_PathBezierCubicCurveTo(lua_State* L)
 {
 	STACK_CHECKER(L, "pathBezierCubicCurveTo", 0);
 
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
-	ImVec2 p4 = ImVec2(luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+	ImVec2 p2 = luaL_checkvec2(L, 2);
+	ImVec2 p3 = luaL_checkvec2(L, 4);
+	ImVec2 p4 = luaL_checkvec2(L, 6);
 	int num_segments = luaL_optinteger(L, 8, 0);
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->PathBezierCubicCurveTo(p2, p3, p4, num_segments);
@@ -11227,8 +11301,8 @@ int DrawList_PathBezierQuadraticCurveTo(lua_State* L)
 	STACK_CHECKER(L, "pathBezierQuadraticCurveTo", 0);
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
-	ImVec2 p2 = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 p3 = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 p2 = luaL_checkvec2(L, 2);
+	ImVec2 p3 = luaL_checkvec2(L, 4);
 	int num_segments = luaL_optinteger(L, 6, 0);
 	list->PathBezierQuadraticCurveTo(p2, p3, num_segments);
 	return 0;
@@ -11238,8 +11312,8 @@ int DrawList_PathRect(lua_State* L)
 {
 	STACK_CHECKER(L, "pathRect", 0);
 
-	ImVec2 rect_min = ImVec2(luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-	ImVec2 rect_max = ImVec2(luaL_checknumber(L, 4), luaL_checknumber(L, 5));
+	ImVec2 rect_min = luaL_checkvec2(L, 2);
+	ImVec2 rect_max = luaL_checkvec2(L, 4);
 	double rounding = luaL_optnumber(L, 6, 0.0f);
 	ImDrawFlags rounding_corners = luaL_optinteger(L, 7, ImDrawFlags_RoundCornersAll);
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -11804,7 +11878,7 @@ int TE_Render(lua_State* L)
 
 	TextEditor* editor = getPtr<TextEditor>(L, "ImGuiTextEditor");
 	const char* title = luaL_checkstring(L, 2);
-	ImVec2 size = ImVec2(luaL_optnumber(L, 3, 0.0f), luaL_optnumber(L, 4, 0.0f));
+	ImVec2 size = luaL_optvec2(L, 3);
 	bool border = luaL_optboolean(L, 5, 0);
 	editor->Render(title, size, border);
 	return 0;
