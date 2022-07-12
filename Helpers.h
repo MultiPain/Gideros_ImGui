@@ -1,6 +1,8 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#define BIND_IENUM(L, value, name) lua_pushinteger(L, value); lua_setfield(L, -2, name);
+#define BIND_FENUM(L, value, name) lua_pushnumber(L, value); lua_setfield(L, -2, name);
 
 #define LUA_ASSERT(EXP, MSG) if (!(EXP)) { lua_pushstring(L, MSG); lua_error(L); }
 #define LUA_ASSERTF(EXP, FMT, ...) if (!(EXP)) { lua_pushfstring(L, FMT, __VA_ARGS__); lua_error(L); }

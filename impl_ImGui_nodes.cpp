@@ -67,6 +67,7 @@ int ImNodes_impl::initNodes(lua_State* L)
 {
 
 	NodeEditor::EditorContext* ctx = NodeEditor::CreateEditor();
+	NodeEditor::SetCurrentEditor(ctx);
 	g_pushInstance(L, "ImNodeEditor", ctx);
 
 	return 1;
@@ -814,16 +815,461 @@ int ImNodes_impl::CanvasToScreen(lua_State* L)
 	return 2;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
+
+NodeEditor::Style& getStyle(lua_State* L, int idx = 1)
+{
+	return *getPtr<NodeEditor::Style>(L, "ImNodeStyle", idx);
+}
+
+int ImNodes_impl::ImNodesStyleSetNodePadding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.NodePadding = luaL_checkvec4(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetNodePadding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec4 value = style.NodePadding;
+	lua_pushvec4(L, value);
+	return 4;
+}
+
+int ImNodes_impl::ImNodesStyleSetNodeRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.NodeRounding = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetNodeRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.NodeRounding;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.NodeBorderWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.NodeBorderWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetHoveredNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.HoveredNodeBorderWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetHoveredNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.HoveredNodeBorderWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetSelectedNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.SelectedNodeBorderWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetSelectedNodeBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.SelectedNodeBorderWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinRounding = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.PinRounding;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinBorderWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.PinBorderWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetLinkStrength(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.LinkStrength = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetLinkStrength(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.LinkStrength;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetSourceDirection(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.SourceDirection = luaL_checkvec2(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetSourceDirection(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec2 value = style.SourceDirection;
+	lua_pushvec2(L, value);
+	return 2;
+}
+
+int ImNodes_impl::ImNodesStyleSetTargetDirection(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.TargetDirection = luaL_checkvec2(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetTargetDirection(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec2 value = style.TargetDirection;
+	lua_pushvec2(L, value);
+	return 2;
+}
+
+int ImNodes_impl::ImNodesStyleSetScrollDuration(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.ScrollDuration = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetScrollDuration(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.ScrollDuration;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetFlowMarkerDistance(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.FlowMarkerDistance = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetFlowMarkerDistance(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.FlowMarkerDistance;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetFlowSpeed(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.FlowSpeed = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetFlowSpeed(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.FlowSpeed;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetFlowDuration(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.FlowDuration = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetFlowDuration(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.FlowDuration;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPivotAlignment(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PivotAlignment = luaL_checkvec2(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPivotAlignment(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec2 value = style.PivotAlignment;
+	lua_pushvec2(L, value);
+	return 2;
+}
+
+int ImNodes_impl::ImNodesStyleSetPivotSize(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PivotSize = luaL_checkvec2(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPivotSize(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec2 value = style.PivotSize;
+	lua_pushvec2(L, value);
+	return 2;
+}
+
+int ImNodes_impl::ImNodesStyleSetPivotScale(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PivotScale = luaL_checkvec2(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPivotScale(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	ImVec2 value = style.PivotScale;
+	lua_pushvec2(L, value);
+	return 2;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinCorners(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinCorners = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinCorners(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	int value = style.PinCorners;
+	lua_pushinteger(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinRadius(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinRadius = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinRadius(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.PinRadius;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinArrowSize(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinArrowSize = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinArrowSize(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.PinArrowSize;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetPinArrowWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.PinArrowWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetPinArrowWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.PinArrowWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetGroupRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.GroupRounding = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetGroupRounding(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.GroupRounding;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetGroupBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.GroupBorderWidth = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetGroupBorderWidth(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	float value = style.GroupBorderWidth;
+	lua_pushnumber(L, value);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetColor(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	int idx = luaL_checkinteger(L, 2);
+	style.Colors[idx] = GColor::toVec4(L, 3);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetColor(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	int idx = luaL_checkinteger(L, 2);
+	GColor color = GColor::toHex(style.Colors[idx]);
+	lua_pushinteger(L, color.hex);
+	lua_pushnumber(L, color.alpha);
+	return 2;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
 int ImNodes_impl::nodes_loader(lua_State* L)
 {
 
 	const luaL_Reg nodesStyleFunctionsList[] = {
+		{"setNodePadding", ImNodesStyleSetNodePadding},
+		{"getNodePadding", ImNodesStyleGetNodePadding},
+
+		{"setNodeRounding", ImNodesStyleSetNodeRounding},
+		{"getNodeRounding", ImNodesStyleGetNodeRounding},
+
+		{"setNodeBorderWidth", ImNodesStyleSetNodeBorderWidth},
+		{"getNodeBorderWidth", ImNodesStyleGetNodeBorderWidth},
+
+		{"setHoveredNodeBorderWidth", ImNodesStyleSetHoveredNodeBorderWidth},
+		{"getHoveredNodeBorderWidth", ImNodesStyleGetHoveredNodeBorderWidth},
+
+		{"setSelectedNodeBorderWidth", ImNodesStyleSetSelectedNodeBorderWidth},
+		{"getSelectedNodeBorderWidth", ImNodesStyleGetSelectedNodeBorderWidth},
+
+		{"setPinRounding", ImNodesStyleSetPinRounding},
+		{"getPinRounding", ImNodesStyleGetPinRounding},
+
+		{"setPinBorderWidth", ImNodesStyleSetPinBorderWidth},
+		{"getPinBorderWidth", ImNodesStyleGetPinBorderWidth},
+
+		{"setLinkStrength", ImNodesStyleSetLinkStrength},
+		{"getLinkStrength", ImNodesStyleGetLinkStrength},
+
+		{"setSourceDirection", ImNodesStyleSetSourceDirection},
+		{"getSourceDirection", ImNodesStyleGetSourceDirection},
+
+		{"setTargetDirection", ImNodesStyleSetTargetDirection},
+		{"getTargetDirection", ImNodesStyleGetTargetDirection},
+
+		{"setScrollDuration", ImNodesStyleSetScrollDuration},
+		{"getScrollDuration", ImNodesStyleGetScrollDuration},
+
+		{"setFlowMarkerDistance", ImNodesStyleSetFlowMarkerDistance},
+		{"getFlowMarkerDistance", ImNodesStyleGetFlowMarkerDistance},
+
+		{"setFlowSpeed", ImNodesStyleSetFlowSpeed},
+		{"getFlowSpeed", ImNodesStyleGetFlowSpeed},
+
+		{"setFlowDuration", ImNodesStyleSetFlowDuration},
+		{"getFlowDuration", ImNodesStyleGetFlowDuration},
+
+		{"setPivotAlignment", ImNodesStyleSetPivotAlignment},
+		{"getPivotAlignment", ImNodesStyleGetPivotAlignment},
+
+		{"setPivotSize", ImNodesStyleSetPivotSize},
+		{"getPivotSize", ImNodesStyleGetPivotSize},
+
+		{"setPivotScale", ImNodesStyleSetPivotScale},
+		{"getPivotScale", ImNodesStyleGetPivotScale},
+
+		{"setPinCorners", ImNodesStyleSetPinCorners},
+		{"getPinCorners", ImNodesStyleGetPinCorners},
+
+		{"setPinRadius", ImNodesStyleSetPinRadius},
+		{"getPinRadius", ImNodesStyleGetPinRadius},
+
+		{"setPinArrowSize", ImNodesStyleSetPinArrowSize},
+		{"getPinArrowSize", ImNodesStyleGetPinArrowSize},
+
+		{"setPinArrowWidth", ImNodesStyleSetPinArrowWidth},
+		{"getPinArrowWidth", ImNodesStyleGetPinArrowWidth},
+
+		{"setGroupRounding", ImNodesStyleSetGroupRounding},
+		{"getGroupRounding", ImNodesStyleGetGroupRounding},
+
+		{"setGroupBorderWidth", ImNodesStyleSetGroupBorderWidth},
+		{"getGroupBorderWidth", ImNodesStyleGetGroupBorderWidth},
+
+		{"setColor", ImNodesStyleSetColor},
+		{"getColor", ImNodesStyleGetColor},
+
 		{NULL, NULL}
 	};
 
 	g_createClass(L, "ImNodeStyle", NULL, NULL, NULL, nodesStyleFunctionsList);
 
 	const luaL_Reg nodesFunctionsList[] = {
+		{"getStyle", GetStyle},
 		{"getStyleColorName", GetStyleColorName},
 
 		{"pushStyleColor", PushStyleColor},

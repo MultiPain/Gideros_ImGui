@@ -1,3 +1,6 @@
+#ifndef IMGUI_USER_FILE
+#define IMGUI_USER_FILE
+
 #include "imgui_src/imgui.h"
 
 typedef int ImGuiImageScaleMode;
@@ -69,3 +72,5 @@ namespace ImGui
     IMGUI_API bool VFilledSliderInt(const char* label, bool mirror, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
     IMGUI_API bool VFilledSliderScalar(const char* label, bool mirror, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format = NULL, ImGuiSliderFlags flags = 0);
 }
+
+#endif

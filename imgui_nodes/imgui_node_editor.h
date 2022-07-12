@@ -156,7 +156,7 @@ struct Style
     ImVec2  PivotAlignment;
     ImVec2  PivotSize;
     ImVec2  PivotScale;
-    float   PinCorners;
+	float   PinCorners;
     float   PinRadius;
     float   PinArrowSize;
     float   PinArrowWidth;

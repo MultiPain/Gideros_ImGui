@@ -547,8 +547,8 @@ void ed::Pin::Draw(ImDrawList* drawList, DrawFlags flags)
         if (m_BorderWidth > 0.0f)
         {
             FringeScaleScope fringe(1.0f);
-            drawList->AddRect(m_Bounds.Min, m_Bounds.Max,
-                m_BorderColor, m_Rounding, m_Corners, m_BorderWidth);
+			drawList->AddRect(m_Bounds.Min, m_Bounds.Max,
+				m_BorderColor, m_Rounding, m_Corners, m_BorderWidth);
         }
 
         if (!Editor->IsSelected(m_Node))
@@ -667,8 +667,8 @@ void ed::Node::DrawBorder(ImDrawList* drawList, ImU32 color, float thickness)
 {
     if (thickness > 0.0f)
     {
-        drawList->AddRect(m_Bounds.Min, m_Bounds.Max,
-            color, m_Rounding, 15, thickness);
+		drawList->AddRect(m_Bounds.Min, m_Bounds.Max,
+			color, m_Rounding, 15, thickness);
     }
 }
 
@@ -3706,9 +3706,9 @@ void ed::SelectAction::Draw(ImDrawList* drawList)
     auto min  = ImVec2(std::min(m_StartPoint.x, m_EndPoint.x), std::min(m_StartPoint.y, m_EndPoint.y));
     auto max  = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
 
-    drawList->AddRectFilled(min, max, fillColor);
+	drawList->AddRectFilled(min, max, fillColor);
     FringeScaleScope fringe(1.0f);
-    drawList->AddRect(min, max, outlineColor);
+	drawList->AddRect(min, max, outlineColor);
 }
 
 
@@ -5184,7 +5184,7 @@ float* ed::Style::GetVarFloatAddr(StyleVar idx)
         case StyleVar_FlowMarkerDistance:       return &FlowMarkerDistance;
         case StyleVar_FlowSpeed:                return &FlowSpeed;
         case StyleVar_FlowDuration:             return &FlowDuration;
-        case StyleVar_PinCorners:               return &PinCorners;
+		case StyleVar_PinCorners:               return &PinCorners;
         case StyleVar_PinRadius:                return &PinRadius;
         case StyleVar_PinArrowSize:             return &PinArrowSize;
         case StyleVar_PinArrowWidth:            return &PinArrowWidth;
