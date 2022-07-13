@@ -12482,6 +12482,81 @@ int EM_BSize(lua_State* L)
 	return 1;
 }
 
+////////////////////////////////////////////////////////////////////
+
+int LyaoutBeginHorizontal(lua_State* L)
+{	ImVec2 size = luaL_optvec2(L, 3);
+	float align = luaL_optnumber(L, 5, -1.0f);
+
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		ImGuiID id = checkID(L, 2);
+		int uid = (int)id;
+		ImGui::BeginHorizontal(uid, size, align);
+	}
+	else
+	{
+		const char* str_id = luaL_checkstring(L, 2);
+		ImGui::BeginHorizontal(str_id, size, align);
+	}
+	return 0;
+}
+
+int LyaoutEndHorizontal(lua_State* L)
+{
+	ImGui::EndHorizontal();
+	return 0;
+}
+
+int LyaoutBeginVertical(lua_State* L)
+{
+	ImVec2 size = luaL_optvec2(L, 3);
+	float align = luaL_optnumber(L, 5, -1.0f);
+
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		ImGuiID id = checkID(L, 2);
+		int uid = (int)id;
+		ImGui::BeginVertical(uid, size, align);
+	}
+	else
+	{
+		const char* str_id = luaL_checkstring(L, 2);
+		ImGui::BeginVertical(str_id, size, align);
+	}
+
+	return 0;
+}
+
+int LyaoutEndVertical(lua_State* L)
+{
+	ImGui::EndVertical();
+	return 0;
+}
+
+int LyaoutSpring(lua_State* L)
+{
+	float weight = luaL_optnumber(L, 2, 1.0f);
+	float spacing = luaL_optnumber(L, 3, -1.0f);
+	ImGui::Spring(weight, spacing);
+	return 0;
+}
+
+int LyaoutSuspendLayout(lua_State* L)
+{
+	ImGui::SuspendLayout();
+	return 0;
+}
+
+int LyaoutResumeLayout(lua_State* L)
+{
+	ImGui::ResumeLayout();
+	return 0;
+}
+
+
+////////////////////////////////////////////////////////////////////
+
 static void HelpMarker(const char* desc)
 {
 	ImGui::TextDisabled("(?)");
@@ -13439,6 +13514,14 @@ int loader(lua_State* L)
 
 	const luaL_Reg imguiFunctionList[] =
 	{
+		{"beginHorizontal", LyaoutBeginHorizontal},
+		{"endHorizontal", LyaoutEndHorizontal},
+		{"beginVertical", LyaoutBeginVertical},
+		{"endVertical", LyaoutEndVertical},
+		{"spring", LyaoutSpring},
+		{"suspendLayout", LyaoutSuspendLayout},
+		{"resumeLayout", LyaoutResumeLayout},
+
 		{"beginDisabled", BeginDisabled},
 		{"endDisabled", EndDisabled},
 
