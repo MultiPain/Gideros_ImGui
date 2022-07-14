@@ -178,19 +178,22 @@ inline void destroyObject(void* p)
 }
 
 template<typename T>
-int LuaDragScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat)
+int LuaDragScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat, int argsOffset = 0)
 {
-	int stackOffset = lua_type(L, 3) == LUA_TVECTOR ? 1 : n;
-	const char* label = luaL_checkstring(L, 2);
+	int valueIndex = 3 + argsOffset;
+	int stackOffset = lua_type(L, valueIndex) == LUA_TVECTOR ? 1 : n;
+	stackOffset += argsOffset;
+
+	const char* label = luaL_checkstring(L, 2 + argsOffset);
 	T v_speed = luaL_optnumber(L, 3 + stackOffset, 1.0f);
 	T v_min = luaL_optnumber(L, 4 + stackOffset, 0.0f);
 	T v_max = luaL_optnumber(L, 5 + stackOffset, 0.0f);
 	const char* format = luaL_optstring(L, 6 + stackOffset, defFormat);
 	ImGuiSliderFlags sliderFlags = luaL_optinteger(L, 7 + stackOffset, 0);
 
-	if (lua_type(L, 3) == LUA_TVECTOR)
+	if (lua_type(L, valueIndex) == LUA_TVECTOR && n <= LUA_VECTOR_SIZE)
 	{
-		const float* fvec = lua_tovector(L, 3);
+		const float* fvec = lua_tovector(L, valueIndex);
 		T vec[LUA_VECTOR_SIZE];
 		for (int i = 0; i < LUA_VECTOR_SIZE; i++)
 		{
@@ -211,7 +214,7 @@ int LuaDragScalarN(lua_State* L, ImGuiDataType data_type, const int n, const cha
 		T vec[n];
 		for (int i = 0; i < n; i++)
 		{
-			vec[i] = luaL_checknumber(L, 3 + i);
+			vec[i] = luaL_checknumber(L, valueIndex + i);
 		}
 
 		bool result = ImGui::DragScalarN(label, data_type, vec, n, v_speed, &v_min, &v_max, format, sliderFlags);
@@ -227,19 +230,21 @@ int LuaDragScalarN(lua_State* L, ImGuiDataType data_type, const int n, const cha
 }
 
 template<typename T>
-int LuaSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat)
+int LuaSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat, int argsOffset = 0)
 {
-	int stackOffset = lua_type(L, 3) == LUA_TVECTOR ? 1 : n;
+	int valueIndex = 3 + argsOffset;
+	int stackOffset = lua_type(L, valueIndex) == LUA_TVECTOR ? 1 : n;
+	stackOffset += argsOffset;
 
-	const char* label = luaL_checkstring(L, 2);
+	const char* label = luaL_checkstring(L, 2 + argsOffset);
 	T v_min = luaL_checknumber(L, 3 + stackOffset);
 	T v_max = luaL_checknumber(L, 4 + stackOffset);
 	const char* format = luaL_optstring(L, 5 + stackOffset, defFormat);
 	ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 6 + stackOffset, 0);
 
-	if (lua_type(L, 3) == LUA_TVECTOR)
+	if (lua_type(L, valueIndex) == LUA_TVECTOR && n <= LUA_VECTOR_SIZE)
 	{
-		const float* fvec = lua_tovector(L, 3);
+		const float* fvec = lua_tovector(L, valueIndex);
 		T vec[LUA_VECTOR_SIZE];
 		for (int i = 0; i < LUA_VECTOR_SIZE; i++)
 		{
@@ -260,7 +265,7 @@ int LuaSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const c
 		T vec[n];
 		for (int i = 0; i < n; i++)
 		{
-			vec[i] = luaL_checknumber(L, 3 + i);
+			vec[i] = luaL_checknumber(L, valueIndex + i);
 		}
 		bool result = ImGui::SliderScalarN(label, data_type, vec, n, &v_min, &v_max, format, sliderFlag);
 
@@ -274,21 +279,23 @@ int LuaSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const c
 }
 
 template<typename T>
-int LuaFilledSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat)
+int LuaFilledSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat, int argsOffset = 0)
 {
-	int stackOffset = lua_type(L, 4) == LUA_TVECTOR ? 1 : n;
+	int valueIndex = 4 + argsOffset;
+	int stackOffset = lua_type(L, valueIndex) == LUA_TVECTOR ? 1 : n;
+	stackOffset += argsOffset;
 
-	const char* label = luaL_checkstring(L, 2);
-	bool mirror = lua_toboolean(L, 3) > 0;
+	const char* label = luaL_checkstring(L, 2 + argsOffset);
+	bool mirror = lua_toboolean(L, 3 + argsOffset) > 0;
 	T v_min = luaL_checknumber(L, 4 + stackOffset);
 	T v_max = luaL_checknumber(L, 5 + stackOffset);
 	const char* format = luaL_optstring(L, 6 + stackOffset, defFormat);
 	ImGuiSliderFlags sliderFlag = luaL_optinteger(L, 7 + stackOffset, 0);
 
 
-	if (lua_type(L, 4) == LUA_TVECTOR)
+	if (lua_type(L, valueIndex) == LUA_TVECTOR && n <= LUA_VECTOR_SIZE)
 	{
-		const float* fvec = lua_tovector(L, 4);
+		const float* fvec = lua_tovector(L, valueIndex);
 		T vec[LUA_VECTOR_SIZE];
 		for (int i = 0; i < LUA_VECTOR_SIZE; i++)
 		{
@@ -308,7 +315,7 @@ int LuaFilledSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, c
 		T vec[n];
 		for (int i = 0; i < n; i++)
 		{
-			vec[i] = luaL_checknumber(L, 4 + i);
+			vec[i] = luaL_checknumber(L, valueIndex + i);
 		}
 
 		bool result = ImGui::FilledSliderScalarN(label, mirror, data_type, vec, n, &v_min, &v_max, format, sliderFlag);
@@ -324,19 +331,21 @@ int LuaFilledSliderScalarN(lua_State* L, ImGuiDataType data_type, const int n, c
 }
 
 template<typename T>
-int LuaInputScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat)
+int LuaInputScalarN(lua_State* L, ImGuiDataType data_type, const int n, const char* defFormat, int argsOffset = 0)
 {
-	int stackOffset = lua_type(L, 3) == LUA_TVECTOR ? 1 : n;
+	int valueIndex = 3 + argsOffset;
+	int stackOffset = lua_type(L, valueIndex) == LUA_TVECTOR ? 1 : n;
+	stackOffset += argsOffset;
 
-	const char* label = luaL_checkstring(L, 2);
+	const char* label = luaL_checkstring(L, 2 + argsOffset);
 	const char* format = luaL_optstring(L, 3 + stackOffset, defFormat);
 	T step = luaL_optnumber(L, 4 + stackOffset, 0);
 	T step_fast = luaL_optnumber(L, 5 + stackOffset, 0);
 	ImGuiInputTextFlags flags = luaL_optinteger(L, 6 + stackOffset, 0);
 
-	if (lua_type(L, 3) == LUA_TVECTOR)
+	if (lua_type(L, valueIndex) == LUA_TVECTOR && n <= LUA_VECTOR_SIZE)
 	{
-		const float* fvec = lua_tovector(L, 3);
+		const float* fvec = lua_tovector(L, valueIndex);
 		T vec[LUA_VECTOR_SIZE];
 		for (int i = 0; i < LUA_VECTOR_SIZE; i++)
 		{
@@ -356,7 +365,7 @@ int LuaInputScalarN(lua_State* L, ImGuiDataType data_type, const int n, const ch
 		T vec[n];
 		for (int i = 0; i < n; i++)
 		{
-			vec[i] = luaL_checknumber(L, 3 + i);
+			vec[i] = luaL_checknumber(L, valueIndex + i);
 		}
 
 		bool result = ImGui::InputScalarN(label, data_type, vec, n, &step, &step_fast, format, flags);
@@ -3974,6 +3983,12 @@ int DragFloat4(lua_State* L)
 	return LuaDragScalarN<float>(L, ImGuiDataType_Float, 4, "%.3f");
 }
 
+int DragFloatN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaDragScalarN<float>(L, ImGuiDataType_Float, data_size, "%.3f", 1);
+}
+
 int DragFloatT(lua_State* L)
 {
 	STACK_CHECKER(L, "dragFloatT", 1);
@@ -4052,6 +4067,12 @@ int DragInt3(lua_State* L)
 int DragInt4(lua_State* L)
 {
 	return LuaDragScalarN<int>(L, ImGuiDataType_S32, 4, "%d");
+}
+
+int DragIntN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaDragScalarN<int>(L, ImGuiDataType_S32, data_size, "%d", 1);
 }
 
 int DragIntT(lua_State* L)
@@ -4143,6 +4164,12 @@ int SliderFloat4(lua_State* L)
 	return LuaSliderScalarN<float>(L, ImGuiDataType_Float, 4, "%.3f");
 }
 
+int SliderFloatN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaSliderScalarN<float>(L, ImGuiDataType_Float, data_size, "%.3f", 1);
+}
+
 int SliderFloatT(lua_State* L)
 {
 	STACK_CHECKER(L, "sliderFloatT", 1);
@@ -4202,6 +4229,12 @@ int SliderInt3(lua_State* L)
 int SliderInt4(lua_State* L)
 {
 	return LuaSliderScalarN<int>(L, ImGuiDataType_S32, 4, "%d");
+}
+
+int SliderIntN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaSliderScalarN<int>(L, ImGuiDataType_S32, data_size, "%d", 1);
 }
 
 int SliderIntT(lua_State* L)
@@ -4304,6 +4337,12 @@ int FilledSliderFloat4(lua_State* L)
 	return LuaFilledSliderScalarN<float>(L, ImGuiDataType_Float, 4, "%.3f");
 }
 
+int FilledSliderFloatN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaFilledSliderScalarN<float>(L, ImGuiDataType_Float, data_size, "%.3f", 1);
+}
+
 int FilledSliderFloatT(lua_State* L)
 {
 	STACK_CHECKER(L, "filledSliderFloatT", 1);
@@ -4366,6 +4405,12 @@ int FilledSliderInt3(lua_State* L)
 int FilledSliderInt4(lua_State* L)
 {
 	return LuaFilledSliderScalarN<int>(L, ImGuiDataType_S32, 4, "%d");
+}
+
+int FilledSliderIntN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaFilledSliderScalarN<int>(L, ImGuiDataType_S32, data_size, "%d", 1);
 }
 
 int FilledSliderIntT(lua_State* L)
@@ -4550,6 +4595,12 @@ int InputFloat4(lua_State* L)
 	return LuaInputScalarN<float>(L, ImGuiDataType_Float, 4, "%.3f");
 }
 
+int InputFloatN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaInputScalarN<int>(L, ImGuiDataType_Float, data_size, "%.3", 1);
+}
+
 int InputFloatT(lua_State* L)
 {
 	STACK_CHECKER(L, "inputFloatT", 1);
@@ -4590,6 +4641,12 @@ int InputInt3(lua_State* L)
 int InputInt4(lua_State* L)
 {
 	return LuaInputScalarN<int>(L, ImGuiDataType_S32, 4, "%d");
+}
+
+int InputIntN(lua_State* L)
+{
+	int data_size = luaL_checkinteger(L, 2);
+	return LuaInputScalarN<int>(L, ImGuiDataType_S32, data_size, "%d", 1);
 }
 
 int InputIntT(lua_State* L)
@@ -13657,6 +13714,7 @@ int loader(lua_State* L)
 		{"dragFloat2", DragFloat2},
 		{"dragFloat3", DragFloat3},
 		{"dragFloat4", DragFloat4},
+		{"dragFloatN", DragFloatN},
 		{"dragFloatT", DragFloatT},
 		{"dragFloatRange2", DragFloatRange2},
 
@@ -13664,6 +13722,7 @@ int loader(lua_State* L)
 		{"dragInt2", DragInt2},
 		{"dragInt3", DragInt3},
 		{"dragInt4", DragInt4},
+		{"dragIntN", DragIntN},
 		{"dragIntT", DragIntT},
 		{"dragIntRange2", DragIntRange2},
 
@@ -13671,12 +13730,14 @@ int loader(lua_State* L)
 		{"sliderFloat2", SliderFloat2},
 		{"sliderFloat3", SliderFloat3},
 		{"sliderFloat4", SliderFloat4},
+		{"sliderFloatN", SliderFloatN},
 		{"sliderFloatT", SliderFloatT},
 		{"sliderAngle", SliderAngle},
 		{"sliderInt", SliderInt},
 		{"sliderInt2", SliderInt2},
 		{"sliderInt3", SliderInt3},
 		{"sliderInt4", SliderInt4},
+		{"sliderIntN", SliderIntN},
 		{"sliderIntT", SliderIntT},
 		{"vSliderFloat", VSliderFloat},
 		{"vSliderInt", VSliderInt},
@@ -13685,12 +13746,14 @@ int loader(lua_State* L)
 		{"filledSliderFloat2", FilledSliderFloat2},
 		{"filledSliderFloat3", FilledSliderFloat3},
 		{"filledSliderFloat4", FilledSliderFloat4},
+		{"filledSliderFloatN", FilledSliderFloatN},
 		{"filledSliderFloatT", FilledSliderFloatT},
 		{"filledSliderAngle", FilledSliderAngle},
 		{"filledSliderInt", FilledSliderInt},
 		{"filledSliderInt2", FilledSliderInt2},
 		{"filledSliderInt3", FilledSliderInt3},
 		{"filledSliderInt4", FilledSliderInt4},
+		{"filledSliderIntN", FilledSliderIntN},
 		{"filledSliderIntT", FilledSliderIntT},
 		{"vFilledSliderFloat", VFilledSliderFloat},
 		{"vFilledSliderInt", VFilledSliderInt},
@@ -13702,11 +13765,13 @@ int loader(lua_State* L)
 		{"inputFloat2", InputFloat2},
 		{"inputFloat3", InputFloat3},
 		{"inputFloat4", InputFloat4},
+		{"inputFloatN", InputFloatN},
 		{"inputFloatT", InputFloatT},
 		{"inputInt", InputInt},
 		{"inputInt2", InputInt2},
 		{"inputInt3", InputInt3},
 		{"inputInt4", InputInt4},
+		{"inputIntN", InputIntN},
 		{"inputIntT", InputIntT},
 		{"inputDouble", InputDouble},
 
