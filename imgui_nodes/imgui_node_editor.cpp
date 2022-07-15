@@ -461,7 +461,17 @@ static void ImDrawList_AddBezierWithArrows(ImDrawList* drawList, const ImCubicBe
 
     if (fill)
     {
-		drawList->AddBezierCubic(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
+		ImVec2 midPoint = ImLinearBezier<ImVec2>(curve.P0, curve.P3, 0.5f);
+
+		//Source:
+		//drawList->AddBezierCubic(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
+
+		//@MultiPain +
+		drawList->PathLineTo(curve.P0);
+		drawList->PathBezierCubicCurveTo(curve.P1, curve.P1, midPoint);
+		drawList->PathBezierCubicCurveTo(curve.P2, curve.P2, curve.P3);
+		drawList->PathStroke(color, ImDrawFlags_None, thickness);
+		//@MultiPain -
 
         if (startArrowSize > 0.0f)
         {
