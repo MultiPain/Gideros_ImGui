@@ -471,6 +471,9 @@ static void ImDrawList_AddBezierWithArrows(ImDrawList* drawList, const ImCubicBe
 		drawList->PathBezierCubicCurveTo(curve.P1, curve.P1, midPoint);
 		drawList->PathBezierCubicCurveTo(curve.P2, curve.P2, curve.P3);
 		drawList->PathStroke(color, ImDrawFlags_None, thickness);
+
+		drawList->AddCircleFilled(curve.P0, half_thickness, color, 8);
+		drawList->AddCircleFilled(curve.P3, half_thickness, color, 8);
 		//@MultiPain -
 
         if (startArrowSize > 0.0f)
@@ -925,9 +928,18 @@ bool ed::Link::TestHit(const ImVec2& point, float extraThickness) const
         return false;
 
     const auto bezier = GetCurve();
-    const auto result = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P2, bezier.P3, 50);
 
-    return result.Distance <= m_Thickness + extraThickness;
+	// Source:
+	//const auto result = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P2, bezier.P3, 50);
+	//return result.Distance <= m_Thickness + extraThickness;
+
+	//@MultiPain +
+	const ImVec2 midPoint = ImLinearBezier<ImVec2>(bezier.P0, bezier.P3, 0.5f);
+	const auto result1 = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P1, midPoint, 50);
+	const auto result2 = ImProjectOnCubicBezier(point, midPoint, bezier.P2, bezier.P2, bezier.P3, 50);
+
+	return (result1.Distance <= m_Thickness + extraThickness) || (result2.Distance <= m_Thickness + extraThickness);
+	//@MultiPain -
 }
 
 bool ed::Link::TestHit(const ImRect& rect, bool allowIntersect) const
