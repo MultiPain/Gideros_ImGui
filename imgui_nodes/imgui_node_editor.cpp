@@ -936,9 +936,13 @@ bool ed::Link::TestHit(const ImVec2& point, float extraThickness) const
 	//@MultiPain +
 	const ImVec2 midPoint = ImLinearBezier<ImVec2>(bezier.P0, bezier.P3, 0.5f);
 	const auto result1 = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P1, midPoint, 50);
+
+	if (result1.Distance <= m_Thickness + extraThickness)
+		return true;
+
 	const auto result2 = ImProjectOnCubicBezier(point, midPoint, bezier.P2, bezier.P2, bezier.P3, 50);
 
-	return (result1.Distance <= m_Thickness + extraThickness) || (result2.Distance <= m_Thickness + extraThickness);
+	return result2.Distance <= m_Thickness + extraThickness;
 	//@MultiPain -
 }
 
