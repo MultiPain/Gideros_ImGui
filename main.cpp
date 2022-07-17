@@ -10405,7 +10405,7 @@ int DrawList_AddCircle(lua_State* L)
 	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(L, 5);
-	int num_segments = luaL_optinteger(L, 7, 12);
+	int num_segments = luaL_optinteger(L, 7, 0);
 	double thickness = luaL_optnumber(L, 8, 1.0f);
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -10421,7 +10421,7 @@ int DrawList_AddCircleFilled(lua_State* L)
 	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(L, 5);
-	int num_segments = luaL_optinteger(L, 7, 12);
+	int num_segments = luaL_optinteger(L, 7, 0);
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->AddCircleFilled(center, radius, col, num_segments);
@@ -10436,7 +10436,7 @@ int DrawList_AddNgon(lua_State* L)
 	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(L, 5);
-	int num_segments = luaL_optinteger(L, 7, 12);
+	int num_segments = luaL_optinteger(L, 7, 0);
 	double thickness = luaL_optnumber(L, 8, 1.0f);
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
@@ -10452,7 +10452,7 @@ int DrawList_AddNgonFilled(lua_State* L)
 	ImVec2 center = luaL_checkvec2(L, 2);
 	double radius = luaL_checknumber(L, 4);
 	ImU32 col = GColor::toU32(L, 5);
-	int num_segments = luaL_optinteger(L, 7, 12);
+	int num_segments = luaL_optinteger(L, 7, 0);
 
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->AddNgonFilled(center, radius, col, num_segments);
@@ -10782,7 +10782,7 @@ int DrawList_PathArcTo(lua_State* L)
 	double radius = luaL_checknumber(L, 4);
 	double a_min = luaL_checknumber(L, 5);
 	double a_max = luaL_checknumber(L, 6);
-	int num_segments = luaL_optinteger(L, 7, 10);
+	int num_segments = luaL_optinteger(L, 7, 0);
 	ImDrawList* list = getPtr<ImDrawList>(L, "ImDrawList");
 	list->PathArcTo(center, radius, a_min, a_max, num_segments);
 	return 0;

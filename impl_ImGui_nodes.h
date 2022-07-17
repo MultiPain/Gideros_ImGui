@@ -4,6 +4,7 @@
 #include "lua.hpp"
 #include "luautil.h"
 #include "imgui_nodes/imgui_node_editor.h"
+#include "imgui_nodes/imgui_node_editor_internal.h"
 #include "gplugin.h"
 
 namespace ImNodes_impl

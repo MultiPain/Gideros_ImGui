@@ -472,8 +472,8 @@ static void ImDrawList_AddBezierWithArrows(ImDrawList* drawList, const ImCubicBe
 		drawList->PathBezierCubicCurveTo(curve.P2, curve.P2, curve.P3);
 		drawList->PathStroke(color, ImDrawFlags_None, thickness);
 
-		drawList->AddCircleFilled(curve.P0, half_thickness, color, 8);
-		drawList->AddCircleFilled(curve.P3, half_thickness, color, 8);
+		drawList->AddCircleFilled(curve.P0, half_thickness, color);
+		drawList->AddCircleFilled(curve.P3, half_thickness, color);
 		//@MultiPain -
 
         if (startArrowSize > 0.0f)

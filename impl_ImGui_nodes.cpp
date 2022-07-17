@@ -1187,6 +1187,104 @@ int ImNodes_impl::ImNodesStyleGetColor(lua_State* L)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+void ShowStyleEditor(bool* show = nullptr)
+{
+	if (!ImGui::Begin("Style", show))
+	{
+		ImGui::End();
+		return;
+	}
+
+	auto paneWidth = ImGui::GetContentRegionAvail();
+
+	auto& editorStyle = NodeEditor::GetStyle();
+	ImGui::BeginHorizontal("Style buttons", ImVec2(paneWidth.x, 0.0f), 1.0f);
+	ImGui::TextUnformatted("Values");
+	ImGui::Spring();
+	if (ImGui::Button("Reset to defaults"))
+		editorStyle = NodeEditor::Style();
+	ImGui::EndHorizontal();
+	ImGui::Spacing();
+	ImGui::DragFloat4("Node Padding", &editorStyle.NodePadding.x, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Node Rounding", &editorStyle.NodeRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Node Border Width", &editorStyle.NodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Hovered Node Border Width", &editorStyle.HoveredNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Selected Node Border Width", &editorStyle.SelectedNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Pin Rounding", &editorStyle.PinRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Pin Border Width", &editorStyle.PinBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Link Strength", &editorStyle.LinkStrength, 1.0f, 0.0f, 500.0f);
+	//ImVec2  SourceDirection;
+	//ImVec2  TargetDirection;
+	ImGui::DragFloat("Scroll Duration", &editorStyle.ScrollDuration, 0.001f, 0.0f, 2.0f);
+	ImGui::DragFloat("Flow Marker Distance", &editorStyle.FlowMarkerDistance, 1.0f, 1.0f, 200.0f);
+	ImGui::DragFloat("Flow Speed", &editorStyle.FlowSpeed, 1.0f, 1.0f, 2000.0f);
+	ImGui::DragFloat("Flow Duration", &editorStyle.FlowDuration, 0.001f, 0.0f, 5.0f);
+	//ImVec2  PivotAlignment;
+	//ImVec2  PivotSize;
+	//ImVec2  PivotScale;
+	//float   PinCorners;
+	//float   PinRadius;
+	//float   PinArrowSize;
+	//float   PinArrowWidth;
+	ImGui::DragFloat("Group Rounding", &editorStyle.GroupRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Group Border Width", &editorStyle.GroupBorderWidth, 0.1f, 0.0f, 15.0f);
+
+	ImGui::Separator();
+
+	static ImGuiColorEditFlags edit_mode = ImGuiColorEditFlags_DisplayRGB;
+	ImGui::BeginHorizontal("Color Mode", ImVec2(paneWidth.x, 0.0f), 1.0f);
+	ImGui::TextUnformatted("Filter Colors");
+	ImGui::Spring();
+	ImGui::RadioButton("RGB", &edit_mode, ImGuiColorEditFlags_DisplayRGB);
+	ImGui::Spring(0);
+	ImGui::RadioButton("HSV", &edit_mode, ImGuiColorEditFlags_DisplayHSV);
+	ImGui::Spring(0);
+	ImGui::RadioButton("HEX", &edit_mode, ImGuiColorEditFlags_DisplayHex);
+	ImGui::EndHorizontal();
+
+	static ImGuiTextFilter filter;
+	filter.Draw("", paneWidth.x);
+
+	ImGui::Spacing();
+
+	ImGui::PushItemWidth(-160);
+	for (int i = 0; i < NodeEditor::StyleColor_Count; ++i)
+	{
+		auto name = NodeEditor::GetStyleColorName((NodeEditor::StyleColor)i);
+		if (!filter.PassFilter(name))
+			continue;
+
+		ImGui::ColorEdit4(name, &editorStyle.Colors[i].x, edit_mode);
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::End();
+}
+
+int LuaShowStyleEdior(lua_State* L)
+{
+
+	if (lua_isnoneornil(L, 2))
+	{
+		ImGui::ShowStyleEditor();
+		return 0;
+	}
+	bool p_open = lua_toboolean(L, 2);
+	ShowStyleEditor(&p_open);
+	lua_pushboolean(L, p_open);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+int GetCanvasScale(lua_State* L)
+{
+	ax::NodeEditor::Detail::EditorContext* ctx = getPtr<ax::NodeEditor::Detail::EditorContext>(L, "ImNodeEditor");
+	auto view = ctx->GetView();
+	lua_pushnumber(L, view.Scale);
+	return 1;
+}
+
 int ImNodes_impl::nodes_loader(lua_State* L)
 {
 
@@ -1271,6 +1369,9 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 	const luaL_Reg nodesFunctionsList[] = {
 		{"getStyle", GetStyle},
 		{"getStyleColorName", GetStyleColorName},
+		{"showStyleEdior", LuaShowStyleEdior},
+
+		{"getCanvasScale", GetCanvasScale},
 
 		{"pushStyleColor", PushStyleColor},
 		{"popStyleColor", PopStyleColor},
