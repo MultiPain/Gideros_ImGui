@@ -39,7 +39,9 @@ void ImNodes_impl::bind_enums(lua_State* L)
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_NodeRounding, "StyleVar_NodeRounding");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_NodeBorderWidth, "StyleVar_NodeBorderWidth");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_HoveredNodeBorderWidth, "StyleVar_HoveredNodeBorderWidth");
+	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_HoveredNodeBorderOffset, "StyleVar_HoveredNodeBorderOffset");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_SelectedNodeBorderWidth, "StyleVar_SelectedNodeBorderWidth");
+	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_SelectedNodeBorderOffset, "StyleVar_NodeBorderOffset");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_PinRounding, "StyleVar_PinRounding");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_PinBorderWidth, "StyleVar_PinBorderWidth");
 	BIND_IENUM(L, NodeEditor::StyleVar::StyleVar_LinkStrength, "StyleVar_LinkStrength");
@@ -301,7 +303,8 @@ int ImNodes_impl::Link(lua_State* L)
 int ImNodes_impl::Flow(lua_State* L)
 {
 	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
-	NodeEditor::Flow(id);
+	NodeEditor::FlowDirection direction = (NodeEditor::FlowDirection)luaL_optinteger(L, 3, (int)NodeEditor::FlowDirection::Forward);
+	NodeEditor::Flow(id, direction);
 	return 0;
 }
 
@@ -428,7 +431,8 @@ int ImNodes_impl::QueryDeletedNode(lua_State* L)
 
 int ImNodes_impl::AcceptDeletedItem(lua_State* L)
 {
-	lua_pushboolean(L, NodeEditor::AcceptDeletedItem());
+	bool deleteDependencies = luaL_optboolean(L, 2, false);
+	lua_pushboolean(L, NodeEditor::AcceptDeletedItem(deleteDependencies));
 	return 1;
 }
 
@@ -458,6 +462,30 @@ int ImNodes_impl::GetNodePosition(lua_State* L)
 	ImVec2 pos = NodeEditor::GetNodePosition(id);
 	lua_pushvec2(L, pos);
 	return 2;
+}
+
+int ImNodes_impl::SetGroupSize(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	const ImVec2 size = luaL_checkvec2(L, 3);
+	NodeEditor::SetGroupSize(id, size);
+	return 0;
+}
+
+int ImNodes_impl::SetNodeZPosition(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	float pos = luaL_checknumber(L, 3);
+	NodeEditor::SetNodeZPosition(id, pos);
+	return 0;
+}
+
+int ImNodes_impl::GetNodeZPosition(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	float pos = NodeEditor::GetNodeZPosition(id);
+	lua_pushnumber(L, pos);
+	return 1;
 }
 
 int ImNodes_impl::GetNodeSize(lua_State* L)
@@ -554,6 +582,20 @@ int ImNodes_impl::GetSelectedLinks(lua_State* L)
 	return 1;
 }
 
+int ImNodes_impl::IsNodeSelected(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::IsNodeSelected(id));
+	return 1;
+}
+
+int ImNodes_impl::IsLinkSelected(lua_State* L)
+{
+	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::IsLinkSelected(id));
+	return 1;
+}
+
 int ImNodes_impl::ClearSelection(lua_State* L)
 {
 	NodeEditor::ClearSelection();
@@ -601,6 +643,36 @@ int ImNodes_impl::DeleteLink(lua_State* L)
 {
 	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
 	lua_pushboolean(L, DeleteLink(id));
+	return 1;
+}
+
+
+
+int ImNodes_impl::NodeHasAnyLinks(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::HasAnyLinks(id));
+	return 1;
+}
+
+int ImNodes_impl::NodeBreakLinks(lua_State* L)
+{
+	NodeEditor::NodeId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::BreakLinks(id));
+	return 1;
+}
+
+int ImNodes_impl::PinHasAnyLinks(lua_State* L)
+{
+	NodeEditor::PinId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::HasAnyLinks(id));
+	return 1;
+}
+
+int ImNodes_impl::PinBreakLinks(lua_State* L)
+{
+	NodeEditor::PinId id = luaL_checkinteger(L, 2);
+	lua_pushboolean(L, NodeEditor::BreakLinks(id));
 	return 1;
 }
 
@@ -752,6 +824,28 @@ int ImNodes_impl::GetCurrentZoom(lua_State* L)
 	return 2;
 }
 
+
+int ImNodes_impl::GetHoveredNode(lua_State* L)
+{
+	NodeEditor::NodeId id = NodeEditor::GetHoveredNode();
+	lua_pushnumber(L, id.Get());
+	return 1;
+}
+
+int ImNodes_impl::GetHoveredPin(lua_State* L)
+{
+	NodeEditor::PinId id = NodeEditor::GetHoveredPin();
+	lua_pushnumber(L, id.Get());
+	return 1;
+}
+
+int ImNodes_impl::GetHoveredLink(lua_State* L)
+{
+	NodeEditor::LinkId id = NodeEditor::GetHoveredLink();
+	lua_pushnumber(L, id.Get());
+	return 1;
+}
+
 int ImNodes_impl::GetDoubleClickedNode(lua_State* L)
 {
 	NodeEditor::NodeId id = NodeEditor::GetDoubleClickedNode();
@@ -785,6 +879,19 @@ int ImNodes_impl::IsBackgroundDoubleClicked(lua_State* L)
 	return 1;
 }
 
+int ImNodes_impl::GetLinkPins(lua_State* L)
+{
+	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
+	NodeEditor::PinId* startPinId = nullptr;
+	NodeEditor::PinId* endPinId = nullptr;
+	bool success = NodeEditor::GetLinkPins(id, startPinId, endPinId);
+
+	lua_pushboolean(L, success);
+	lua_pushnumber(L, startPinId ? startPinId->Get() : 0);
+	lua_pushnumber(L, endPinId ? endPinId->Get() : 0);
+	return 3;
+}
+
 int ImNodes_impl::PinHadAnyLinks(lua_State* L)
 {
 	NodeEditor::PinId id = luaL_checkinteger(L, 2);
@@ -813,6 +920,29 @@ int ImNodes_impl::CanvasToScreen(lua_State* L)
 	ImVec2 pos2 = NodeEditor::CanvasToScreen(pos1);
 	lua_pushvec2(L, pos2);
 	return 2;
+}
+int ImNodes_impl::GetNodeCount(lua_State* L)
+{
+	lua_pushinteger(L, NodeEditor::GetNodeCount());
+	return 1;
+}
+
+int ImNodes_impl::GetOrderedNodeIds(lua_State* L)
+{
+	int size = luaL_checkinteger(L, 2);
+	NodeEditor::NodeId* list = new NodeEditor::NodeId[size];
+	int count = NodeEditor::GetOrderedNodeIds(list, size);
+
+	lua_createtable(L, count, 0);
+
+	for (int i = 0; i < count; i++)
+	{
+		lua_pushnumber(L, list[i].Get());
+		lua_rawseti(L, -2, i + 1);
+	}
+
+	delete[] list;
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -1185,6 +1315,34 @@ int ImNodes_impl::ImNodesStyleGetColor(lua_State* L)
 	return 2;
 }
 
+int ImNodes_impl::ImNodesStyleSetSelectedNodeBorderOffset(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.SelectedNodeBorderOffset = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetSelectedNodeBorderOffset(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	lua_pushnumber(L, style.SelectedNodeBorderOffset);
+	return 1;
+}
+
+int ImNodes_impl::ImNodesStyleSetHoverNodeBorderOffset(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	style.HoverNodeBorderOffset = luaL_checknumber(L, 2);
+	return 0;
+}
+
+int ImNodes_impl::ImNodesStyleGetHoverNodeBorderOffset(lua_State* L)
+{
+	NodeEditor::Style& style = getStyle(L);
+	lua_pushnumber(L, style.HoverNodeBorderOffset);
+	return 1;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 
 void ShowStyleEditor(bool* show = nullptr)
@@ -1228,6 +1386,11 @@ void ShowStyleEditor(bool* show = nullptr)
 	//float   PinArrowWidth;
 	ImGui::DragFloat("Group Rounding", &editorStyle.GroupRounding, 0.1f, 0.0f, 40.0f);
 	ImGui::DragFloat("Group Border Width", &editorStyle.GroupBorderWidth, 0.1f, 0.0f, 15.0f);
+
+	ImGui::Separator();
+
+	ImGui::DragFloat("Selected border offset", &editorStyle.SelectedNodeBorderOffset, 0.1f, -40.0f, 40.0f);
+	ImGui::DragFloat("Hover border offset", &editorStyle.HoverNodeBorderOffset, 0.1f, -40.0f, 40.0f);
 
 	ImGui::Separator();
 
@@ -1361,12 +1524,34 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 		{"setColor", ImNodesStyleSetColor},
 		{"getColor", ImNodesStyleGetColor},
 
+		{"getHoverNodeBorderOffset", ImNodesStyleGetHoverNodeBorderOffset},
+		{"setHoverNodeBorderOffset", ImNodesStyleSetHoverNodeBorderOffset},
+
+		{"getSelectedNodeBorderOffset", ImNodesStyleGetSelectedNodeBorderOffset},
+		{"setSelectedNodeBorderOffset", ImNodesStyleSetSelectedNodeBorderOffset},
+
 		{NULL, NULL}
 	};
 
 	g_createClass(L, "ImNodeStyle", NULL, NULL, NULL, nodesStyleFunctionsList);
 
 	const luaL_Reg nodesFunctionsList[] = {
+		{"setGroupSize", SetGroupSize},
+		{"setNodeZPosition", SetNodeZPosition},
+		{"getNodeZPosition", GetNodeZPosition},
+		{"isNodeSelected", IsNodeSelected},
+		{"isLinkSelected", IsLinkSelected},
+		{"nodeHasAnyLinks", NodeHasAnyLinks},
+		{"nodeBreakLinks", NodeBreakLinks},
+		{"pinHasAnyLinks", PinHasAnyLinks},
+		{"pinBreakLinks", PinBreakLinks},
+		{"getHoveredNode", GetHoveredNode},
+		{"getHoveredPin", GetHoveredPin},
+		{"getHoveredLink", GetHoveredLink},
+		{"getLinkPins", GetLinkPins},
+		{"getNodeCount", GetNodeCount},
+		{"getOrderedNodeIds", GetOrderedNodeIds},
+
 		{"getStyle", GetStyle},
 		{"getStyleColorName", GetStyleColorName},
 		{"showStyleEdior", LuaShowStyleEdior},

@@ -7200,6 +7200,19 @@ int IsAnyItemFocused(lua_State* L)
 	return 1;
 }
 
+int GetItemRect(lua_State* L)
+{
+	STACK_CHECKER(L, "getItemRect", 4);
+
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	lua_pushnumber(L, min.x);
+	lua_pushnumber(L, min.y);
+	lua_pushnumber(L, max.x);
+	lua_pushnumber(L, max.y);
+	return 4;
+}
+
 int GetItemRectMin(lua_State* L)
 {
 	STACK_CHECKER(L, "getItemRectMin", 2);
@@ -13409,6 +13422,7 @@ int loader(lua_State* L)
 		{"isAnyItemHovered", IsAnyItemHovered},
 		{"isAnyItemActive", IsAnyItemActive},
 		{"isAnyItemFocused", IsAnyItemFocused},
+		{"getItemRect", GetItemRect},
 		{"getItemRectMin", GetItemRectMin},
 		{"getItemRectMax", GetItemRectMax},
 		{"getItemRectSize", GetItemRectSize},
