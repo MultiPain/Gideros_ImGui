@@ -1278,7 +1278,7 @@ struct EditorContext
     Style& GetStyle() { return m_Style; }
 
     void Begin(const char* id, const ImVec2& size = ImVec2(0, 0));
-    void End();
+	void End(bool showMetris = false);
 
     bool DoLink(LinkId id, PinId startPinId, PinId endPinId, ImU32 color, float thickness);
 

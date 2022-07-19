@@ -263,7 +263,7 @@ void PushStyleVar(StyleVar varIndex, const ImVec4& value);
 void PopStyleVar(int count = 1);
 
 void Begin(const char* id, const ImVec2& size = ImVec2(0, 0));
-void End();
+void End(bool showMetris = false);
 
 void BeginNode(NodeId id);
 void BeginPin(PinId id, PinKind kind);

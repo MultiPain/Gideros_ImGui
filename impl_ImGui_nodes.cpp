@@ -163,7 +163,8 @@ int ImNodes_impl::Begin(lua_State* L)
 
 int ImNodes_impl::End(lua_State* L)
 {
-	NodeEditor::End();
+	bool showMetris = luaL_optboolean(L, 2, false);
+	NodeEditor::End(showMetris);
 	return 0;
 }
 

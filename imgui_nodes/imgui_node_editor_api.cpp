@@ -120,9 +120,9 @@ void ax::NodeEditor::Begin(const char* id, const ImVec2& size)
     s_Editor->Begin(id, size);
 }
 
-void ax::NodeEditor::End()
+void ax::NodeEditor::End(bool showMetris)
 {
-    s_Editor->End();
+	s_Editor->End(showMetris);
 }
 
 void ax::NodeEditor::BeginNode(NodeId id)

@@ -1187,7 +1187,7 @@ void ed::EditorContext::Begin(const char* id, const ImVec2& size)
     m_LastSelectedObjects = m_SelectedObjects;
 }
 
-void ed::EditorContext::End()
+void ed::EditorContext::End(bool showMetrics)
 {
     //auto& io          = ImGui::GetIO();
     auto  control     = BuildControl(m_CurrentAction && m_CurrentAction->IsDragging()); // NavigateAction.IsMovingOverEdge()
@@ -1505,7 +1505,8 @@ void ed::EditorContext::End()
     }
 
     // #metrics
-    // ShowMetrics(control);
+	if (showMetrics) 
+		ShowMetrics(control);
 
     ImGui::PopID();
 
