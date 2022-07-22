@@ -67,8 +67,33 @@ void ImNodes_impl::bind_enums(lua_State* L)
 
 int ImNodes_impl::initNodes(lua_State* L)
 {
+	NodeEditor::Config cfg;
 
-	NodeEditor::EditorContext* ctx = NodeEditor::CreateEditor();
+	if (lua_gettop(L) > 0)
+	{
+		luaL_checktype(L, 1, LUA_TTABLE);
+		lua_getfield(L, 1, "settingsFile");
+		if (!lua_isnil(L, -1)) cfg.SettingsFile = luaL_checkstring(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, 1, "dragButtonIndex");
+		if (!lua_isnil(L, -1)) cfg.DragButtonIndex = luaL_checkinteger(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, 1, "selectButtonIndex");
+		if (!lua_isnil(L, -1)) cfg.SelectButtonIndex = luaL_checkinteger(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, 1, "navigateButtonIndex");
+		if (!lua_isnil(L, -1)) cfg.NavigateButtonIndex = luaL_checkinteger(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, 1, "contextMenuButtonIndex");
+		if (!lua_isnil(L, -1)) cfg.ContextMenuButtonIndex = luaL_checkinteger(L, -1);
+		lua_pop(L, 1);
+	}
+
+	NodeEditor::EditorContext* ctx = NodeEditor::CreateEditor(&cfg);
 	NodeEditor::SetCurrentEditor(ctx);
 	g_pushInstance(L, "ImNodeEditor", ctx);
 
