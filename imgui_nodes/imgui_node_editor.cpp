@@ -473,18 +473,7 @@ static void ImDrawList_AddBezierWithArrows(ImDrawList* drawList, const ImCubicBe
     {
 		ImVec2 midPoint = ImLinearBezier<ImVec2>(curve.P0, curve.P3, 0.5f);
 
-		//Source:
-		//drawList->AddBezierCubic(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
-
-		//@MultiPain +
-		drawList->PathLineTo(curve.P0);
-		drawList->PathBezierCubicCurveTo(curve.P1, curve.P1, midPoint);
-		drawList->PathBezierCubicCurveTo(curve.P2, curve.P2, curve.P3);
-		drawList->PathStroke(color, ImDrawFlags_None, thickness);
-
-		drawList->AddCircleFilled(curve.P0, half_thickness, color);
-		drawList->AddCircleFilled(curve.P3, half_thickness, color);
-		//@MultiPain -
+		drawList->AddBezierCubic(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
 
         if (startArrowSize > 0.0f)
         {
@@ -941,21 +930,8 @@ bool ed::Link::TestHit(const ImVec2& point, float extraThickness) const
 
     const auto bezier = GetCurve();
 
-	// Source:
-	//const auto result = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P2, bezier.P3, 50);
-	//return result.Distance <= m_Thickness + extraThickness;
-
-	//@MultiPain +
-	const ImVec2 midPoint = ImLinearBezier<ImVec2>(bezier.P0, bezier.P3, 0.5f);
-	const auto result1 = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P1, midPoint, 50);
-
-	if (result1.Distance <= m_Thickness + extraThickness)
-		return true;
-
-	const auto result2 = ImProjectOnCubicBezier(point, midPoint, bezier.P2, bezier.P2, bezier.P3, 50);
-
-	return result2.Distance <= m_Thickness + extraThickness;
-	//@MultiPain -
+	const auto result = ImProjectOnCubicBezier(point, bezier.P0, bezier.P1, bezier.P2, bezier.P3, 50);
+	return result.Distance <= m_Thickness + extraThickness;
 }
 
 bool ed::Link::TestHit(const ImRect& rect, bool allowIntersect) const
@@ -2227,6 +2203,11 @@ void ed::EditorContext::EnableShortcuts(bool enable)
 bool ed::EditorContext::AreShortcutsEnabled()
 {
     return m_ShortcutsEnabled;
+}
+
+void ed::EditorContext::DrawLastLine()
+{
+	m_CreateItemAction.DrawLastLine();
 }
 
 ed::Control ed::EditorContext::BuildControl(bool allowOffscreen)
@@ -4504,6 +4485,18 @@ bool ed::CreateItemAction::Process(const Control& control)
 
         candidate.UpdateEndpoints();
         candidate.Draw(drawList, m_LinkColor, m_LinkThickness);
+
+		m_lastStartPinKind = candidate.m_StartPin->m_Kind;
+		m_lastStartPivot = candidate.m_StartPin->m_Pivot;
+		m_lastStartDir = candidate.m_StartPin->m_Dir;
+		m_lastStartPinCorners = candidate.m_StartPin->m_Corners;
+		m_lastStartPinStrength = candidate.m_StartPin->m_Strength;
+
+		m_lastEndPinKind = candidate.m_EndPin->m_Kind;
+		m_lastEndPivot = candidate.m_EndPin->m_Pivot;
+		m_lastEndDir = candidate.m_EndPin->m_Dir;
+		m_lastEndPinCorners = candidate.m_EndPin->m_Corners;
+		m_lastEndPinStrength = candidate.m_EndPin->m_Strength;
     }
     else if (m_CurrentStage == Possible || !control.ActivePin)
     {
@@ -4518,6 +4511,32 @@ bool ed::CreateItemAction::Process(const Control& control)
     }
 
     return m_IsActive;
+}
+
+void ed::CreateItemAction::DrawLastLine()
+{
+	ed::Pin startPin(Editor, 0, m_lastStartPinKind);
+	startPin.m_Pivot = m_lastStartPivot;
+	startPin.m_Dir = m_lastStartDir;
+	startPin.m_Corners = m_lastStartPinCorners;
+	startPin.m_Strength = m_lastStartPinStrength;
+
+	ed::Pin endPin(Editor, 0, m_lastEndPinKind);
+	endPin.m_Pivot = m_lastEndPivot;
+	endPin.m_Dir = m_lastEndDir;
+	endPin.m_Corners = m_lastEndPinCorners;
+	endPin.m_Strength = m_lastEndPinStrength;
+
+	ed::Link candidate(Editor, 0);
+	candidate.m_Color = m_LinkColor;
+	candidate.m_StartPin = &startPin;
+	candidate.m_EndPin = &endPin;
+
+	auto drawList = ImGui::GetWindowDrawList();
+	drawList->ChannelsSetCurrent(c_LinkChannel_NewLink);
+
+	candidate.UpdateEndpoints();
+	candidate.Draw(drawList, m_LinkColor, m_LinkThickness);
 }
 
 void ed::CreateItemAction::ShowMetrics()

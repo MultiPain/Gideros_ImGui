@@ -971,6 +971,12 @@ int ImNodes_impl::GetOrderedNodeIds(lua_State* L)
 	return 1;
 }
 
+int DrawLastLine(lua_State* L)
+{
+	NodeEditor::DrawLastLine();
+	return 0;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 
 NodeEditor::Style& getStyle(lua_State* L, int idx = 1)
@@ -1562,6 +1568,7 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 	g_createClass(L, "ImNodeStyle", NULL, NULL, NULL, nodesStyleFunctionsList);
 
 	const luaL_Reg nodesFunctionsList[] = {
+		{"drawLastLine", DrawLastLine},
 		{"setGroupSize", SetGroupSize},
 		{"setNodeZPosition", SetNodeZPosition},
 		{"getNodeZPosition", GetNodeZPosition},
