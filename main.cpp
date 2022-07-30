@@ -5471,6 +5471,41 @@ int Clipper_ForceDisplayRangeByIndices(lua_State* L)
 	return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+///
+/// TextFilter
+///
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+int initImGuiTextFilter(lua_State* L)
+{
+	ImGuiTextFilter* filter = new ImGuiTextFilter();
+	g_pushInstance(L, "ImGuiTextFilter", filter);
+	return 1;
+}
+
+int destroyImGuiTextFilter(LUA_STATE* p)
+{
+	destroyObject<ImGuiTextFilter>(p);
+	return 0;
+}
+
+int TextFilter_PassFilter(lua_State* L)
+{
+	ImGuiTextFilter* filter = getPtr<ImGuiTextFilter>(L, "ImGuiTextFilter");
+	const char* text = luaL_checkstring(L, 2);
+	lua_pushboolean(L, filter->PassFilter(text));
+	return 1;
+}
+
+int TextFilter_Draw(lua_State* L)
+{
+	ImGuiTextFilter* filter = getPtr<ImGuiTextFilter>(L, "ImGuiTextFilter");
+	const char* label = luaL_checkstring(L, 2);
+	float width = luaL_optnumber(L, 3, 0.0f);
+	lua_pushboolean(L, filter->Draw(label, width));
+	return 1;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -12432,6 +12467,14 @@ int HelpMarker(lua_State* L)
 
 int loader(lua_State* L)
 {
+	const luaL_Reg imguiTextFilterFunctionsList[] = {
+		{"passFilter", TextFilter_PassFilter},
+		{"draw", TextFilter_Draw},
+		{NULL, NULL}
+	};
+
+	g_createClass(L, "ImGuiTextFilter", NULL, initImGuiTextFilter, destroyImGuiTextFilter, imguiTextFilterFunctionsList);
+
 	const luaL_Reg imguiEmptyFunctionsList[] = {
 		{NULL, NULL}
 	};
