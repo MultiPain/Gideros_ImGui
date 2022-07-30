@@ -1159,36 +1159,94 @@ number = ImGuiListClipper:getStartPosY()
 number = ImGuiListClipper:getItemsCount()
 ImGuiListClipper:forceDisplayRangeByIndices(number_min, number_max)
 ```
-### Example
+### Usage example
 ```lua
--- before "enterFrame" event:
+ui = ImGui.new()
+stage:addChild(ui)
+
 clipper = ImGuiListClipper.new()
 
--- inside "enterFrame":
-if (ui:beginWindow("Clipper demo")) then
-	if (ui:beginTable("table", 3)) then
-		ui:tableSetupScrollFreeze(0, 1)
-		ui:tableSetupColumn("One")
-		ui:tableSetupColumn("Two")
-		ui:tableSetupColumn("Three")
-		ui:tableHeadersRow()
-		
-		clipper:beginClip(1000)
-		while (clipper:step()) do 
-			for row = clipper:getDisplayStart(), clipper:getDisplayEnd() do 
-				ui:tableNextRow()
-				for column = 1, 3 do 
-					ui:tableSetColumnIndex(column - 1)
-					ui:text(("col: %d; row: %d"):format(column, row))
+function onEnterFrame(e)
+	ui:newFrame(e.deltaTime)
+	
+	if (ui:beginWindow("Clipper demo")) then
+		if (ui:beginTable("table", 3)) then
+			ui:tableSetupScrollFreeze(0, 1)
+			ui:tableSetupColumn("One")
+			ui:tableSetupColumn("Two")
+			ui:tableSetupColumn("Three")
+			ui:tableHeadersRow()
+			
+			clipper:beginClip(1000)
+			while (clipper:step()) do 
+				for row = clipper:getDisplayStart(), clipper:getDisplayEnd() do 
+					ui:tableNextRow()
+					for column = 1, 3 do 
+						ui:tableSetColumnIndex(column - 1)
+						ui:text(("col: %d; row: %d"):format(column, row))
+					end
 				end
 			end
+			clipper:endClip()
+			
+			ui:endTable()
 		end
-		clipper:endClip()
-		
-		ui:endTable()
 	end
+	ui:endWindow()
+	
+	ui:endFrame()
+	ui:render()
 end
-ui:endWindow()
+
+stage:addEventListener("enterFrame", onEnterFrame)
+```
+
+## ImGuiTextFilter
+Try to avoid creating new instaces in "enterFrame" event
+### Constructor
+```lua
+filter = ImGuiTextFilter.new()
+```
+### Methods
+```lua
+bool = filter:draw(label [, width = 0]) -- draws the input field
+bool = filter:passFilter(text) -- returns true if filter input matches with "text"
+```
+### Usage example
+https://github.com/MultiPain/Gideros_ImGui/blob/28d2cdd4f393d6f2048792e51f695d56d7e0ae9a/imgui_src/imgui_demo.cpp#L5657
+```lua
+ui = ImGui.new()
+stage:addChild(ui)
+
+filter = ImGuiTextFilter.new()
+items = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" }
+
+function onEnterFrame(e)
+	ui:newFrame(e.deltaTime)
+	
+	if (ui:beginWindow("Filter demo")) then
+		ui:text(
+[[Filter usage:
+	""         display all lines
+	"xxx"      display lines containing "xxx"
+	"xxx,yyy"  display lines containing "xxx" or "yyy"
+	"-xxx"     hide lines containing "xxx"]])
+		
+		filter:draw("Filter")
+		
+		for i, text in ipairs(items) do 
+			if filter:passFilter(text) then 
+				ui:bulletText(text)
+			end
+		end
+	end
+	ui:endWindow()
+	
+	ui:endFrame()
+	ui:render()
+end
+
+stage:addEventListener("enterFrame", onEnterFrame)
 ```
 
 ## Focus, Activation
