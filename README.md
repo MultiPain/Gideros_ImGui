@@ -2256,9 +2256,9 @@ DrawList:addRect(
 	p_max_x, p_max_y, 
 	color 
 	[, alpha = 1, 
-	rounding = 0, rounding_corners = ImGui.CornerFlags_All, 
+	rounding = 0, rounding_corners = ImGui.DrawFlags_RoundCornersAll, 
 	thickness = 1])
-DrawList:addRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.CornerFlags_All])
+DrawList:addRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.DrawFlags_RoundCornersAll])
 DrawList:addRectFilledMultiColor(p_min_x, p_min_y, p_max_x, p_max_y, color_upr_left, color_upr_right, color_bot_right, color_bot_left)
 DrawList:addQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color [, alpha = 1, thickness = 1])
 DrawList:addQuadFilled(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color)
@@ -2331,7 +2331,7 @@ DrawList:pathArcTo(center_x, center_y, radius, a_min, a_max [, num_segments = 10
 DrawList:pathArcToFast(center_x, center_y, radius, a_min, a_max)
 DrawList:pathBezierCubicCurveTo(p2x, p2y, p3x, p3y, p4x, p4y [, num_segments = 0])
 DrawList:pathBezierQuadraticCurveTo(p2x, p2y, p3x, p3y [, num_segments = 0])
-DrawList:pathRect(min_x, min_y, max_x, max_y [, rounding = 0, ImGui.CornerFlags = 0])
+DrawList:pathRect(min_x, min_y, max_x, max_y [, rounding = 0, ImGui.DrawFlags = 0])
 -- CUSTOM
 -- rotate any draw list item around its center point
 DrawList:rotateBegin()
