@@ -1257,13 +1257,13 @@ void ed::EditorContext::End(bool showMetrics)
         else if (accept(m_SizeAction))
             m_CurrentAction = &m_SizeAction;
         else if (accept(m_DragAction))
-            m_CurrentAction = &m_DragAction;
-        else if (accept(m_SelectAction))
-            m_CurrentAction = &m_SelectAction;
+			m_CurrentAction = &m_DragAction;
         else if (accept(m_CreateItemAction))
             m_CurrentAction = &m_CreateItemAction;
         else if (accept(m_DeleteItemsAction))
             m_CurrentAction = &m_DeleteItemsAction;
+		else if (accept(m_SelectAction))
+			m_CurrentAction = &m_SelectAction;
 
         if (possibleAction)
             ImGui::SetMouseCursor(possibleAction->GetCursor());
@@ -4392,9 +4392,6 @@ bool ed::ShortcutAction::AcceptCreateNode()
     return m_CurrentAction == CreateNode;
 }
 
-
-
-
 //------------------------------------------------------------------------------
 //
 // Create Item Action
@@ -4984,24 +4981,25 @@ bool ed::DeleteItemsAction::AcceptItem(bool deleteDependencies)
     return true;
 }
 
-void ed::DeleteItemsAction::RejectItem()
+void ed::DeleteItemsAction::RejectItem(bool deleteSettings)
 {
     if (!m_InInteraction)
         return;
 
     m_UserAction = Rejected;
 
-    RemoveItem(false);
+	RemoveItem(false, deleteSettings);
 }
 
-void ed::DeleteItemsAction::RemoveItem(bool deleteDependencies)
+void ed::DeleteItemsAction::RemoveItem(bool deleteDependencies, bool deleteSettings)
 {
     auto item = m_CandidateObjects[m_CandidateItemIndex];
     m_CandidateObjects.erase(m_CandidateObjects.begin() + m_CandidateItemIndex);
 
     Editor->DeselectObject(item);
 
-    Editor->RemoveSettings(item);
+	if (deleteSettings)
+		Editor->RemoveSettings(item);
 
     if (deleteDependencies && m_CurrentItemType == Node)
         DeleteDeadLinks(item->ID().AsNodeId());

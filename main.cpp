@@ -144,6 +144,7 @@ class CallbackData
 public:
 	int functionIndex = -1;
 	int argumentIndex = -1;
+	int flags = 0;
 
 	lua_State* L;
 
@@ -509,11 +510,30 @@ static int InputTextCallback(ImGuiInputTextCallbackData* data)
 	if (callbackData->argumentIndex != -1)
 	{
 		lua_rawgeti(L, LUA_REGISTRYINDEX, callbackData->argumentIndex);
-		lua_call(L, 2, 0);
+
+		if (callbackData->flags & ImGuiInputTextFlags_CallbackCharFilter)
+		{
+			lua_call(L, 2, 1);
+			int res = lua_toboolean(L, -1);
+			return res;
+		}
+		else
+		{
+			lua_call(L, 2, 0);
+		}
 	}
 	else
 	{
-		lua_call(L, 1, 0);
+		if (callbackData->flags & ImGuiInputTextFlags_CallbackCharFilter)
+		{
+			lua_call(L, 1, 1);
+			int res = lua_toboolean(L, -1);
+			return res;
+		}
+		else
+		{
+			lua_call(L, 1, 0);
+		}
 	}
 	return 0;
 }
@@ -3955,6 +3975,7 @@ int InputText(lua_State* L)
 	if (lua_gettop(L) > 5)
 	{
 		CallbackData* callback = new CallbackData(L, 6);
+		callback->flags = flags;
 		imgui->callbacks.push_back(callback);
 
 		result = ImGui::InputText(label, buffer, buffer_size, flags, InputTextCallback, (void*)callback);
@@ -3987,6 +4008,7 @@ int InputTextMultiline(lua_State* L)
 	{
 		GidImGui* imgui = getImgui(L);
 		CallbackData* callback = new CallbackData(L, 8);
+		callback->flags = flags;
 		imgui->callbacks.push_back(callback);
 
 		result = ImGui::InputTextMultiline(label, buffer, buffer_size, size, flags, InputTextCallback, (void*)callback);
@@ -4021,6 +4043,7 @@ int InputTextWithHint(lua_State* L)
 	{
 		GidImGui* imgui = getImgui(L);
 		CallbackData* callback = new CallbackData(L, 7);
+		callback->flags = flags;
 		imgui->callbacks.push_back(callback);
 
 		result = ImGui::InputTextWithHint(label, hint, buffer, buf_size, flags, InputTextCallback, (void *)callback);
@@ -6923,7 +6946,25 @@ int SetStringDragDropPayload(lua_State* L)
 	return 1;
 }
 
-int EndDragDropSource(lua_State* _UNUSED(L))
+int SetArrDragDropPayload(lua_State* L)
+{
+	GidImGui* imgui = getImgui(L);
+	STACK_CHECKER(L, "setArrDragDropPayload", 1);
+
+	const char* type = luaL_checkstring(L, 2);
+	luaL_checktype(L, 3, LUA_TTABLE);
+	ImGuiCond cond = luaL_optinteger(L, 4, 0);
+
+	void* data = imgui->ctx->DragDropPayload.Data;
+
+	lua_pushvalue(L, 3);
+	int idx = luaL_ref(L, LUA_REGISTRYINDEX);
+
+	lua_pushboolean(L, ImGui::SetDragDropPayload(type, (const void*)&idx, sizeof(int), cond));
+	return 1;
+}
+
+int EndDragDropSource(lua_State* L)
 {
 	STACK_CHECKER(L, "endDragDropSource", 0);
 
@@ -6958,7 +6999,7 @@ int AcceptDragDropPayload(lua_State* L)
 	return 1;
 }
 
-int EndDragDropTarget(lua_State* _UNUSED(L))
+int EndDragDropTarget(lua_State* L)
 {
 	STACK_CHECKER(L, "endDragDropTarget", 0);
 
@@ -7000,6 +7041,17 @@ int Payload_GetStringData(lua_State* L)
 	ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload");
 	const char* str = static_cast<const char*>(payload->Data);
 	lua_pushlstring(L, str, payload->DataSize);
+	return 1;
+}
+
+int Payload_GetArrData(lua_State* L)
+{
+	STACK_CHECKER(L, "getArrData", 1);
+
+	ImGuiPayload* payload = getPtr<ImGuiPayload>(L, "ImGuiPayload");
+	int* idx = (int*)(payload->Data);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, *idx);
+	luaL_unref(L, LUA_REGISTRYINDEX, *idx);
 	return 1;
 }
 
@@ -13029,6 +13081,7 @@ int loader(lua_State* L)
 	const luaL_Reg imguiPayloadFunctionsList[] = {
 		{"getNumData", Payload_GetNumberData},
 		{"getStrData", Payload_GetStringData},
+		{"getArrData", Payload_GetArrData},
 		{"getColor3Data", Payload_GetColor3Data},
 		{"getColor4Data", Payload_GetColor4Data},
 		{"clear", Payload_Clear},
@@ -13538,6 +13591,7 @@ int loader(lua_State* L)
 		{"beginDragDropSource", BeginDragDropSource},
 		{"setNumDragDropPayload", SetNumberDragDropPayload},
 		{"setStrDragDropPayload", SetStringDragDropPayload},
+		{"setArrDragDropPayload", SetArrDragDropPayload},
 		{"endDragDropSource", EndDragDropSource},
 		{"beginDragDropTarget", BeginDragDropTarget},
 		{"acceptDragDropPayload", AcceptDragDropPayload},

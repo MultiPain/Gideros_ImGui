@@ -305,7 +305,9 @@ bool BeginDelete();
 bool QueryDeletedLink(LinkId* linkId, PinId* startId = nullptr, PinId* endId = nullptr);
 bool QueryDeletedNode(NodeId* nodeId);
 bool AcceptDeletedItem(bool deleteDependencies = true);
-void RejectDeletedItem();
+// @MultiPain
+//void RejectDeletedItem();
+void RejectDeletedItem(bool deleteSettings = true);
 void EndDelete();
 
 void SetNodePosition(NodeId nodeId, const ImVec2& editorPosition);
@@ -324,6 +326,12 @@ bool IsSuspended();
 
 bool IsActive();
 
+int GetDragNode(); // @MultiPain
+const char* GetCurrentActionName(); // @MultiPain
+bool IsDragAction(); // @MultiPain
+
+bool IsAnyNodeSelected(); // @MultiPain
+bool IsAnyLinkSelected(); // @MultiPain
 bool HasSelectionChanged();
 int  GetSelectedObjectCount();
 int  GetSelectedNodes(NodeId* nodes, int size);

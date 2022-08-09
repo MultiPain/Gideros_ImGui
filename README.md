@@ -650,27 +650,44 @@ ImGui:bullet()
 ```lua
 -- Images are streched (ImGui default functions)
 ImGui:image(texture, w, h [, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
+ImGui:imageUV(texture, 
+	w, h,
+	uv0x, uv0y,
+	uv1x, uv1y,
+	[, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
 pressFlag = ImGui:imageButton(texture, w, h [, padding = -1, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
+pressFlag = ImGui:imageButtonUV(texture, 
+	w, h,
+	uv0x, uv0y,
+	uv1x, uv1y,
+	[, padding = -1, tint_color = 0xffffff, tint_alpha = 1, border_color = 0xffffff, border_alpha = 0])
+
 -- Images are scaled (extended by @MultiPain)
 -- padding deprecated (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
 ImGui:scaledImage(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-		  anchor_x = 0.5, anchor_y = 0.5, 
-		  tint_col = 0xffffff, tint_alpha = 1, 
-		  border_col = 0, border_alpha = 0, 
-		  bg_col = 0, bg_alpha = 0])
+	anchor_x = 0.5, anchor_y = 0.5, 
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+		  
 pressFlag = ImGui:scaledImageButton(texture, w, h [, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-				    ImGui.ButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
-		 		    clip_offset_x = 0, clip_offset_y = 0,
-				    tint_col = 0xffffff, tint_alpha = 1, 
-				    border_col = 0, border_alpha = 0, 
-				    bg_col = 0, bg_alpha = 0])
+	ImGui.ButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
+	clip_offset_x = 0, clip_offset_y = 0,
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+					
 pressFlag = ImGui:scaledImageButtonWithText(texture, label, image_w, image_h [, button_w = 0, button_h = 0, 
-					    ImGui.ButtonFlags = 0, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
-					    anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
-					    clip_offset_x = 0, clip_offset_y = 0,
-					    tint_col = 0xffffff, tint_alpha = 1, 
-					    border_col = 0, border_alpha = 0, 
-					    bg_col = 0, bg_alpha = 0])
+	ImGui.ButtonFlags = 0, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
+	anchor_x = 0.5, anchor_y = 0.5, image_side = ImGui.Dir_Left, 
+	clip_offset_x = 0, clip_offset_y = 0,
+	tint_col = 0xffffff, tint_alpha = 1, 
+	border_col = 0, border_alpha = 0, 
+	bg_col = 0, bg_alpha = 0])
+						
 ```
 
 ## Widgets: Combo Box
@@ -1142,36 +1159,94 @@ number = ImGuiListClipper:getStartPosY()
 number = ImGuiListClipper:getItemsCount()
 ImGuiListClipper:forceDisplayRangeByIndices(number_min, number_max)
 ```
-### Example
+### Usage example
 ```lua
--- before "enterFrame" event:
+ui = ImGui.new()
+stage:addChild(ui)
+
 clipper = ImGuiListClipper.new()
 
--- inside "enterFrame":
-if (ui:beginWindow("Clipper demo")) then
-	if (ui:beginTable("table", 3)) then
-		ui:tableSetupScrollFreeze(0, 1)
-		ui:tableSetupColumn("One")
-		ui:tableSetupColumn("Two")
-		ui:tableSetupColumn("Three")
-		ui:tableHeadersRow()
-		
-		clipper:beginClip(1000)
-		while (clipper:step()) do 
-			for row = clipper:getDisplayStart(), clipper:getDisplayEnd() do 
-				ui:tableNextRow()
-				for column = 1, 3 do 
-					ui:tableSetColumnIndex(column - 1)
-					ui:text(("col: %d; row: %d"):format(column, row))
+function onEnterFrame(e)
+	ui:newFrame(e.deltaTime)
+	
+	if (ui:beginWindow("Clipper demo")) then
+		if (ui:beginTable("table", 3)) then
+			ui:tableSetupScrollFreeze(0, 1)
+			ui:tableSetupColumn("One")
+			ui:tableSetupColumn("Two")
+			ui:tableSetupColumn("Three")
+			ui:tableHeadersRow()
+			
+			clipper:beginClip(1000)
+			while (clipper:step()) do 
+				for row = clipper:getDisplayStart(), clipper:getDisplayEnd() do 
+					ui:tableNextRow()
+					for column = 1, 3 do 
+						ui:tableSetColumnIndex(column - 1)
+						ui:text(("col: %d; row: %d"):format(column, row))
+					end
 				end
 			end
+			clipper:endClip()
+			
+			ui:endTable()
 		end
-		clipper:endClip()
-		
-		ui:endTable()
 	end
+	ui:endWindow()
+	
+	ui:endFrame()
+	ui:render()
 end
-ui:endWindow()
+
+stage:addEventListener("enterFrame", onEnterFrame)
+```
+
+## ImGuiTextFilter
+Try to avoid creating new instaces in "enterFrame" event
+### Constructor
+```lua
+filter = ImGuiTextFilter.new()
+```
+### Methods
+```lua
+bool = filter:draw(label [, width = 0]) -- draws the input field
+bool = filter:passFilter(text) -- returns true if filter input matches with "text"
+```
+### Usage example
+https://github.com/MultiPain/Gideros_ImGui/blob/28d2cdd4f393d6f2048792e51f695d56d7e0ae9a/imgui_src/imgui_demo.cpp#L5657
+```lua
+ui = ImGui.new()
+stage:addChild(ui)
+
+filter = ImGuiTextFilter.new()
+items = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" }
+
+function onEnterFrame(e)
+	ui:newFrame(e.deltaTime)
+	
+	if (ui:beginWindow("Filter demo")) then
+		ui:text(
+[[Filter usage:
+	""         display all lines
+	"xxx"      display lines containing "xxx"
+	"xxx,yyy"  display lines containing "xxx" or "yyy"
+	"-xxx"     hide lines containing "xxx"]])
+		
+		filter:draw("Filter")
+		
+		for i, text in ipairs(items) do 
+			if filter:passFilter(text) then 
+				ui:bulletText(text)
+			end
+		end
+	end
+	ui:endWindow()
+	
+	ui:endFrame()
+	ui:render()
+end
+
+stage:addEventListener("enterFrame", onEnterFrame)
 ```
 
 ## Focus, Activation
@@ -1425,146 +1500,146 @@ number = Breakpoints:getSize()
 
 #### Keys
 ```lua
-ImGui.ImGuiKey_None
-ImGui.ImGuiKey_Tab
-ImGui.ImGuiKey_LeftArrow
-ImGui.ImGuiKey_RightArrow
-ImGui.ImGuiKey_UpArrow
-ImGui.ImGuiKey_DownArrow
-ImGui.ImGuiKey_PageUp
-ImGui.ImGuiKey_PageDown
-ImGui.ImGuiKey_Home
-ImGui.ImGuiKey_End
-ImGui.ImGuiKey_Insert
-ImGui.ImGuiKey_Delete
-ImGui.ImGuiKey_Backspace
-ImGui.ImGuiKey_Space
-ImGui.ImGuiKey_Enter
-ImGui.ImGuiKey_Escape
-ImGui.ImGuiKey_LeftCtrl
-ImGui.ImGuiKey_LeftShift
-ImGui.ImGuiKey_LeftAlt
-ImGui.ImGuiKey_LeftSuper
-ImGui.ImGuiKey_RightCtrl
-ImGui.ImGuiKey_RightShift
-ImGui.ImGuiKey_RightAlt
-ImGui.ImGuiKey_RightSuper
-ImGui.ImGuiKey_Menu
-ImGui.ImGuiKey_0
-ImGui.ImGuiKey_1
-ImGui.ImGuiKey_2
-ImGui.ImGuiKey_3
-ImGui.ImGuiKey_4
-ImGui.ImGuiKey_5
-ImGui.ImGuiKey_6
-ImGui.ImGuiKey_7
-ImGui.ImGuiKey_8
-ImGui.ImGuiKey_9
-ImGui.ImGuiKey_A
-ImGui.ImGuiKey_B
-ImGui.ImGuiKey_C
-ImGui.ImGuiKey_D
-ImGui.ImGuiKey_E
-ImGui.ImGuiKey_F
-ImGui.ImGuiKey_G
-ImGui.ImGuiKey_H
-ImGui.ImGuiKey_I
-ImGui.ImGuiKey_J
-ImGui.ImGuiKey_K
-ImGui.ImGuiKey_L
-ImGui.ImGuiKey_M
-ImGui.ImGuiKey_N
-ImGui.ImGuiKey_O
-ImGui.ImGuiKey_P
-ImGui.ImGuiKey_Q
-ImGui.ImGuiKey_R
-ImGui.ImGuiKey_S
-ImGui.ImGuiKey_T
-ImGui.ImGuiKey_U
-ImGui.ImGuiKey_V
-ImGui.ImGuiKey_W
-ImGui.ImGuiKey_X
-ImGui.ImGuiKey_Y
-ImGui.ImGuiKey_Z
-ImGui.ImGuiKey_F1
-ImGui.ImGuiKey_F2
-ImGui.ImGuiKey_F3
-ImGui.ImGuiKey_F4
-ImGui.ImGuiKey_F5
-ImGui.ImGuiKey_F6
-ImGui.ImGuiKey_F7
-ImGui.ImGuiKey_F8
-ImGui.ImGuiKey_F9
-ImGui.ImGuiKey_F10
-ImGui.ImGuiKey_F11
-ImGui.ImGuiKey_F12
-ImGui.ImGuiKey_Apostrophe
-ImGui.ImGuiKey_Comma
-ImGui.ImGuiKey_Minus
-ImGui.ImGuiKey_Period
-ImGui.ImGuiKey_Slash
-ImGui.ImGuiKey_Semicolon
-ImGui.ImGuiKey_Equal
-ImGui.ImGuiKey_LeftBracket
-ImGui.ImGuiKey_Backslash
-ImGui.ImGuiKey_RightBracket
-ImGui.ImGuiKey_GraveAccent
-ImGui.ImGuiKey_CapsLock
-ImGui.ImGuiKey_ScrollLock
-ImGui.ImGuiKey_NumLock
-ImGui.ImGuiKey_PrintScreen
-ImGui.ImGuiKey_Pause
-ImGui.ImGuiKey_Keypad0
-ImGui.ImGuiKey_Keypad1
-ImGui.ImGuiKey_Keypad2
-ImGui.ImGuiKey_Keypad3
-ImGui.ImGuiKey_Keypad4
-ImGui.ImGuiKey_Keypad5
-ImGui.ImGuiKey_Keypad6
-ImGui.ImGuiKey_Keypad7
-ImGui.ImGuiKey_Keypad8
-ImGui.ImGuiKey_Keypad9
-ImGui.ImGuiKey_KeypadDecimal
-ImGui.ImGuiKey_KeypadDivide
-ImGui.ImGuiKey_KeypadMultiply
-ImGui.ImGuiKey_KeypadSubtract
-ImGui.ImGuiKey_KeypadAdd
-ImGui.ImGuiKey_KeypadEnter
-ImGui.ImGuiKey_KeypadEqual
+ImGui.Key_None
+ImGui.Key_Tab
+ImGui.Key_LeftArrow
+ImGui.Key_RightArrow
+ImGui.Key_UpArrow
+ImGui.Key_DownArrow
+ImGui.Key_PageUp
+ImGui.Key_PageDown
+ImGui.Key_Home
+ImGui.Key_End
+ImGui.Key_Insert
+ImGui.Key_Delete
+ImGui.Key_Backspace
+ImGui.Key_Space
+ImGui.Key_Enter
+ImGui.Key_Escape
+ImGui.Key_LeftCtrl
+ImGui.Key_LeftShift
+ImGui.Key_LeftAlt
+ImGui.Key_LeftSuper
+ImGui.Key_RightCtrl
+ImGui.Key_RightShift
+ImGui.Key_RightAlt
+ImGui.Key_RightSuper
+ImGui.Key_Menu
+ImGui.Key_0
+ImGui.Key_1
+ImGui.Key_2
+ImGui.Key_3
+ImGui.Key_4
+ImGui.Key_5
+ImGui.Key_6
+ImGui.Key_7
+ImGui.Key_8
+ImGui.Key_9
+ImGui.Key_A
+ImGui.Key_B
+ImGui.Key_C
+ImGui.Key_D
+ImGui.Key_E
+ImGui.Key_F
+ImGui.Key_G
+ImGui.Key_H
+ImGui.Key_I
+ImGui.Key_J
+ImGui.Key_K
+ImGui.Key_L
+ImGui.Key_M
+ImGui.Key_N
+ImGui.Key_O
+ImGui.Key_P
+ImGui.Key_Q
+ImGui.Key_R
+ImGui.Key_S
+ImGui.Key_T
+ImGui.Key_U
+ImGui.Key_V
+ImGui.Key_W
+ImGui.Key_X
+ImGui.Key_Y
+ImGui.Key_Z
+ImGui.Key_F1
+ImGui.Key_F2
+ImGui.Key_F3
+ImGui.Key_F4
+ImGui.Key_F5
+ImGui.Key_F6
+ImGui.Key_F7
+ImGui.Key_F8
+ImGui.Key_F9
+ImGui.Key_F10
+ImGui.Key_F11
+ImGui.Key_F12
+ImGui.Key_Apostrophe
+ImGui.Key_Comma
+ImGui.Key_Minus
+ImGui.Key_Period
+ImGui.Key_Slash
+ImGui.Key_Semicolon
+ImGui.Key_Equal
+ImGui.Key_LeftBracket
+ImGui.Key_Backslash
+ImGui.Key_RightBracket
+ImGui.Key_GraveAccent
+ImGui.Key_CapsLock
+ImGui.Key_ScrollLock
+ImGui.Key_NumLock
+ImGui.Key_PrintScreen
+ImGui.Key_Pause
+ImGui.Key_Keypad0
+ImGui.Key_Keypad1
+ImGui.Key_Keypad2
+ImGui.Key_Keypad3
+ImGui.Key_Keypad4
+ImGui.Key_Keypad5
+ImGui.Key_Keypad6
+ImGui.Key_Keypad7
+ImGui.Key_Keypad8
+ImGui.Key_Keypad9
+ImGui.Key_KeypadDecimal
+ImGui.Key_KeypadDivide
+ImGui.Key_KeypadMultiply
+ImGui.Key_KeypadSubtract
+ImGui.Key_KeypadAdd
+ImGui.Key_KeypadEnter
+ImGui.Key_KeypadEqual
 ```
 #### Gamepad
 ```lua
-ImGui.ImGuiKey_GamepadStart
-ImGui.ImGuiKey_GamepadBack
-ImGui.ImGuiKey_GamepadFaceUp
-ImGui.ImGuiKey_GamepadFaceDown
-ImGui.ImGuiKey_GamepadFaceLeft
-ImGui.ImGuiKey_GamepadFaceRight
-ImGui.ImGuiKey_GamepadDpadUp
-ImGui.ImGuiKey_GamepadDpadDown
-ImGui.ImGuiKey_GamepadDpadLeft
-ImGui.ImGuiKey_GamepadDpadRight
-ImGui.ImGuiKey_GamepadL1
-ImGui.ImGuiKey_GamepadR1
-ImGui.ImGuiKey_GamepadL2
-ImGui.ImGuiKey_GamepadR2
-ImGui.ImGuiKey_GamepadL3
-ImGui.ImGuiKey_GamepadR3
-ImGui.ImGuiKey_GamepadLStickUp
-ImGui.ImGuiKey_GamepadLStickDown
-ImGui.ImGuiKey_GamepadLStickLeft
-ImGui.ImGuiKey_GamepadLStickRight
-ImGui.ImGuiKey_GamepadRStickUp
-ImGui.ImGuiKey_GamepadRStickDown
-ImGui.ImGuiKey_GamepadRStickLeft
-ImGui.ImGuiKey_GamepadRStickRight
+ImGui.Key_GamepadStart
+ImGui.Key_GamepadBack
+ImGui.Key_GamepadFaceUp
+ImGui.Key_GamepadFaceDown
+ImGui.Key_GamepadFaceLeft
+ImGui.Key_GamepadFaceRight
+ImGui.Key_GamepadDpadUp
+ImGui.Key_GamepadDpadDown
+ImGui.Key_GamepadDpadLeft
+ImGui.Key_GamepadDpadRight
+ImGui.Key_GamepadL1
+ImGui.Key_GamepadR1
+ImGui.Key_GamepadL2
+ImGui.Key_GamepadR2
+ImGui.Key_GamepadL3
+ImGui.Key_GamepadR3
+ImGui.Key_GamepadLStickUp
+ImGui.Key_GamepadLStickDown
+ImGui.Key_GamepadLStickLeft
+ImGui.Key_GamepadLStickRight
+ImGui.Key_GamepadRStickUp
+ImGui.Key_GamepadRStickDown
+ImGui.Key_GamepadRStickLeft
+ImGui.Key_GamepadRStickRight
 ```
 #### Modifiers
 ```lua
-ImGui.ImGuiKey_ModCtrl
-ImGui.ImGuiKey_ModShift
-ImGui.ImGuiKey_ModAlt
-ImGui.ImGuiKey_ModSuper
+ImGui.Key_ModCtrl
+ImGui.Key_ModShift
+ImGui.Key_ModAlt
+ImGui.Key_ModSuper
 ```
 
 ### FocusedFlags
@@ -1937,16 +2012,17 @@ ImGui.DragDropFlags_SourceNoDisableHover
 
 ### corner_flags
 ```lua
-ImGui.corner_flags_None
-ImGui.corner_flags_TopLeft
-ImGui.corner_flags_TopRight
-ImGui.corner_flags_BotLeft
-ImGui.corner_flags_BotRight
-ImGui.corner_flags_Top
-ImGui.corner_flags_Bot
-ImGui.corner_flags_Left
-ImGui.corner_flags_Right
-ImGui.CornerFlags_All
+ImGui.DrawFlags_None
+ImGui.DrawFlags_Closed
+ImGui.DrawFlags_RoundCornersTopLeft
+ImGui.DrawFlags_RoundCornersTopRight
+ImGui.DrawFlags_RoundCornersBottomLeft
+ImGui.DrawFlags_RoundCornersBottomRight
+ImGui.DrawFlags_RoundCornersTop
+ImGui.DrawFlags_RoundCornersBottom
+ImGui.DrawFlags_RoundCornersLeft
+ImGui.DrawFlags_RoundCornersRight
+ImGui.DrawFlags_RoundCornersAll
 ```
 
 ### ConfigFlags
@@ -2175,7 +2251,13 @@ DrawList:popTextureID()
 x, y = DrawList:getClipRectMin()
 x, y = DrawList:getClipRectMax()
 DrawList:addLine(p1_x, p1_y, p2_x, p2_y, color [, alpha = 1, thickness = 1])
-DrawList:addRect(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.CornerFlags_All, thickness = 1])
+DrawList:addRect(
+	p_min_x, p_min_y, 
+	p_max_x, p_max_y, 
+	color 
+	[, alpha = 1, 
+	rounding = 0, rounding_corners = ImGui.CornerFlags_All, 
+	thickness = 1])
 DrawList:addRectFilled(p_min_x, p_min_y, p_max_x, p_max_y, color [, alpha = 1, rounding = 0, rounding_corners = ImGui.CornerFlags_All])
 DrawList:addRectFilledMultiColor(p_min_x, p_min_y, p_max_x, p_max_y, color_upr_left, color_upr_right, color_bot_right, color_bot_left)
 DrawList:addQuad(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color [, alpha = 1, thickness = 1])
@@ -2187,14 +2269,59 @@ DrawList:addCircleFilled(center_x, center_y, radius, color [, alpha = 1, num_seg
 DrawList:addNgon(center_x, center_y, radius, color [, alpha = 1, num_segments = 12, thickness = 1])
 DrawList:addNgonFilled(center_x, center_y, radius, color [, alpha = 1, num_segments = 12])
 DrawList:addText(x, y, color, alpha, text) -- x, y (number), text_begin (string), text_end (string)
-DrawList:addFontText(font, font_size, pos_x, pos_y, color, alpha, text [, wrap_with = 0, cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
+DrawList:addFontText(font, font_size, 
+	pos_x, pos_y, 
+	color, alpha, 
+	text 
+	[, wrap_with = 0, 
+	cpu_fine_clip_rect_x, cpu_fine_clip_rect_y, 
+	cpu_fine_clip_rect_w, cpu_fine_clip_rect_h])
 DrawList:addPolyline(points_table, color, alpha, closed, thickness) -- points_table (table), color (number), closed (bool), thickness (number)
 DrawList:addConvexPolyFilled(points_table, color) -- points_table (table), color (number)
-DrawList:addBezierCubic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y, color, alpha, thickness [, num_segments = 0])
-DrawList:addBezierQuadratic(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, color, alpha, thickness [, num_segments = 0])
-DrawList:addImage(texture, x, y, x + w, y + h [, tint_color = 0xffffff, tint_alpha = 1]) 
-DrawList:addImageQuad(texture, x, y, x + w, y, x + w, y + h, x, y + h [, tint_color = 0xffffff, tint_alpha = 1, uv0x = 0, uv0y = 0, uv1x = 1, uv1y = 0, uv2x = 1, uv2y = 1, uv3x = 
-DrawList:addImageRounded(texture, x, y, x + w, y + h, tint_color, tint_alpha, round_radius [, corner_flags = ImGui.CorenerFlags_All])
+DrawList:addBezierCubic(
+	p1_x, p1_y, 
+	p2_x, p2_y, 
+	p3_x, p3_y, 
+	p4_x, p4_y, 
+	color, alpha, thickness [, num_segments = 0])
+DrawList:addBezierQuadratic(
+	p1_x, p1_y, 
+	p2_x, p2_y, 
+	p3_x, p3_y, 
+	color, alpha, thickness [, num_segments = 0])
+DrawList:addImage(texture, 
+	x, y, 
+	x + w, y + h 
+	[, tint_color = 0xffffff, tint_alpha = 1]) 
+DrawList:addImageUV(texture, 
+	x, y, 
+	x + w, y + h, 
+	uv0x, uv0y, 
+	uv1x, uv1y 
+	[, tint_color = 0xffffff, tint_alpha = 1]) 
+DrawList:addImageQuad(texture, 
+	x, y, 
+	x + w, y, 
+	x + w, y + h, 
+	x, y + h 
+	[, tint_color = 0xffffff, tint_alpha = 1, 
+	uv0x = 0, uv0y = 0, 
+	uv1x = 1, uv1y = 0, 
+	uv2x = 1, uv2y = 1, 
+	uv3x = 0, uv3y = 1])
+DrawList:addImageRounded(texture, 
+	x, y, 
+	x + w, 
+	y + h, 
+	tint_color, tint_alpha, round_radius 
+	[, corner_flags = ImGui.CorenerFlags_All])
+DrawList:addImageRoundedUV(texture, 
+	x, y, 
+	x + w, y + h, 
+	uv0x, uv0y, 
+	uv1x, uv1y, 
+	tint_color, tint_alpha, round_radius 
+	[, corner_flags = ImGui.CorenerFlags_All])
 DrawList:pathClear()
 DrawList:pathLineTo(x, y)
 DrawList:pathLineToMergeDuplicate(x, y)

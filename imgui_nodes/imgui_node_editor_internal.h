@@ -1142,7 +1142,9 @@ struct DeleteItemsAction final: EditorAction
     bool QueryNode(NodeId* nodeId);
 
     bool AcceptItem(bool deleteDependencies);
-    void RejectItem();
+	// @MultiPain
+	//void RejectItem();
+	void RejectItem(bool deleteSettings = true);
 
 private:
     enum IteratorType { Unknown, Link, Node };
@@ -1151,7 +1153,9 @@ private:
     void DeleteDeadLinks(NodeId nodeId);
 
     bool QueryItem(ObjectId* itemId, IteratorType itemType);
-    void RemoveItem(bool deleteDependencies);
+	// @MultiPain
+	//void RemoveItem(bool deleteDependencies);
+	void RemoveItem(bool deleteDependencies, bool deleteSettings = true);
 
     vector<Object*> m_ManuallyDeletedObjects;
 

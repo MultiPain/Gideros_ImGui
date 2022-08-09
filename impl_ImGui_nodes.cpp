@@ -464,7 +464,8 @@ int ImNodes_impl::AcceptDeletedItem(lua_State* L)
 
 int ImNodes_impl::RejectDeletedItem(lua_State* L)
 {
-	NodeEditor::RejectDeletedItem();
+	bool deleteSettings = luaL_optboolean(L, 2, 1);
+	NodeEditor::RejectDeletedItem(deleteSettings);
 	return 0;
 }
 
@@ -575,6 +576,11 @@ int ImNodes_impl::GetSelectedObjectCount(lua_State* L)
 int ImNodes_impl::GetSelectedNodes(lua_State* L)
 {
 	int size = luaL_checkinteger(L, 2);
+	if (size <= 0)
+	{
+		return 0;
+	}
+
 	NodeEditor::NodeId* list = new NodeEditor::NodeId[size];
 	int count = NodeEditor::GetSelectedNodes(list, size);
 
@@ -593,6 +599,12 @@ int ImNodes_impl::GetSelectedNodes(lua_State* L)
 int ImNodes_impl::GetSelectedLinks(lua_State* L)
 {
 	int size = luaL_checkinteger(L, 2);
+
+	if (size <= 0)
+	{
+		return 0;
+	}
+
 	NodeEditor::LinkId* list = new NodeEditor::LinkId[size];
 	int count = NodeEditor::GetSelectedLinks(list, size);
 
@@ -605,6 +617,18 @@ int ImNodes_impl::GetSelectedLinks(lua_State* L)
 	}
 
 	delete[] list;
+	return 1;
+}
+
+int ImNodes_impl::IsAnyNodeSelected(lua_State* L)
+{
+	lua_pushboolean(L, NodeEditor::IsAnyNodeSelected());
+	return 1;
+}
+
+int ImNodes_impl::IsAnyLinkSelected(lua_State* L)
+{
+	lua_pushboolean(L, NodeEditor::IsAnyLinkSelected());
 	return 1;
 }
 
@@ -668,11 +692,9 @@ int ImNodes_impl::DeleteNode(lua_State* L)
 int ImNodes_impl::DeleteLink(lua_State* L)
 {
 	NodeEditor::LinkId id = luaL_checkinteger(L, 2);
-	lua_pushboolean(L, DeleteLink(id));
+	lua_pushboolean(L, NodeEditor::DeleteLink(id));
 	return 1;
 }
-
-
 
 int ImNodes_impl::NodeHasAnyLinks(lua_State* L)
 {
@@ -805,6 +827,12 @@ int ImNodes_impl::GetActionContextSize(lua_State* L)
 int ImNodes_impl::GetActionContextNodes(lua_State* L)
 {
 	int size = luaL_checkinteger(L, 2);
+
+	if (size <= 0)
+	{
+		return 0;
+	}
+
 	NodeEditor::NodeId* list = new NodeEditor::NodeId[size];
 	int count = NodeEditor::GetActionContextNodes(list, size);
 
@@ -823,6 +851,12 @@ int ImNodes_impl::GetActionContextNodes(lua_State* L)
 int ImNodes_impl::GetActionContextLinks(lua_State* L)
 {
 	int size = luaL_checkinteger(L, 2);
+
+	if (size <= 0)
+	{
+		return 0;
+	}
+
 	NodeEditor::LinkId* list = new NodeEditor::LinkId[size];
 	int count = NodeEditor::GetActionContextLinks(list, size);
 
@@ -847,9 +881,8 @@ int ImNodes_impl::EndShortcut(lua_State* L)
 int ImNodes_impl::GetCurrentZoom(lua_State* L)
 {
 	lua_pushnumber(L, NodeEditor::GetCurrentZoom());
-	return 2;
+	return 1;
 }
-
 
 int ImNodes_impl::GetHoveredNode(lua_State* L)
 {
@@ -1472,11 +1505,21 @@ int LuaShowStyleEdior(lua_State* L)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-int GetCanvasScale(lua_State* L)
+int IsDragAction(lua_State* L)
 {
-	ax::NodeEditor::Detail::EditorContext* ctx = getPtr<ax::NodeEditor::Detail::EditorContext>(L, "ImNodeEditor");
-	auto view = ctx->GetView();
-	lua_pushnumber(L, view.Scale);
+	lua_pushboolean(L, NodeEditor::IsDragAction());
+	return 1;
+}
+
+int GetCurrentActionName(lua_State* L)
+{
+	lua_pushstring(L, NodeEditor::GetCurrentActionName());
+	return 1;
+}
+
+int GetDragNode(lua_State* L)
+{
+	lua_pushinteger(L, NodeEditor::GetDragNode());
 	return 1;
 }
 
@@ -1568,10 +1611,16 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 	g_createClass(L, "ImNodeStyle", NULL, NULL, NULL, nodesStyleFunctionsList);
 
 	const luaL_Reg nodesFunctionsList[] = {
+		{"getCurrentActionName", GetCurrentActionName},
+		{"isDragAction", IsDragAction},
+		{"getDragNode", GetDragNode},
+
 		{"drawLastLine", DrawLastLine},
 		{"setGroupSize", SetGroupSize},
 		{"setNodeZPosition", SetNodeZPosition},
 		{"getNodeZPosition", GetNodeZPosition},
+		{"isAnyNodeSelected", IsAnyNodeSelected},
+		{"isAnyLinkSelected", IsAnyLinkSelected},
 		{"isNodeSelected", IsNodeSelected},
 		{"isLinkSelected", IsLinkSelected},
 		{"nodeHasAnyLinks", NodeHasAnyLinks},
@@ -1588,8 +1637,6 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 		{"getStyle", GetStyle},
 		{"getStyleColorName", GetStyleColorName},
 		{"showStyleEdior", LuaShowStyleEdior},
-
-		{"getCanvasScale", GetCanvasScale},
 
 		{"pushStyleColor", PushStyleColor},
 		{"popStyleColor", PopStyleColor},
@@ -1616,18 +1663,13 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 		{"getHintBackgroundDrawList", GetHintBackgroundDrawList},
 		{"endGroupHint", EndGroupHint},
 
-
-		// TODO: Add a way to manage node background channels
 		{"getNodeBackgroundDrawList", GetNodeBackgroundDrawList},
 		{"link", Link},
 		{"flow", Flow},
 		{"beginCreate", BeginCreate},
 		{"queryNewLink", QueryNewLink},
 		{"queryNewNode", QueryNewNode},
-		{"queryNewNode", QueryNewNode},
 		{"acceptNewItem", AcceptNewItem},
-		{"acceptNewItem", AcceptNewItem},
-		{"rejectNewItem", RejectNewItem},
 		{"rejectNewItem", RejectNewItem},
 		{"endCreate", EndCreate},
 		{"beginDelete", BeginDelete},

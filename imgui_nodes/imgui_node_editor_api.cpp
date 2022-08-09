@@ -355,11 +355,11 @@ bool ax::NodeEditor::AcceptDeletedItem(bool deleteDependencies)
     return context.AcceptItem(deleteDependencies);
 }
 
-void ax::NodeEditor::RejectDeletedItem()
+void ax::NodeEditor::RejectDeletedItem(bool deleteSettings)
 {
     auto& context = s_Editor->GetItemDeleter();
 
-    context.RejectItem();
+	context.RejectItem(deleteSettings);
 }
 
 void ax::NodeEditor::EndDelete()
@@ -429,6 +429,39 @@ bool ax::NodeEditor::IsSuspended()
 bool ax::NodeEditor::IsActive()
 {
     return s_Editor->IsFocused();
+}
+
+const char* ax::NodeEditor::GetCurrentActionName()
+{
+	auto action = s_Editor->GetCurrentAction();
+	return action ? action->GetName() : "";
+}
+
+int ax::NodeEditor::GetDragNode()
+{
+	auto action = s_Editor->GetCurrentAction();
+	if (action && action->AsDrag() != nullptr)
+	{
+		ax::NodeEditor::Detail::Object* object = action->AsDrag()->m_DraggedObject;
+		return object ? object->ID().AsNodeId().Get() : 0;
+	}
+	return 0;
+}
+
+bool ax::NodeEditor::IsDragAction()
+{
+	auto action = s_Editor->GetCurrentAction();
+	return action && action->AsDrag() != nullptr;
+}
+
+bool ax::NodeEditor::IsAnyNodeSelected()
+{
+	return s_Editor->IsAnyNodeSelected();
+}
+
+bool ax::NodeEditor::IsAnyLinkSelected()
+{
+	return s_Editor->IsAnyLinkSelected();
 }
 
 bool ax::NodeEditor::HasSelectionChanged()

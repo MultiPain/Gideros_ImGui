@@ -69,6 +69,8 @@ int HasSelectionChanged(lua_State* L);
 int GetSelectedObjectCount(lua_State* L);
 int GetSelectedNodes(lua_State* L);
 int GetSelectedLinks(lua_State* L);
+int IsAnyNodeSelected(lua_State* L);
+int IsAnyLinkSelected(lua_State* L);
 int IsNodeSelected(lua_State* L);
 int IsLinkSelected(lua_State* L);
 int ClearSelection(lua_State* L);
