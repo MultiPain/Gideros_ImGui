@@ -13584,64 +13584,92 @@ void imNodesLoader(lua_State* L)
 		{"editorContextGetPanning", ImNodesEditorContextGetPanning},
 		{"editorContextResetPanning", ImNodesEditorContextResetPanning},
 		{"editorContextMoveToNode", ImNodesEditorContextMoveToNode},
+
 		{"getIO", ImNodesGetIO},
 		{"getStyle", ImNodesGetStyle},
+
 		{"styleColorsDark", ImNodesStyleColorsDark},
 		{"styleColorsClassic", ImNodesStyleColorsClassic},
 		{"styleColorsLight", ImNodesStyleColorsLight},
+
 		{"beginNodeEditor", ImNodesBeginNodeEditor},
 		{"endNodeEditor", ImNodesEndNodeEditor},
+
 		{"miniMap", ImNodesMiniMap},
+
 		{"pushColorStyle", ImNodesPushColorStyle},
 		{"popColorStyle", ImNodesPopColorStyle},
-		{"pushStyleVar", ImNodesPushStyleVar},
+
 		{"pushStyleVar", ImNodesPushStyleVar},
 		{"popStyleVar", ImNodesPopStyleVar},
+
 		{"beginNode", ImNodesBeginNode},
 		{"endNode", ImNodesEndNode},
+
 		{"getNodeDimensions", ImNodesGetNodeDimensions},
+
 		{"beginNodeTitleBar", ImNodesBeginNodeTitleBar},
 		{"endNodeTitleBar", ImNodesEndNodeTitleBar},
+
 		{"beginInputAttribute", ImNodesBeginInputAttribute},
 		{"endInputAttribute", ImNodesEndInputAttribute},
+
 		{"beginOutputAttribute", ImNodesBeginOutputAttribute},
 		{"endOutputAttribute", ImNodesEndOutputAttribute},
+
 		{"beginStaticAttribute", ImNodesBeginStaticAttribute},
 		{"endStaticAttribute", ImNodesEndStaticAttribute},
+
 		{"pushAttributeFlag", ImNodesPushAttributeFlag},
 		{"popAttributeFlag", ImNodesPopAttributeFlag},
+
 		{"link", ImNodesLink},
+
 		{"setNodeDraggable", ImNodesSetNodeDraggable},
+
 		{"setNodeScreenSpacePos", ImNodesSetNodeScreenSpacePos},
-		{"setNodeEditorSpacePos", ImNodesSetNodeEditorSpacePos},
-		{"setNodeGridSpacePos", ImNodesSetNodeGridSpacePos},
 		{"getNodeScreenSpacePos", ImNodesGetNodeScreenSpacePos},
+
+		{"setNodeEditorSpacePos", ImNodesSetNodeEditorSpacePos},
 		{"getNodeEditorSpacePos", ImNodesGetNodeEditorSpacePos},
+
+		{"setNodeGridSpacePos", ImNodesSetNodeGridSpacePos},
 		{"getNodeGridSpacePos", ImNodesGetNodeGridSpacePos},
+
 		{"snapNodeToGrid", ImNodesSnapNodeToGrid},
+
 		{"isEditorHovered", ImNodesIsEditorHovered},
 		{"isNodeHovered", ImNodesIsNodeHovered},
 		{"isLinkHovered", ImNodesIsLinkHovered},
 		{"isPinHovered", ImNodesIsPinHovered},
+
 		{"numSelectedNodes", ImNodesNumSelectedNodes},
 		{"numSelectedLinks", ImNodesNumSelectedLinks},
+
 		{"getSelectedNodes", ImNodesGetSelectedNodes},
 		{"getSelectedLinks", ImNodesGetSelectedLinks},
+
 		{"clearNodeSelection", ImNodesClearNodeSelection},
 		{"clearLinkSelection", ImNodesClearLinkSelection},
+
 		{"selectNode", ImNodesSelectNode},
 		{"clearNodeSelection", ImNodesClearNodeSelection},
 		{"isNodeSelected", ImNodesIsNodeSelected},
+
 		{"selectLink", ImNodesSelectLink},
 		{"clearLinkSelection", ImNodesClearLinkSelection},
 		{"isLinkSelected", ImNodesIsLinkSelected},
+
 		{"isAttributeActive", ImNodesIsAttributeActive},
 		{"isAnyAttributeActive", ImNodesIsAnyAttributeActive},
+
 		{"isLinkStarted", ImNodesIsLinkStarted},
 		{"isLinkDropped", ImNodesIsLinkDropped},
 		{"isLinkCreated", ImNodesIsLinkCreated},
 		{"isLinkCreated2", ImNodesIsLinkCreated2},
+
 		{"isLinkDestroyed", ImNodesIsLinkDestroyed},
+
 		{"saveCurrentEditorStateToIniString", ImNodesSaveCurrentEditorStateToIniString},
 		{"loadCurrentEditorStateFromIniString", ImNodesLoadCurrentEditorStateFromIniString},
 		{"saveCurrentEditorStateToIniFile", ImNodesSaveCurrentEditorStateToIniFile},
@@ -14028,6 +14056,89 @@ int HelpMarker(lua_State* L)
 	HelpMarker(message);
 	return 0;
 }
+
+////////////////////////////////////////////////////////////////////
+
+static const ImVec2 luaL_optvec2(lua_State* L, int idx, float defX = 0.0f, float defY = 0.0f)
+{
+	float x = luaL_optnumber(L, idx, defX);
+	float y = luaL_optnumber(L, idx + 1, defY);
+
+	return ImVec2(x, y);
+}
+
+int LyaoutBeginHorizontal(lua_State* L)
+{	ImVec2 size = luaL_optvec2(L, 3);
+	float align = luaL_optnumber(L, 5, -1.0f);
+
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		ImGuiID id = checkID(L, 2);
+		int uid = (int)id;
+		ImGui::BeginHorizontal(uid, size, align);
+	}
+	else
+	{
+		const char* str_id = luaL_checkstring(L, 2);
+		ImGui::BeginHorizontal(str_id, size, align);
+	}
+	return 0;
+}
+
+int LyaoutEndHorizontal(lua_State* L)
+{
+	ImGui::EndHorizontal();
+	return 0;
+}
+
+int LyaoutBeginVertical(lua_State* L)
+{
+	ImVec2 size = luaL_optvec2(L, 3);
+	float align = luaL_optnumber(L, 5, -1.0f);
+
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		ImGuiID id = checkID(L, 2);
+		int uid = (int)id;
+		ImGui::BeginVertical(uid, size, align);
+	}
+	else
+	{
+		const char* str_id = luaL_checkstring(L, 2);
+		ImGui::BeginVertical(str_id, size, align);
+	}
+
+	return 0;
+}
+
+int LyaoutEndVertical(lua_State* L)
+{
+	ImGui::EndVertical();
+	return 0;
+}
+
+int LyaoutSpring(lua_State* L)
+{
+	float weight = luaL_optnumber(L, 2, 1.0f);
+	float spacing = luaL_optnumber(L, 3, -1.0f);
+	ImGui::Spring(weight, spacing);
+	return 0;
+}
+
+int LyaoutSuspendLayout(lua_State* L)
+{
+	ImGui::SuspendLayout();
+	return 0;
+}
+
+int LyaoutResumeLayout(lua_State* L)
+{
+	ImGui::ResumeLayout();
+	return 0;
+}
+
+
+////////////////////////////////////////////////////////////////////
 
 int loader(lua_State* L)
 {
@@ -14672,7 +14783,15 @@ int loader(lua_State* L)
 	g_createClass(L, "ImGuiSizeCallbackData", NULL, NULL, NULL, imguiSizeCallbackDataFunctionList);
 	
 	const luaL_Reg imguiFunctionList[] =
-	{		
+	{
+		{"beginHorizontal", LyaoutBeginHorizontal},
+		{"endHorizontal", LyaoutEndHorizontal},
+		{"beginVertical", LyaoutBeginVertical},
+		{"endVertical", LyaoutEndVertical},
+		{"spring", LyaoutSpring},
+		{"suspendLayout", LyaoutSuspendLayout},
+		{"resumeLayout", LyaoutResumeLayout},
+
 		{"beginDisabled", BeginDisabled},
 		{"endDisabled", EndDisabled},
 		
