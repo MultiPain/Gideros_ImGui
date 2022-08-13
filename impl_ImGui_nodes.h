@@ -173,6 +173,13 @@ int ImNodesStyleGetSelectedNodeBorderOffset(lua_State* L);
 int ImNodesStyleSetHoverNodeBorderOffset(lua_State* L);
 int ImNodesStyleGetHoverNodeBorderOffset(lua_State* L);
 
+int ImNodesDrawPinTriangle(lua_State* L);
+int ImNodesDrawPinRectanle(lua_State* L);
+int ImNodesDrawPinCircle(lua_State* L);
+int ImNodesDrawPinDiamond(lua_State* L);
+int ImNodesDrawPinUnreal(lua_State* L);
+int ImNodesDrawPinGlobule(lua_State* L);
+
 int nodes_loader(lua_State* L);
 }
 

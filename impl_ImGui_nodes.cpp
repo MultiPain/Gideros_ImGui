@@ -1523,6 +1523,214 @@ int GetDragNode(lua_State* L)
 	return 1;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
+
+const ImRect DrawPin(lua_State* L)
+{
+	const ImVec2 areaSize = luaL_checkvec2(L, 2);
+	ImGui::Dummy(areaSize);
+	return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+}
+
+int ImNodes_impl::ImNodesDrawPinTriangle(lua_State* L)
+{
+	const ImRect area = DrawPin(L);
+
+	float offset = luaL_optnumber(L, 4, 0.0f);
+	bool filled = luaL_optboolean(L, 5, false);
+	ImU32 col = GColor::toU32opt(L, 6);
+	float thickness = luaL_optnumber(L, 8, 1.0f);
+	ImGuiDir dir = luaL_optinteger(L, 9, ImGuiDir_Right);
+
+	float radius = ImMin(area.GetWidth(), area.GetHeight()) * 0.5f - offset;
+	const ImVec2 center = area.GetCenter();
+
+	ImVec2 p1 = ImVec2();
+	ImVec2 p2 = ImVec2();
+	ImVec2 p3 = ImVec2();
+
+	switch(dir)
+	{
+		case ImGuiDir_Left:
+		{
+			p1.x = center.x - radius;
+			p1.y = center.y;
+			p2.x = center.x + radius;
+			p2.y = center.y - radius;
+			p3.x = p2.x;
+			p3.y = center.y + radius;
+		}
+		break;
+		case ImGuiDir_Right:
+		{
+			p1.x = center.x - radius;
+			p1.y = center.y - radius;
+			p2.x = center.x + radius;
+			p2.y = center.y;
+			p3.x = center.x - radius;
+			p3.y = center.y + radius;
+		}
+		break;
+		case ImGuiDir_Down:
+		{
+			p1.x = center.x - radius;
+			p1.y = center.y - radius;
+			p2.x = center.x + radius;
+			p2.y = p1.y;
+			p3.x = center.x;
+			p3.y = center.y + radius;
+		}
+		break;
+		case ImGuiDir_Up:
+		{
+			p1.x = center.x - radius;
+			p1.y = center.y + radius;
+			p2.x = center.x;
+			p2.y = center.y - radius;
+			p3.x = center.x + radius;
+			p3.y = p1.y;
+		}
+		break;
+	}
+
+	ImDrawList* list = ImGui::GetWindowDrawList();
+	if (filled)
+	{
+		list->AddTriangleFilled(p1, p2, p3, col);
+	}
+	else
+	{
+		list->AddTriangle(p1, p2, p3, col, thickness);
+	}
+	return 0;
+}
+
+int ImNodes_impl::ImNodesDrawPinRectanle(lua_State* L)
+{
+	const ImRect area = DrawPin(L);
+
+	float offset = luaL_optnumber(L, 4, 0.0f);
+	bool filled = luaL_optboolean(L, 5, false);
+	ImU32 col = GColor::toU32opt(L, 6);
+	float thickness = luaL_optnumber(L, 8, 1.0f);
+	ImDrawFlags flags = luaL_optinteger(L, 9, ImDrawFlags_RoundCornersNone);
+
+	float rounding = ImGui::GetStyle().FrameRounding;
+	float radius = ImMin(area.GetWidth(), area.GetHeight()) * 0.5f - offset;
+	const ImVec2 center = area.GetCenter();
+
+	const ImVec2 p1 = ImVec2(center.x - radius, center.y - radius);
+	const ImVec2 p2 = ImVec2(center.x + radius, center.y + radius);
+
+	ImDrawList* list = ImGui::GetWindowDrawList();
+	if (filled)
+	{
+		list->AddRectFilled(p1, p2, col, rounding, flags);
+	}
+	else
+	{
+		list->AddRect(p1, p2, col, rounding, flags, thickness);
+	}
+	return 0;
+}
+
+int ImNodes_impl::ImNodesDrawPinCircle(lua_State* L)
+{
+	const ImRect area = DrawPin(L);
+	float offset = luaL_optnumber(L, 4, 0.0f);
+	bool filled = luaL_optboolean(L, 5, false);
+	ImU32 col = GColor::toU32opt(L, 6);
+	float thickness = luaL_optnumber(L, 8, 1.0f);
+
+	ImDrawList* list = ImGui::GetWindowDrawList();
+	const ImVec2 center = area.GetCenter();
+	float radius = ImMin(area.GetWidth(), area.GetHeight()) * 0.5f  - offset;
+
+	if (filled)
+	{
+		list->AddCircleFilled(center, radius, col);
+	}
+	else
+	{
+		list->AddCircle(center, radius, col, 0, thickness);
+	}
+
+	return 0;
+}
+
+int ImNodes_impl::ImNodesDrawPinDiamond(lua_State* L)
+{
+	const ImRect area = DrawPin(L);
+	float offset = luaL_optnumber(L, 4, 0.0f);
+	bool filled = luaL_optboolean(L, 5, false);
+	ImU32 col = GColor::toU32opt(L, 6);
+	float thickness = luaL_optnumber(L, 8, 1.0f);
+
+	float radius = ImMin(area.GetWidth(), area.GetHeight()) * 0.5f - offset;
+	const ImVec2 center = area.GetCenter();
+
+	ImDrawList* list = ImGui::GetWindowDrawList();
+
+	list->PathLineTo(ImVec2(center.x - radius, center.y));
+	list->PathLineTo(ImVec2(center.x, center.y - radius));
+	list->PathLineTo(ImVec2(center.x + radius, center.y));
+	list->PathLineTo(ImVec2(center.x, center.y + radius));
+
+	if (filled)
+	{
+		list->PathFillConvex(col);
+	}
+	else
+	{
+		list->PathStroke(col, true, thickness);
+	}
+
+	return 0;
+}
+
+int ImNodes_impl::ImNodesDrawPinUnreal(lua_State* L)
+{
+	const ImRect area = DrawPin(L);
+	float offset = luaL_optnumber(L, 4, 0.0f);
+	bool filled = luaL_optboolean(L, 5, false);
+	ImU32 col = GColor::toU32opt(L, 6);
+	float thickness = luaL_optnumber(L, 8, 1.0f);
+	ImDrawList* list = ImGui::GetWindowDrawList();
+
+	return 0;
+}
+
+int ImNodes_impl::ImNodesDrawPinGlobule(lua_State* L)
+{
+	const ImVec2 areaSize = luaL_checkvec2(L, 2);
+	float areaSizeOffset = luaL_optnumber(L, 4, 0.0f);
+	ImGui::Dummy(ImVec2(areaSize.x + areaSizeOffset, areaSize.y));
+	const ImRect area = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+
+	float padding = luaL_optnumber(L, 5, 0.0f);
+	bool filled = luaL_optboolean(L, 6, false);
+	ImU32 col = GColor::toU32opt(L, 7);
+	float thickness = luaL_optnumber(L, 9, 1.0f);
+
+	ImDrawList* list = ImGui::GetWindowDrawList();
+	const ImVec2 center = area.GetCenter();
+	float radius = (ImMin(area.GetWidth(), area.GetHeight()) - areaSizeOffset) * 0.5f - padding;
+
+	list->PathArcTo(ImVec2(area.Min.x + padding + radius, center.y), radius, 0.785398163, 5.49778714);
+	list->PathLineTo(ImVec2(area.Max.x - padding - thickness * 0.5f, center.y));
+
+	if (filled)
+	{
+		list->PathFillConvex(col);
+	}
+	else
+	{
+		list->PathStroke(col, true, thickness);
+	}
+
+	return 0;
+}
+
 int ImNodes_impl::nodes_loader(lua_State* L)
 {
 
@@ -1611,6 +1819,13 @@ int ImNodes_impl::nodes_loader(lua_State* L)
 	g_createClass(L, "ImNodeStyle", NULL, NULL, NULL, nodesStyleFunctionsList);
 
 	const luaL_Reg nodesFunctionsList[] = {
+		{"drawPinTriangle", ImNodesDrawPinTriangle},
+		{"drawPinRectanle", ImNodesDrawPinRectanle},
+		{"drawPinCircle", ImNodesDrawPinCircle},
+		{"drawPinDiamond", ImNodesDrawPinDiamond},
+		{"drawPinUnreal", ImNodesDrawPinUnreal},
+		{"drawPinGlobule", ImNodesDrawPinGlobule},
+
 		{"getCurrentActionName", GetCurrentActionName},
 		{"isDragAction", IsDragAction},
 		{"getDragNode", GetDragNode},

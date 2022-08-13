@@ -993,6 +993,7 @@ void bindEnums(lua_State* L)
 	BIND_IENUM(L, ImDrawFlags_RoundCornersTopRight, "DrawFlags_RoundCornersTopRight");
 	BIND_IENUM(L, ImDrawFlags_RoundCornersBottomLeft, "DrawFlags_RoundCornersBottomLeft");
 	BIND_IENUM(L, ImDrawFlags_RoundCornersBottomRight, "DrawFlags_RoundCornersBottomRight");
+	BIND_IENUM(L, ImDrawFlags_RoundCornersNone, "DrawFlags_RoundCornersNone");
 	BIND_IENUM(L, ImDrawFlags_RoundCornersTop, "DrawFlags_RoundCornersTop");
 	BIND_IENUM(L, ImDrawFlags_RoundCornersBottom, "DrawFlags_RoundCornersBottom");
 	BIND_IENUM(L, ImDrawFlags_RoundCornersLeft, "DrawFlags_RoundCornersLeft");
@@ -1798,7 +1799,7 @@ void GidImGui::doDraw(const CurrentTransform&, float _UNUSED(sx), float _UNUSED(
 							(int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
 							(int)(pcmd->ClipRect.w - pcmd->ClipRect.y)
 							);
-				shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount, ShaderProgram::DUSHORT, idx_buffer + pcmd->IdxOffset, true, NULL);
+				shp->drawElements(ShaderProgram::Triangles, pcmd->ElemCount, ShaderProgram::DINT, idx_buffer + pcmd->IdxOffset, true, NULL);
 				engine->popClip();
 			}
 		}
@@ -5519,6 +5520,13 @@ int TextFilter_PassFilter(lua_State* L)
 	const char* text = luaL_checkstring(L, 2);
 	lua_pushboolean(L, filter->PassFilter(text));
 	return 1;
+}
+
+int TextFilter_Clear(lua_State* L)
+{
+	ImGuiTextFilter* filter = getPtr<ImGuiTextFilter>(L, "ImGuiTextFilter");
+	filter->Clear();
+	return 0;
 }
 
 int TextFilter_Draw(lua_State* L)
@@ -12521,6 +12529,7 @@ int loader(lua_State* L)
 {
 	const luaL_Reg imguiTextFilterFunctionsList[] = {
 		{"passFilter", TextFilter_PassFilter},
+		{"clear", TextFilter_Clear},
 		{"draw", TextFilter_Draw},
 		{NULL, NULL}
 	};
