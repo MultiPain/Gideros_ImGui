@@ -15,7 +15,7 @@ p_open = ImGui:showLog(title, p_open [, ImGui.WindowFlags = 0]) -- draw log wind
 ImGui:writeLog(text)
 ```
 
-### Gestures (touch only, turned OFF by default) _**WIP**_
+## Gestures (touch only, turned OFF by default) _**WIP**_
 
 *   Tap gesture (Left Mouse Button)
 *   Hold gesture (Right Mouse Button)
