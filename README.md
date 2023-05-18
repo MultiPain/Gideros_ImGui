@@ -15,7 +15,7 @@ p_open = ImGui:showLog(title, p_open [, ImGui.WindowFlags = 0]) -- draw log wind
 ImGui:writeLog(text)
 ```
 
-## Gestures (touch only, turned OFF by default) _**WIP**_
+### Gestures (touch only, turned OFF by default) _**WIP**_
 
 *   Tap gesture (Left Mouse Button)
 *   Hold gesture (Right Mouse Button)
@@ -1351,10 +1351,16 @@ filter = ImGuiTextFilter.new()
 ```
 ### Methods
 ```lua
-bool = filter:draw(label [, width = 0]) -- draws the input field
+-- draws the input field
+isValueChanged = filter:draw(label [, width = 0])
+-- draws the input field (using ImGui:inutTextWithHint())
+isValueChanged = filter:drawWithHint(label, hint [, width = 0])
+
+filter:setBuffer(text) -- set filter text
+filter:build() -- update filter internals (see example below)
 bool = filter:passFilter(text) -- returns true if filter input matches with "text"
 ```
-### Usage example
+### Usage example №1
 https://github.com/MultiPain/Gideros_ImGui/blob/28d2cdd4f393d6f2048792e51f695d56d7e0ae9a/imgui_src/imgui_demo.cpp#L5657
 ```lua
 ui = ImGui.new()
@@ -1391,6 +1397,42 @@ end
 stage:addEventListener("enterFrame", onEnterFrame)
 ```
 
+### Usage example №2
+```lua
+ui = ImGui.new()
+stage:addChild(ui)
+filter = ImGuiTextFilter.new()
+
+searchText = ""
+items = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" }
+function onEnterFrame(e)
+	ui:newFrame(e.deltaTime)
+	
+	-- Draw standart text input control
+	-- filter:drawWithHint("Filter", "Search")
+	
+	-- Draw custom control
+	local valueChanged = false
+	searchText, valueChanged = ui:inputText("Filter", searchText, 256, ImGui.InputTextFlags_EnterReturnsTrue)
+	if valueChanged then
+		filter:setBuffer(searchText)
+		-- try to avoid calling "build" function every frame
+		filter:build()
+	end
+	
+	for i, item in ipairs(items) do
+		if not filter:passFilter(item) then
+			continue
+		end
+		
+		ui:bulletText(item)
+	end
+	
+	ui:endFrame()
+	ui:render()
+end
+```
+
 ## Focus, Activation
 ```lua
 ImGui:setItemDefaultFocus()
@@ -1408,6 +1450,7 @@ flag = ImGui:isItemToggledOpen()
 flag = ImGui:isAnyItemHovered()
 flag = ImGui:isAnyItemActive()
 flag = ImGui:isAnyItemFocused()
+minX, minY, maxX, maxY = ImGui:getItemRect()
 x, y = ImGui:getItemRectMin()
 x, y = ImGui:getItemRectMax()
 w, h = ImGui:getItemRectSize()
