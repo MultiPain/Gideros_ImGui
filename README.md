@@ -696,14 +696,14 @@ pressFlag = ImGui:imageButtonUV(str_id, texture, w, h,
 -- Images are scaled (extended by @MultiPain)
 -- padding deprecated 
 -- (use "ImGui:pushStyleVar(ImGui.StyleVar_FramePadding, x, y)/ImGui:popStyleVar()")
-ImGui:scaledImage(texture, w, h 
+ImGui:scaledImage(str_id, texture, w, h 
 	[, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
 	anchor_x = 0.5, anchor_y = 0.5, 
 	tint_col = 0xffffff, tint_alpha = 1, 
 	border_col = 0, border_alpha = 0, 
 	bg_col = 0, bg_alpha = 0])
 		  
-pressFlag = ImGui:scaledImageButton(texture, w, h 
+pressFlag = ImGui:scaledImageButton(str_id, texture, w, h 
 	[, fit_mode = ImGui.ImageScaleMode_LetterBox, keep_size = false, 
 	ImGui.ButtonFlags = 0, anchor_x = 0.5, anchor_y = 0.5, 
 	clip_offset_x = 0, clip_offset_y = 0,
