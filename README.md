@@ -189,18 +189,24 @@ ImGui:onKeyChar(event)
 ### Usage example
 ```lua
 local UI = ImGui.new(nil, false, false, false)
--- Mouse
+```
+**Mouse**
+```lua
 stage:addEventListener("mouseHover", function(e) UI:onMouseHover(e) end)
 stage:addEventListener("mouseMove", function(e) UI:onMouseMove(e) end)
 stage:addEventListener("mouseDown", function(e) UI:onMouseDown(e) end)
 stage:addEventListener("mouseUp", function(e) UI:onMouseUp(e) end)
 stage:addEventListener("mouseWheel", function(e) UI:onMouseWheel(e) end)
--- Touch
+```
+**Touch**
+```lua
 stage:addEventListener("touchesCancel", function(e) ui:onTouchCancel(e) end)
 stage:addEventListener("touchesMove", function(e) ui:onTouchMove(e) end)
 stage:addEventListener("touchesBegin", function(e) ui:onTouchBegin(e) end)
 stage:addEventListener("touchesEnd", function(e) ui:onTouchEnd(e) end)
--- Keyboard
+```
+**Keyboard**
+```lua
 stage:addEventListener("keyUp", function(e) UI:onKeyUp(e) end)
 stage:addEventListener("keyDown", function(e) UI:onKeyDown(e) end)
 stage:addEventListener("keyChar", function(e) UI:onKeyChar(e) end)
@@ -310,8 +316,8 @@ ImGui:setClassicStyle()
 ```
 
 ## Color convert
+**Note**: use ***DOT*** instead of ***COLON***, so you can use it without creating an ImGui object
 ```lua
--- note: use DOT instead of COLON, so you can use it without creating an ImGui object
 r, g, b, a = ImGui.colorConvertHEXtoRGB(color [, alpha = 1])
 hex = ImGui.colorConvertRGBtoHEX(r, g, b)
 h, s, v = ImGui.colorConvertRGBtoHSV(r, g, b)
@@ -325,7 +331,7 @@ hex = ImGui.colorConvertHSVtoHEX(h, s, v)
 ```lua
 local IO = ImGui:getIO()
 ```
-
+### Functions
 ```lua
 IO:setFontDefault(font)
 ImGuiConfigFlag = IO:getConfigFlags()
@@ -1069,8 +1075,64 @@ ImGui:listBoxFooter()
 ```
 
 ## Widgets: Data Plotting
+
+### Caching
+If you have big array of points it is better to cache it instead of translating lua table to C++ vector every time you call `ImGui:plotLines()`. But in this case you need to manage memory by yourself (free points pointer when you dont need it).
 ```lua
+-- store points in memory
 -- points_table: {0.01, 0.5, 10, -50, ...}
+-- ptr: c++ pointer to a given vector
+ptr = ImGui.cachePoints(points_table)
+
+-- delete points from memory
+ImGui.freePoints(ptr)
+```
+
+#### Example
+```lua
+-- delete ptr if it exist
+function deletePtr()
+	if pointsPtr then
+		ImGui.freePoints(pointsPtr)
+	end
+end
+
+function onEnterFrame()
+	ui:newFrame(e.deltaTime)
+	
+	if ui:button("Generate") then
+		deletePtr()
+		points = generatePoints() -- returns big array
+		pointsPtr = ImGui.cachePoints(points)
+	end
+	
+	if pointsPtr then
+		ui:plotCachedLines("Big data", pointsPtr, #points)
+	end
+	
+	ui:render()
+	ui:endFrame()
+end
+
+-- do not forget to clear memory when app is closing
+function onAppExit()
+	deletePtr()
+end
+```
+
+### Plot functions
+```lua
+-- len (number): points array lenght
+ImGui:plotCachedLines(label, ptr, len, 
+	[, values_offset = 0, overlay_text = nil, 
+	scale_min = math.huge, scale_max = math.huge, 
+	w = 0, h = 0])
+	
+ImGui:plotCachedHistogram(label, ptr, len, 
+	[, values_offset = 0, overlay_text = nil, 
+	scale_min = math.huge, scale_max = math.huge, 
+	w = 0, h = 0])
+
 ImGui:plotLines(label, points_table 
 	[, values_offset = 0, overlay_text = nil, 
 	scale_min = math.huge, scale_max = math.huge, 
