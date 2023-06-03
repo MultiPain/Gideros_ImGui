@@ -495,6 +495,8 @@ ImGui:setWindowSize(name, w, h [, ImGui.Cond = 0]) OR ImGui:setWindowSize(w, h [
 ImGui:setWindowCollapsed(name, flag [, ImGui.Cond = 0]) OR ImGui:setWindowCollapsed(flag [, ImGui.Cond = 0])
 ImGui:setWindowFocus(name) OR ImGui:setWindowFocus()
 ImGui:setWindowFontScale(scale)
+-- scroll window when touching void
+ImGui:scrollWhenDragging(x, y)
 ```
 
 ### Window size constraints
